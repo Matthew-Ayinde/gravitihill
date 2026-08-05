@@ -1,26 +1,318 @@
 @import "tailwindcss";
 
+/* ============================================================================
+   GRAVITI HILL — DESIGN TOKENS
+   ----------------------------------------------------------------------------
+   Six load-bearing colours. --ink-muted, --white, --rule and --rule-dark are
+   derived support (a tint and two alphas), not independent design decisions.
+
+   Enforced balance: 70% neutral / 20% dark green / 10% accent.
+   --accent is a scalpel: one word, one rule, one icon fill, one data point.
+   Never a background. Never a button fill.
+
+   ── The accent-as-type rule (measured, not assumed) ─────────────────────────
+   Contrast of --accent #8ABF4D on --canvas #FDFDFC is 2.14:1. That fails WCAG
+   2.2 AA at every size — including the 3:1 large-text threshold — so --accent
+   is never type on a light surface, not even a display-scale headline word.
+   On --ridge #0D2A0B it measures 7.12:1 and passes at all sizes.
+
+   Therefore:
+     · light surfaces — the highlighted word is --green (6.94:1)
+     · dark surfaces  — the highlighted word is --accent (7.12:1)
+     · either surface — --accent is free on rules, icon fills, progress bars,
+                        markers and focus rings, which are non-text
+   Use .accent-word / .accent-word-dark rather than reaching for the colour
+   directly, so the rule travels with the markup.
+   ========================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --canvas: #fdfdfc;
+  --canvas-alt: #edeced;
+  --ink: #0b0b0b;
+  --ink-muted: #5a5f5a;
+  --green: #206616;
+  --ridge: #0d2a0b;
+  --accent: #8abf4d;
+  --white: #ffffff;
+  --rule: rgba(11, 11, 11, 0.12);
+  --rule-dark: rgba(255, 255, 255, 0.16);
+
+  /* Font swap path — see README §Typography.
+     Acumin Variable (Adobe Fonts) drops in here with no component edits. */
+  --font-display: var(--font-archivo), "Archivo", ui-sans-serif, system-ui,
+    sans-serif;
+  --font-body: var(--font-archivo), "Archivo", ui-sans-serif, system-ui,
+    sans-serif;
+
+  /* Width axis stops. Acumin equivalents noted for the swap. */
+  --wdth-xcond: 72; /* Acumin Extra Condensed */
+  --wdth-semicond: 88; /* Acumin Semi Condensed */
+  --wdth-normal: 100; /* Acumin Normal */
+  --wdth-wide: 112; /* eyebrow / index setting */
+
+  /* Layout */
+  --gutter: clamp(1.25rem, 5vw, 6rem);
+  --shell: 1440px;
+  --section-y: clamp(6rem, 12vh, 11rem);
+
+  /* Motion */
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-hover: 240ms;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-canvas: var(--canvas);
+  --color-canvas-alt: var(--canvas-alt);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-green: var(--green);
+  --color-ridge: var(--ridge);
+  --color-accent: var(--accent);
+  --color-white: var(--white);
+  --color-rule: var(--rule);
+  --color-rule-dark: var(--rule-dark);
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+
+  /* Fluid type scale. Components reference these, never raw clamp() values. */
+  --text-hero: clamp(3.25rem, 7.5vw, 7rem);
+  --text-hero--line-height: 0.94;
+  --text-h1: clamp(2.75rem, 5.5vw, 4.75rem);
+  --text-h1--line-height: 0.98;
+  --text-h2: clamp(2rem, 3.6vw, 3.25rem);
+  --text-h2--line-height: 1.04;
+  --text-h3: clamp(1.375rem, 2vw, 1.75rem);
+  --text-h3--line-height: 1.15;
+  --text-body-lg: clamp(1.0625rem, 1.2vw, 1.25rem);
+  --text-body-lg--line-height: 1.55;
+  --text-body: 1rem;
+  --text-body--line-height: 1.6;
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.5;
+  --text-eyebrow: 0.75rem;
+  --text-eyebrow--line-height: 1.2;
+
+  --spacing-gutter: var(--gutter);
+  --spacing-section: var(--section-y);
+
+  --ease-brand: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ============================================================================
+   WIDTH AXIS UTILITIES
+   One superfamily, four stops. This is why Archivo was chosen over a pairing.
+   ========================================================================== */
+
+@utility w-xcond {
+  font-variation-settings: "wdth" var(--wdth-xcond);
+}
+@utility w-semicond {
+  font-variation-settings: "wdth" var(--wdth-semicond);
+}
+@utility w-normal-width {
+  font-variation-settings: "wdth" var(--wdth-normal);
+}
+@utility w-wide {
+  font-variation-settings: "wdth" var(--wdth-wide);
+}
+
+/* ============================================================================
+   COMPOSED TYPE ROLES
+   ========================================================================== */
+
+@utility type-display {
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" var(--wdth-xcond);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+@utility type-subhead {
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" var(--wdth-semicond);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+@utility type-eyebrow {
+  font-family: var(--font-body);
+  font-variation-settings: "wdth" var(--wdth-wide);
+  font-size: var(--text-eyebrow);
+  line-height: 1.2;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+/* The single highlighted word in a headline. Two utilities rather than one
+   colour, because which token is legal depends on the surface — see the
+   accent-as-type rule at the top of this file. */
+@utility accent-word {
+  color: var(--green);
+}
+@utility accent-word-dark {
+  color: var(--accent);
+}
+
+/* Clipping frame for the line-level headline reveal. The padding/negative-margin
+   pair stops descenders being shaved by the overflow clip. */
+@utility line-mask {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+
+/* Measure caps at 68 characters. Never centre prose longer than two lines. */
+@utility measure {
+  max-width: 68ch;
+}
+@utility measure-tight {
+  max-width: 46ch;
+}
+
+/* ============================================================================
+   LAYOUT SHELL
+   12-column grid, 1440px max, fluid gutters. Asymmetry is the rule —
+   prose sits in columns 1–7 or 6–12, never dead-centre.
+   ========================================================================== */
+
+@utility shell {
+  width: 100%;
+  max-width: var(--shell);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+@utility grid-12 {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(1rem, 2vw, 2rem);
+}
+
+@utility hairline {
+  border-top: 1px solid var(--rule);
+}
+@utility hairline-dark {
+  border-top: 1px solid var(--rule-dark);
+}
+
+/* ============================================================================
+   BASE
+   ========================================================================== */
+
+@layer base {
+  * {
+    min-width: 0;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-variation-settings: "wdth" var(--wdth-normal);
+    font-size: var(--text-body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+  }
+
+  /* WCAG 2.2 AA — visible focus, 2px, offset, --accent.
+     Accent is legitimate here: a non-text element. */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background-color: var(--accent);
+    color: var(--ink);
+  }
+
+  address {
+    font-style: normal;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ============================================================================
+   THE UNDERLINE
+   Links draw an underline from the left. 240ms. This is the site's only
+   hover flourish outside the two sanctioned motion moments.
+   ========================================================================== */
+
+@utility link-draw {
+  position: relative;
+  display: inline-block;
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -0.15em;
+    width: 100%;
+    height: 1px;
+    background-color: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--dur-hover) var(--ease-out-expo);
+  }
+
+  &:hover::after,
+  &:focus-visible::after {
+    transform: scaleX(1);
+  }
+}
+
+/* ============================================================================
+   REDUCED MOTION — NON-NEGOTIABLE
+   All transforms and reveals off. Content renders in its final state.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* The guarantee.
+     Every framer-motion element on the site carries data-motion. The JS path
+     already returns plain elements when useReducedMotion() reports true — but
+     that hook resolves after hydration, so for one frame (or permanently, if
+     the subscription never fires) an element can be left holding an inline
+     `opacity: 0; transform: translateY(...)`. Killing transition-duration does
+     not undo an inline style; it freezes it, which is the worst outcome:
+     invisible content.
+
+     A stylesheet !important beats a non-important inline style, so this forces
+     the final state regardless of what the JS decided. Verified with Chrome
+     under emulated prefers-reduced-motion across every route. */
+  [data-motion] {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
 }

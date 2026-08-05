@@ -1,0 +1,212 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { PageHero } from "@/components/sections/PageHero";
+import { CtaPanel } from "@/components/sections/CtaPanel";
+import { Section, SectionLabel, SectionLabelInline } from "@/components/ui/Section";
+import { EditorialImage } from "@/components/ui/EditorialImage";
+import { Reveal } from "@/components/motion/Reveal";
+import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
+import { Icon } from "@/components/icons";
+import { SECTORS, getSector } from "@/content/sectors";
+import { PRACTICES } from "@/content/services";
+import { pageMetadata } from "@/lib/seo";
+import { indexNumber } from "@/lib/utils";
+
+export function generateStaticParams() {
+  return SECTORS.map((sector) => ({ slug: sector.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/sectors/[slug]">): Promise<Metadata> {
+  const { slug } = await params;
+  const sector = getSector(slug);
+  if (!sector) return {};
+
+  return pageMetadata({
+    title: `${sector.name} Sector`,
+    description: `${sector.proposition} ${sector.thesis[0]}`,
+    path: `/sectors/${sector.slug}`,
+  });
+}
+
+export default async function SectorPage({
+  params,
+}: PageProps<"/sectors/[slug]">) {
+  const { slug } = await params;
+  const sector = getSector(slug);
+  if (!sector) notFound();
+
+  const position = SECTORS.findIndex((s) => s.slug === sector.slug);
+  const practices = PRACTICES.filter((practice) =>
+    practice.relatedSectors.includes(sector.slug),
+  );
+
+  return (
+    <>
+      <PageHero
+        eyebrow={`Sectors / ${sector.name}`}
+        title={sector.proposition}
+        lede={sector.thesis[0]}
+        index={[
+          { label: "Sector", value: indexNumber(position) },
+          { label: "Approach", value: String(sector.approach.length) },
+          { label: "Practices", value: String(practices.length) },
+        ]}
+      />
+
+      <div className="shell">
+        <EditorialImage
+          image={sector.image}
+          caption={`${sector.name} — West Africa`}
+          sizes="(min-width: 1440px) 1320px, 100vw"
+          priority
+        />
+      </div>
+
+      {/* ── Thesis ──────────────────────────────────────────────────────── */}
+      {sector.thesis.length > 1 && (
+        <Section>
+          <div className="shell grid-12 gap-y-8">
+            <div className="col-span-12 lg:col-span-3">
+              <SectionLabel index="01">The position</SectionLabel>
+              <SectionLabelInline index="01">The position</SectionLabelInline>
+            </div>
+            <div className="col-span-12 lg:col-span-8 lg:col-start-5">
+              <div className="measure space-y-6">
+                {sector.thesis.slice(1).map((paragraph, i) => (
+                  <Reveal as="p" key={i} className="type-subhead text-h3">
+                    {paragraph}
+                  </Reveal>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Section>
+      )}
+
+      {/* ── Strategic approach ──────────────────────────────────────────── */}
+      <Section tone="alt" labelledBy="approach-heading">
+        <div className="shell grid-12 gap-y-8">
+          <div className="col-span-12 lg:col-span-3">
+            <SectionLabel index="02">Approach</SectionLabel>
+            <SectionLabelInline index="02">Approach</SectionLabelInline>
+          </div>
+
+          <div className="col-span-12 lg:col-span-9">
+            <h2 id="approach-heading" className="type-display max-w-[16ch] text-h2">
+              How the work is run.
+            </h2>
+
+            <RevealGroup as="ol" className="mt-14 border-t border-rule">
+              {sector.approach.map((step, i) => (
+                <RevealItem
+                  as="li"
+                  key={step.name}
+                  className="grid-12 gap-y-3 border-b border-rule py-8"
+                >
+                  <div className="col-span-12 flex items-baseline gap-5 lg:col-span-5">
+                    <span className="type-eyebrow text-ink-muted">
+                      {indexNumber(i)}
+                    </span>
+                    <Icon
+                      name={step.icon}
+                      className="h-6 w-6 translate-y-1 text-green"
+                    />
+                    <h3 className="type-subhead text-h3">{step.name}</h3>
+                  </div>
+                  <p className="measure col-span-12 text-body-lg text-ink-muted lg:col-span-7">
+                    {step.note}
+                  </p>
+                </RevealItem>
+              ))}
+            </RevealGroup>
+          </div>
+        </div>
+      </Section>
+
+      {/* ── Differentiators ─────────────────────────────────────────────── */}
+      <Section labelledBy="difference-heading">
+        <div className="shell grid-12 gap-y-8">
+          <div className="col-span-12 lg:col-span-3">
+            <SectionLabel index="03">Difference</SectionLabel>
+            <SectionLabelInline index="03">Difference</SectionLabelInline>
+          </div>
+
+          <div className="col-span-12 lg:col-span-9">
+            <h2
+              id="difference-heading"
+              className="type-display max-w-[18ch] text-h2"
+            >
+              What makes us different here.
+            </h2>
+
+            <RevealGroup
+              as="ul"
+              className="mt-14 grid gap-px border border-rule bg-rule md:grid-cols-3"
+            >
+              {sector.differentiators.map((item) => (
+                <RevealItem
+                  as="li"
+                  key={item.name}
+                  className="bg-canvas p-8 md:p-10"
+                >
+                  <h3 className="type-subhead text-h3">{item.name}</h3>
+                  <p className="mt-4 text-ink-muted">{item.note}</p>
+                </RevealItem>
+              ))}
+            </RevealGroup>
+          </div>
+        </div>
+      </Section>
+
+      {/* ── Practices that run here ─────────────────────────────────────── */}
+      {practices.length > 0 && (
+        <Section tone="alt" labelledBy="practices-heading">
+          <div className="shell grid-12 gap-y-8">
+            <div className="col-span-12 lg:col-span-3">
+              <SectionLabel index="04">Practices</SectionLabel>
+              <SectionLabelInline index="04">Practices</SectionLabelInline>
+            </div>
+
+            <div className="col-span-12 lg:col-span-9">
+              <h2
+                id="practices-heading"
+                className="type-display max-w-[18ch] text-h2"
+              >
+                What we bring to {sector.name.toLowerCase()} work.
+              </h2>
+
+              <ul className="mt-14 border-t border-rule">
+                {practices.map((practice) => (
+                  <li key={practice.slug}>
+                    <Link
+                      href={`/services/${practice.slug}`}
+                      className="group flex flex-col gap-2 border-b border-rule py-8 transition-colors duration-200 hover:bg-canvas sm:flex-row sm:items-baseline sm:gap-10"
+                    >
+                      <span className="type-display w-64 shrink-0 text-h3">
+                        {practice.name}
+                      </span>
+                      <span className="measure flex-1 text-ink-muted">
+                        {practice.proposition}
+                      </span>
+                      <span
+                        aria-hidden="true"
+                        className="type-subhead hidden text-ink-muted transition-transform duration-200 ease-brand group-hover:translate-x-1 sm:block"
+                      >
+                        →
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </Section>
+      )}
+
+      <CtaPanel eyebrow="Engage" heading={`Talk to us about ${sector.name}.`} />
+    </>
+  );
+}
