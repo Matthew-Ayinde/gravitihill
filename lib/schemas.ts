@@ -47,6 +47,27 @@ export const imageSchema = z.object({
   ratio: z.enum(["3:2", "4:5"]).default("3:2"),
   /** Base64 data URL for next/image blur placeholder. */
   blurDataURL: z.string().optional(),
+  /**
+   * Optional ambient motion for this slot.
+   *
+   * When present, EditorialImage renders a muted, looping, inline <video> and
+   * uses `src` above as its poster; when absent — or under
+   * prefers-reduced-motion, or on a save-data connection — the still renders
+   * instead. So a video is strictly an enhancement of an image that already
+   * works, never a replacement for one.
+   *
+   * Supply at least one of mp4/webm. Keep clips under ~8 seconds and ~1.5 MB:
+   * these sit in hero position and the LCP budget is 2.0s on throttled 4G.
+   */
+  video: z
+    .object({
+      mp4: z.string().optional(),
+      webm: z.string().optional(),
+    })
+    .refine((v) => Boolean(v.mp4 || v.webm), {
+      message: "Provide at least one of video.mp4 or video.webm",
+    })
+    .optional(),
 });
 export type Img = z.infer<typeof imageSchema>;
 

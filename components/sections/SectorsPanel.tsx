@@ -139,7 +139,7 @@ function PinnedPanel({
       className={`relative hidden motion-safe:lg:block ${PANEL_HEIGHT}`}
     >
       <div className="sticky top-0 h-screen overflow-hidden">
-        <div className="shell flex h-full flex-col justify-center pt-20 pb-14">
+        <div className="shell flex h-full flex-col justify-center pt-24 pb-14">
           <p className="type-eyebrow mb-10 text-white/45">
             <span className="accent-word-dark">{index}</span>
             <span aria-hidden="true" className="mx-2">

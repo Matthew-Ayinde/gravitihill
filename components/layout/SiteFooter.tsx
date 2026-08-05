@@ -23,7 +23,7 @@ export function SiteFooter() {
       <div className="shell py-20">
         <div className="grid-12 gap-y-14">
           <div className="col-span-12 lg:col-span-4">
-            <Lockup variant="white" />
+            <Lockup variant="white" width={200} />
             <p className="type-display mt-8 max-w-[14ch] text-h3 text-white">
               Re-definers of Brand&nbsp;Building.
             </p>

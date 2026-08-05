@@ -72,8 +72,8 @@ export function SiteHeader() {
       )}
       onMouseLeave={() => setServicesOpen(false)}
     >
-      <div className="shell flex h-20 items-center justify-between">
-        <Lockup variant={light ? "white" : "black"} />
+      <div className="shell flex h-24 items-center justify-between">
+        <Lockup variant={light ? "white" : "black"} width={124} priority />
 
         {/* ── Desktop navigation ─────────────────────────────────────────── */}
         <nav aria-label="Primary" className="hidden lg:block">
@@ -199,7 +199,7 @@ export function SiteHeader() {
       {mobileOpen && (
         <div
           id="mobile-nav"
-          className="fixed inset-0 top-20 z-40 overflow-y-auto bg-canvas lg:hidden"
+          className="fixed inset-0 top-24 z-40 overflow-y-auto bg-canvas lg:hidden"
         >
           <nav aria-label="Primary mobile" className="shell py-10">
             <ul>

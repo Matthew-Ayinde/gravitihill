@@ -1,79 +1,108 @@
+import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /**
  * THE ONLY PLACE THE BRAND MARK IS ALLOWED TO RENDER.
  *
- * The Graviti Hill mark may appear as an approved lockup and nothing else. Its
+ * The Graviti Hill mark appears as an approved lockup and nothing else. Its
  * wave/hill curves are never extracted into dividers, backgrounds, watermarks,
  * scroll motifs, loaders or textures; never recoloured, stretched, skewed,
  * rotated, animated, masked or parallaxed; never below 120px wide.
  *
- * Approved lockups: black on light, white on dark, green (#206616) alternate
- * on light. Clear space equal to the mark's cap-height on all four sides is
- * applied here as padding so callers cannot crowd it.
+ * ── The three approved lockups ──────────────────────────────────────────────
+ * Built from the supplied master artwork. In every variant the *mark* is the
+ * original, untouched: only the wordmark changes colour, which is what the
+ * guideline permits.
  *
- * ── Asset status ────────────────────────────────────────────────────────────
- * The supplied brand SVGs are not in the repo yet. Until they are, this renders
- * a typographic wordmark — pure type, no invented approximation of the mark,
- * because a drawn stand-in would itself breach the rule above.
+ *   black — wordmark #0B0B0B, for light backgrounds
+ *   white — wordmark #FFFFFF, for dark backgrounds
+ *   green — wordmark as supplied (#206616 family), alternate on light
  *
- * To install the real lockup:
- *   1. drop lockup-black.svg / lockup-white.svg / lockup-green.svg
- *      into public/brand/
- *   2. flip LOCKUP_ASSET_PRESENT to true
- * No other change is needed anywhere in the codebase.
+ * ── Geometry (measured from the master, not guessed) ────────────────────────
+ * The supplied file is raster artwork, so these are derived from the actual
+ * pixel bounds of the trimmed lockup:
+ *
+ *   ASPECT     2.1321 : 1  (w : h)
+ *   CAP_RATIO  0.245       cap-height as a fraction of total lockup height
+ *
+ * Clear space equal to the cap-height is applied as padding on all four sides,
+ * so no caller can crowd the mark. A compensating negative margin cancels it
+ * for layout, so the lockup still optically aligns to the grid — the clear
+ * space protects against neighbours without pushing the logo off the column.
+ *
+ * ── If a vector master arrives ──────────────────────────────────────────────
+ * The supplied PDF wraps a 1500px bitmap, not vector paths, so these are WebP.
+ * Drop SVGs in at the same paths and change SRC below; nothing else moves.
  */
-const LOCKUP_ASSET_PRESENT = false;
+
+const ASPECT = 2.1321;
+const CAP_RATIO = 0.245;
+const MIN_WIDTH = 120;
 
 type Variant = "black" | "white" | "green";
 
-const VARIANT_CLASS: Record<Variant, string> = {
-  black: "text-ink",
-  white: "text-white",
-  green: "text-green",
+const SRC: Record<Variant, string> = {
+  black: "/brand/lockup-black.webp",
+  white: "/brand/lockup-white.webp",
+  green: "/brand/lockup-green.webp",
 };
 
 export function Lockup({
   variant = "black",
+  width = 124,
   className,
   href = "/",
   label = "Graviti Hill — home",
+  priority = false,
 }: {
   variant?: Variant;
+  /** Rendered width in px. Clamped to the 120px brand minimum. */
+  width?: number;
   className?: string;
   /** Pass null to render the lockup without wrapping it in a link. */
   href?: string | null;
   label?: string;
+  priority?: boolean;
 }) {
-  const mark = LOCKUP_ASSET_PRESENT ? (
-    // eslint-disable-next-line @next/next/no-img-element -- fixed-size inline brand asset, no optimisation needed
-    <img
-      src={`/brand/lockup-${variant}.svg`}
+  const w = Math.max(MIN_WIDTH, width);
+  const h = Math.round(w / ASPECT);
+  const clear = Math.round(h * CAP_RATIO);
+
+  const mark = (
+    <Image
+      src={SRC[variant]}
       alt="Graviti Hill"
-      width={160}
-      height={32}
-      className="block h-auto w-[160px] min-w-[120px]"
+      width={w}
+      height={h}
+      priority={priority}
+      sizes={`${w}px`}
+      className="block h-auto w-full"
     />
-  ) : (
-    <span
-      className={cn(
-        "type-subhead block min-w-[120px] text-[1.0625rem] leading-none uppercase",
-        VARIANT_CLASS[variant],
-      )}
-      style={{ letterSpacing: "0.06em" }}
-    >
-      Graviti&nbsp;Hill
+  );
+
+  // Clear space in, layout compensation out.
+  const framed = (
+    <span className="block" style={{ padding: clear, width: w + clear * 2 }}>
+      {mark}
     </span>
   );
 
-  // Clear space = the mark's cap-height on all four sides.
-  const framed = <span className="block p-[0.55em]">{mark}</span>;
-
-  if (href === null) return <span className={className}>{framed}</span>;
+  if (href === null) {
+    return (
+      <span className={cn("inline-block", className)} style={{ margin: -clear }}>
+        {framed}
+      </span>
+    );
+  }
 
   return (
-    <Link href={href} aria-label={label} className={cn("-m-[0.55em] inline-block", className)}>
+    <Link
+      href={href}
+      aria-label={label}
+      className={cn("inline-block", className)}
+      style={{ margin: -clear }}
+    >
       {framed}
     </Link>
   );
