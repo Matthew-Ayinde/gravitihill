@@ -10,6 +10,7 @@ import { EditorialImage } from "@/components/ui/EditorialImage";
 import { ButtonLink } from "@/components/ui/Button";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { HeadlineReveal } from "@/components/motion/HeadlineReveal";
+import { TypedHeadline } from "@/components/motion/TypedHeadline";
 import { Reveal } from "@/components/motion/Reveal";
 import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 import { Icon } from "@/components/icons";
@@ -39,14 +40,23 @@ export default function Home() {
       <JsonLd data={webSiteJsonLd()} />
 
       {/* ══ 1. Hero ═══════════════════════════════════════════════════════
-          Type-first, no image, no eyebrow label. The h1 renders statically —
-          it is the LCP element and nothing is allowed to delay its paint. */}
+          Type-first, no image, no eyebrow label.
+
+          The headline types on. Untyped characters stay in the DOM at
+          opacity 0, so the line box is the full string from the first frame —
+          no reflow, no CLS. The full text is in the server HTML for crawlers
+          and screen readers; reduced motion and no-JS resolve to plain text
+          through CSS alone. See TypedHeadline for the LCP trade-off. */}
       <section className="pt-36 pb-16 lg:pt-48">
         <div className="shell grid-12 gap-y-12">
-          <h1 className="type-display col-span-12 text-hero lg:col-span-9">
-            We build and sustain{" "}
-            <span className="accent-word">future-forward</span> businesses.
-          </h1>
+          <TypedHeadline
+            className="type-display col-span-12 text-hero lg:col-span-9"
+            segments={[
+              { text: "We build and sustain " },
+              { text: "future-forward", className: "accent-word" },
+              { text: " businesses." },
+            ]}
+          />
 
           {/* Evidence in the margin rather than a label above the headline. */}
           <dl className="col-span-12 self-end lg:col-span-2 lg:col-start-11">

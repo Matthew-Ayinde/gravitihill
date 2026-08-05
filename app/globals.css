@@ -155,6 +155,56 @@
   color: var(--accent);
 }
 
+/* ============================================================================
+   TYPED HEADLINE
+   ----------------------------------------------------------------------------
+   Characters that have not been typed yet stay in the DOM at opacity 0 rather
+   than being removed. That is the whole trick: the line box is always the full
+   final string, so wrapping never changes, nothing reflows mid-type, and the
+   section contributes zero CLS. Removing characters instead would make the last
+   word hop between lines as it grows.
+   ========================================================================== */
+
+.type-pending {
+  opacity: 0;
+}
+
+/* Zero-width so it cannot introduce a line-break opportunity or shift metrics;
+   the bar is painted by the pseudo-element and allowed to overflow. */
+.typing-caret {
+  display: inline-block;
+  width: 0;
+  overflow: visible;
+}
+
+.typing-caret::after {
+  content: "";
+  display: inline-block;
+  width: 0.05em;
+  height: 0.74em;
+  margin-left: 0.045em;
+  vertical-align: -0.04em;
+  background-color: var(--green);
+}
+
+/* The caret exists only while the line is being written. On the last character
+   it fades out and stays gone — it is punctuation for the animation, not a
+   permanent fixture, and a caret parked forever under an enterprise headline
+   reads as an unfinished page. `forwards` holds it at zero so no timer or
+   extra state is needed to retire it. */
+.typing-caret[data-state="exit"]::after {
+  animation: caret-out 320ms ease-out forwards;
+}
+
+@keyframes caret-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 /* Clipping frame for the line-level headline reveal. The padding/negative-margin
    pair stops descenders being shaved by the overflow clip. */
 @utility line-mask {
@@ -314,5 +364,16 @@
     opacity: 1 !important;
     transform: none !important;
     clip-path: none !important;
+  }
+
+  /* The typed headline resolves to plain text: every character visible, no
+     caret. This works with no JavaScript at all, so a reduced-motion reader
+     gets the finished headline straight out of the server HTML. */
+  .type-pending {
+    opacity: 1 !important;
+  }
+
+  .typing-caret {
+    display: none !important;
   }
 }

@@ -49,17 +49,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col">
         {/* Organization + ProfessionalService, emitted once for every route. */}
         <JsonLd data={organizationJsonLd()} />
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-100 focus:rounded-sm focus:bg-green focus:px-5 focus:py-3 focus:text-white"
-        >
-          Skip to content
-        </a>
-        <MotionRoot>
-          <SiteHeader />
-          <PageFade>{children}</PageFade>
-          <SiteFooter />
-        </MotionRoot>
+        <div className="flex min-h-full flex-col">
+          <a
+            href="#main"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-100 focus:rounded-sm focus:bg-green focus:px-5 focus:py-3 focus:text-white"
+          >
+            Skip to content
+          </a>
+          <MotionRoot>
+            <SiteHeader />
+            <PageFade>{children}</PageFade>
+            <SiteFooter />
+          </MotionRoot>
+        </div>
       </body>
     </html>
   );
