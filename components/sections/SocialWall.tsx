@@ -1,6 +1,6 @@
 import { Section, SectionLabel, SectionLabelInline } from "@/components/ui/Section";
 import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
-import { SOCIAL_POSTS } from "@/content/social";
+import { getSocialPosts } from "@/content/social";
 import type { SocialPost } from "@/lib/schemas";
 import { editorialDate } from "@/lib/utils";
 
@@ -16,7 +16,8 @@ import { editorialDate } from "@/lib/utils";
  * Desktop: a three-across editorial grid. Mobile: a horizontal snap-scroll
  * rail, which is how these are read on a phone anyway.
  */
-export function SocialWall({ index = "05" }: { index?: string }) {
+export async function SocialWall({ index = "05" }: { index?: string }) {
+  const posts = await getSocialPosts();
   return (
     <Section labelledBy="social-heading">
       <div className="shell grid-12 gap-y-8">
@@ -38,7 +39,7 @@ export function SocialWall({ index = "05" }: { index?: string }) {
           as="ul"
           className="shell flex snap-x snap-mandatory gap-px md:grid md:grid-cols-3"
         >
-          {SOCIAL_POSTS.map((post) => (
+          {posts.map((post) => (
             <RevealItem
               as="li"
               key={post.id}

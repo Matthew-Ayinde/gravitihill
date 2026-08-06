@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { contactSchema, normaliseContactInput } from "@/lib/contact-schema";
 import { mailConfigured, sendContactEmails } from "@/lib/mail";
 import { rateLimit } from "@/lib/rate-limit";
+import { recordSubmission } from "@/lib/repositories/contact-submissions";
 
 export const runtime = "nodejs";
 
@@ -51,6 +52,15 @@ export async function POST(request: Request) {
   // Honeypot. Answer 200 so a bot cannot distinguish a rejection from a send.
   if (data.website) {
     return NextResponse.json({ ok: true }, { status: 200 });
+  }
+
+  // Persisted before the email attempt, so a submission survives an SMTP
+  // failure. A persistence failure is logged, not fatal — the visitor should
+  // still get a real send attempt rather than a 500 over a logging problem.
+  try {
+    await recordSubmission(data);
+  } catch (error) {
+    console.error("[contact] failed to record submission", error);
   }
 
   if (!mailConfigured()) {

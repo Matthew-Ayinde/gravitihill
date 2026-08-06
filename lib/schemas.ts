@@ -198,8 +198,96 @@ export const socialPostSchema = z.discriminatedUnion("format", [
 ]);
 export type SocialPost = z.infer<typeof socialPostSchema>;
 
+/* ── About ───────────────────────────────────────────────────────────────── */
+export const aboutSchema = z.object({
+  positioning: z.string().min(1),
+  purpose: z.string().min(1),
+  precis: z.string().min(1),
+  origin: z
+    .array(z.object({ heading: z.string().min(1), body: z.array(z.string().min(1)).min(1) }))
+    .min(1),
+  pullQuote: z.string().min(1),
+  facts: z.array(z.object({ label: z.string().min(1), value: z.string().min(1) })).min(1),
+});
+export type About = z.infer<typeof aboutSchema>;
+
+/* ── The Naked Board ─────────────────────────────────────────────────────── */
+export const nakedBoardStageSchema = z.object({
+  name: z.string().min(1),
+  icon: iconNameSchema,
+  summary: z.string().min(1),
+});
+
+export const nakedBoardSchema = z.object({
+  name: z.string().min(1),
+  premise: z.string().min(1),
+  positioning: z.array(z.string().min(1)).min(1),
+  stages: z.array(nakedBoardStageSchema).min(1),
+  audience: z.array(z.string().min(1)).min(1),
+  commitment: z.string().min(1),
+});
+export type NakedBoard = z.infer<typeof nakedBoardSchema>;
+
+/* ── Settings (NAP) ──────────────────────────────────────────────────────────
+   The admin-editable subset of what lib/site.ts hardcodes. lib/site.ts keeps
+   ADDRESS/PHONES/EMAIL/LINKEDIN as compiled-in fallback defaults; lib/settings.ts
+   reads this shape from Mongo and falls back to those constants if no
+   document exists yet. NAV/FOOTER_NAV stay structural, in code, not here. */
+export const settingsSchema = z.object({
+  address: z.object({
+    street: z.string().min(1),
+    locality: z.string().min(1),
+    region: z.string().min(1),
+    country: z.string().min(1),
+    countryCode: z.string().min(1),
+  }),
+  phones: z
+    .array(
+      z.object({
+        display: z.string().min(1),
+        e164: z.string().min(1),
+        whatsapp: z.boolean(),
+      }),
+    )
+    .min(1),
+  email: z.string().min(1),
+  linkedin: z.string().url(),
+});
+export type Settings = z.infer<typeof settingsSchema>;
+
+/* ── Media library ───────────────────────────────────────────────────────────
+   The admin's Cloudinary asset catalog — what MediaPicker browses. Content
+   documents never reference this by id; they embed a resolved `imageSchema`
+   snapshot at save time, same as content/media.ts does today. */
+export const mediaAssetSchema = z.object({
+  publicId: z.string().min(1),
+  secureUrl: z.string().url(),
+  alt: z.string(),
+  ratio: z.enum(["3:2", "4:5"]).default("3:2"),
+  blurDataURL: z.string().optional(),
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+  credit: z
+    .object({ title: z.string(), author: z.string(), license: z.string(), source: z.string() })
+    .optional(),
+  createdAt: z.string(),
+});
+export type MediaAsset = z.infer<typeof mediaAssetSchema>;
+
+/* ── Admin users ─────────────────────────────────────────────────────────────
+   Server-only. Never imported by a client component. */
+export const adminSchema = z.object({
+  email: z.string().email(),
+  passwordHash: z.string().min(1),
+  createdAt: z.string(),
+});
+export type Admin = z.infer<typeof adminSchema>;
+
 /* ── Contact form ────────────────────────────────────────────────────────────
    Deliberately NOT here. The contact schema is the only schema a client
    component imports, so it lives in lib/contact-schema.ts against `zod/mini`
    to keep ~50 kB of classic-API Zod off /contact. Same library, same
-   semantics, one source of truth — see that file's header. */
+   semantics, one source of truth — see that file's header. The persisted
+   contactSubmission shape (contact fields + status/createdAt) is defined
+   server-side only, in lib/repositories/contact-submissions.ts, for the same
+   reason — it must never pull classic Zod into that client module's graph. */

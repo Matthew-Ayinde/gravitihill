@@ -14,21 +14,43 @@ npm start       # serve the production build
 
 ## Environment
 
-Copy to `.env.local`. The contact form is the only feature that needs any of
-these; without them the route answers 503 and the interface tells the visitor to
-use WhatsApp or email instead of failing silently.
+Copy to `.env.local`.
 
 | Variable | Required | Notes |
 |---|---|---|
-| `SMTP_HOST` | yes | SMTP relay hostname |
-| `SMTP_PORT` | yes | `465` uses implicit TLS; anything else negotiates STARTTLS |
-| `SMTP_USER` | yes | Also used as the `From` address |
-| `SMTP_PASS` | yes | App password / relay credential |
-| `CONTACT_TO` | yes | Internal inbox that receives enquiries |
+| `MONGODB_URI` | **yes** | Connection string for the content database (Atlas or self-hosted) |
+| `MONGODB_DB` | no | Database name. Defaults to `gravitihill` |
+| `CLOUDINARY_CLOUD_NAME` | **yes** | From the Cloudinary dashboard |
+| `CLOUDINARY_API_KEY` | **yes** | From the Cloudinary dashboard |
+| `CLOUDINARY_API_SECRET` | **yes** | From the Cloudinary dashboard — keep this secret |
+| `AUTH_SECRET` | **yes** | Signs admin session cookies. Auto-generated into `.env.local` during setup — a random 256-bit value, not something to invent by hand. Rotating it logs out every admin session |
+| `SMTP_HOST` | for the contact form | SMTP relay hostname |
+| `SMTP_PORT` | for the contact form | `465` uses implicit TLS; anything else negotiates STARTTLS |
+| `SMTP_USER` | for the contact form | Also used as the `From` address |
+| `SMTP_PASS` | for the contact form | App password / relay credential |
+| `CONTACT_TO` | for the contact form | Internal inbox that receives enquiries |
 | `NEXT_PUBLIC_SITE_URL` | no | Canonical origin. Defaults to `https://gravitihill.com`. Set per preview environment so canonicals and OG URLs are right |
 
-SMTP errors are logged server-side and never returned to the client — a visitor
-must not learn the host, port or auth mode from a failed send.
+Without the SMTP variables, `/api/contact` still validates and **persists every
+submission to MongoDB** (visible at `/admin/enquiries`); it just answers 503
+instead of sending the two emails, and the interface tells the visitor to use
+WhatsApp or email instead of failing silently. SMTP errors are logged
+server-side and never returned to the client — a visitor must not learn the
+host, port or auth mode from a failed send.
+
+### First-time setup
+
+```bash
+npm install
+npm run seed          # populates MongoDB + Cloudinary from today's content
+npm run admin:create  # prompts for an email + password, creates the first admin
+npm run dev
+```
+
+`npm run seed` is idempotent — re-running it upserts by each collection's
+natural key (slug, id, or a fixed singleton id) rather than duplicating.
+`npm run admin:create` is also re-runnable: running it again with the same
+email rotates that admin's password.
 
 ---
 
@@ -94,49 +116,78 @@ the markup.
 
 ---
 
-## Content — and the CMS seam
+## Content — backed by MongoDB, edited at `/admin`
 
-All copy lives in typed modules under `content/`, each parsed at import time
-against a Zod schema in `lib/schemas.ts`. Types are inferred from the schemas,
-never declared beside them.
+Every content shape is still defined once, in `lib/schemas.ts`, as a Zod
+schema — that hasn't changed, and it's still the single source of truth: a
+write is invalid if it doesn't parse, whether it comes from the seed script or
+the admin UI. What changed is where the data lives.
+
+`content/*.ts` are no longer static arrays. Each one is now a thin, cached
+read layer over a MongoDB collection (via `lib/repositories/*.ts`), exporting
+the same `getX()` / `getX(slug)` functions pages already called — this was the
+CMS seam the previous static version was built to leave open, and it's now
+occupied:
 
 ```
-content/services.ts     four practices + full service lists
-content/sectors.ts      three sectors (also drives the signature panel)
-content/team.ts         leadership
-content/dna.ts          the four brand pillars
-content/insights.ts     articles
-content/social.ts       social wall
-content/naked-board.ts  The Naked Board platform
-content/about.ts        positioning, origin, facts
+content/services.ts     → practices collection    (edit at /admin/services)
+content/sectors.ts      → sectors collection       (edit at /admin/sectors)
+content/team.ts         → team collection          (edit at /admin/team)
+content/dna.ts          → dnaPillars collection     (edit at /admin/dna)
+content/insights.ts     → insights collection       (edit at /admin/insights)
+content/social.ts       → socialPosts collection    (edit at /admin/social)
+content/naked-board.ts  → nakedBoard singleton       (edit at /admin/naked-board)
+content/about.ts        → about singleton            (edit at /admin/about)
+lib/settings.ts         → settings singleton (NAP)    (edit at /admin/settings)
 ```
 
-**This is the seam for the future admin panel.** Each module exports a parsed
-constant and a `getX(slug)` accessor. When the CMS lands, replace the literal
-array with a fetch and keep the schema parse — every page reads through those
-exports, so nothing downstream changes.
+Reads are wrapped in `unstable_cache` with one tag per collection
+(`revalidate: 3600` as a time-based fallback); every admin save calls
+`updateTag(...)` immediately after writing, so a change is live on the public
+site as soon as the save redirects — no rebuild, no waiting on the hourly
+fallback. `content/media.ts` is unchanged and still static: it's the local
+photography index used only by `npm run seed` to know what to upload to
+Cloudinary, not a runtime data source.
 
-### Adding a service
+### The admin panel
 
-1. Append an entry to `practices` in `content/services.ts` (slug, name,
-   proposition, thesis, offerings with an icon key from `iconNameSchema`,
-   related sector slugs).
-2. Done. `generateStaticParams` picks up the route, the nav mega-panel entry
-   comes from `lib/site.ts` (`NAV`), and the sitemap and OG image generate
-   themselves.
+`/admin` — sign in with the account `npm run admin:create` made. Middleware
+(`middleware.ts`) gates every route under it; the root layout
+(`app/layout.tsx`) detects the admin route via a header middleware sets and
+skips the public SiteHeader/SiteFooter/motion chrome for it, so it renders its
+own shell (`app/admin/(dashboard)/layout.tsx`) instead.
 
-### Adding a sector
+- **Services, Sectors, Insights, Team, Brand DNA, Social wall** — list + edit
+  + delete, one collection each. Sectors and Team also expose a numeric
+  "Position" field, since their array order is meaningful on the public site
+  (the signature panel's Consumer→B2B→Technology sequence, the leadership
+  index order).
+- **The Naked Board, About, Settings** — singleton forms (one record each, no
+  list view).
+- **Media library** (`/admin/media`) — every image field elsewhere in the
+  admin opens a picker that browses this library or uploads a new file.
+  Uploads go through `app/api/admin/media/route.ts`, which applies the brand's
+  photographic grade (`lib/cloudinary.ts`'s `BRAND_TRANSFORM` — desaturate,
+  +7% contrast, cool-slate overlay) as a Cloudinary eager transformation, and
+  generates a blur placeholder the same way `content/media.ts`'s hand-authored
+  ones were made, just automatically.
+- **Enquiries** (`/admin/enquiries`) — every `/contact` submission, logged
+  independently of whether the email notification sent.
 
-Append to `sectors` in `content/sectors.ts`. `approach` must hold exactly three
-items — the pinned panel's layout depends on it, and the schema enforces it. The
-signature panel advances in array order.
+Server Actions (`app/admin/**/actions.ts`) are the only way data changes:
+each one re-checks the session, parses the submission against the exact
+`lib/schemas.ts` schema used everywhere else, writes through the matching
+repository, and calls `updateTag`. `lib/admin/form.ts` holds the shared
+FormData-parsing helpers the repeatable-field components
+(`components/admin/RepeatableStrings.tsx`,
+`components/admin/RepeatableIconRows.tsx`, etc.) rely on.
 
-### Adding an article
+### Adding a service, sector, or article
 
-Append to `insights` in `content/insights.ts`. Set `placeholderBody: false` once
-real copy is in — while it is `true` the article renders a visible placeholder
-notice, so seeded scaffolding cannot ship unnoticed. `body` is a typed block
-array today; when MDX lands, only `components/sections/ArticleBody.tsx` changes.
+Go to the relevant `/admin/*` list page → **New** → fill in the form → save.
+The public route (`generateStaticParams` still runs at build time; new slugs
+render on-demand via Next's default `dynamicParams` behaviour) and the sitemap
+pick it up with no further action.
 
 ---
 
@@ -246,23 +297,30 @@ the component so callers cannot crowd it.
   `ProfessionalService` sitewide, `WebSite` + `SearchAction` on home, `Person`
   per leader, `Service` on practice pages, `Article` + `BreadcrumbList` on
   articles.
-- NAP consistency: the footer, `/contact` and the schema all read
-  `ADDRESS` / `PHONES` / `EMAIL` from `lib/site.ts`. Change it once.
+- NAP consistency: the footer, `/contact` and the `Organization` JSON-LD all
+  read `lib/settings.ts`'s `getSiteSettings()`, backed by the `settings`
+  singleton — edit it once at `/admin/settings`. `lib/site.ts`'s
+  `ADDRESS`/`PHONES`/`EMAIL`/`LINKEDIN` are compiled-in fallback defaults only,
+  used if no `settings` document exists yet (i.e. before the first seed).
 
 ---
 
 ## Known state at handover
 
-- **Photography is absent.** Every image slot renders its typographic
-  placeholder. See `content/*.ts` — add an `image` / `cover` / `photo` / 
-  `coverImage` object (`src`, `alt`, `ratio`, optional `blurDataURL`).
+- **Photography comes from Wikimedia Commons via the seed script** —
+  `content/media.ts` documents the licensing obligation (CC BY-SA, attribution
+  required) in full. Replace with commissioned or properly licensed stock
+  before launch by uploading the replacements at `/admin/media` and swapping
+  each `cover` / `image` / `photo` / `coverImage` field to the new asset.
 - **Article bodies are seeded.** All four carry `placeholderBody: true` and
-  render a visible notice. Titles, categories and framing are real.
+  render a visible notice. Titles, categories and framing are real. Toggle the
+  flag off at `/admin/insights/[slug]` once the copy is editorial.
 - **Social wall links point at the company page**, not at individual posts.
-  Replace each `href` in `content/social.ts` when the wall is curated.
+  Replace each `href` at `/admin/social` when the wall is curated.
 - **No client logos.** `LogoWall` renders nothing until real, cleared logos
   exist.
 - **First-load JS is above the 130 kB brief target** — see the note below.
+  `/admin` is a separate route tree and does not affect this budget.
 
 ### On the JS budget
 

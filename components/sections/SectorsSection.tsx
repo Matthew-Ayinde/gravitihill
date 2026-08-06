@@ -1,7 +1,7 @@
 import { SectorsPanel, type SectorPanelItem } from "@/components/sections/SectorsPanel";
 import { EditorialImage } from "@/components/ui/EditorialImage";
 import { Icon } from "@/components/icons";
-import { SECTORS } from "@/content/sectors";
+import { getSectors } from "@/content/sectors";
 import type { Sector } from "@/lib/schemas";
 import { indexNumber } from "@/lib/utils";
 
@@ -13,8 +13,9 @@ import { indexNumber } from "@/lib/utils";
  * content module, the icon set and Zod out of the client bundle entirely — the
  * client only receives what the interaction actually manipulates.
  */
-export function SectorsSection({ index = "04" }: { index?: string }) {
-  const items: SectorPanelItem[] = SECTORS.map((sector, i) => ({
+export async function SectorsSection({ index = "04" }: { index?: string }) {
+  const sectors = await getSectors();
+  const items: SectorPanelItem[] = sectors.map((sector, i) => ({
     slug: sector.slug,
     name: sector.name,
     href: `/sectors/${sector.slug}`,

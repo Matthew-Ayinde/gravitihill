@@ -5,7 +5,7 @@ import { SectorsSection } from "@/components/sections/SectorsSection";
 import { CtaPanel } from "@/components/sections/CtaPanel";
 import { Section, SectionLabel, SectionLabelInline } from "@/components/ui/Section";
 import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
-import { SECTORS } from "@/content/sectors";
+import { getSectors } from "@/content/sectors";
 import { pageMetadata } from "@/lib/seo";
 import { indexNumber } from "@/lib/utils";
 
@@ -16,7 +16,8 @@ export const metadata: Metadata = pageMetadata({
   path: "/sectors",
 });
 
-export default function SectorsPage() {
+export default async function SectorsPage() {
+  const sectors = await getSectors();
   return (
     <>
       <PageHero
@@ -45,7 +46,7 @@ export default function SectorsPage() {
             </h2>
 
             <RevealGroup as="ul" className="mt-14 border-t border-rule">
-              {SECTORS.map((sector, i) => (
+              {sectors.map((sector, i) => (
                 <RevealItem as="li" key={sector.slug}>
                   <Link
                     href={`/sectors/${sector.slug}`}

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/sections/PageHero";
 import { ContactForm } from "@/components/sections/ContactForm";
 import { Section } from "@/components/ui/Section";
-import { ADDRESS, EMAIL, PHONES, WHATSAPP_URL } from "@/lib/site";
+import { getSiteSettings, whatsappUrl } from "@/lib/settings";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -12,7 +12,13 @@ export const metadata: Metadata = pageMetadata({
   path: "/contact",
 });
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const settings = await getSiteSettings();
+  const ADDRESS = settings.address;
+  const EMAIL = settings.email;
+  const PHONES = settings.phones;
+  const WHATSAPP_URL = whatsappUrl(settings);
+
   return (
     <>
       <PageHero

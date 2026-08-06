@@ -1,26 +1,29 @@
-import { ADDRESS, EMAIL, LINKEDIN, PHONES, SITE } from "@/lib/site";
+import { SITE } from "@/lib/site";
+import { getSiteSettings } from "@/lib/settings";
 import type { Insight, Person, Practice } from "@/lib/schemas";
 
 /**
  * Typed JSON-LD builders. Every structured-data block on the site comes from
  * here, so the NAP in schema can never disagree with the NAP in the footer —
- * both read lib/site.ts.
+ * both read lib/settings.ts, which is itself backed by the same `settings`
+ * document the footer and /contact read.
  */
 
 type Node = Record<string, unknown>;
 
 const ORG_ID = `${SITE.url}/#organization`;
 
-const postalAddress: Node = {
-  "@type": "PostalAddress",
-  streetAddress: ADDRESS.street,
-  addressLocality: ADDRESS.locality,
-  addressRegion: ADDRESS.region,
-  addressCountry: ADDRESS.countryCode,
-};
-
 /** Organization + ProfessionalService, emitted once sitewide from the layout. */
-export function organizationJsonLd(): Node {
+export async function organizationJsonLd(): Promise<Node> {
+  const settings = await getSiteSettings();
+  const postalAddress: Node = {
+    "@type": "PostalAddress",
+    streetAddress: settings.address.street,
+    addressLocality: settings.address.locality,
+    addressRegion: settings.address.region,
+    addressCountry: settings.address.countryCode,
+  };
+
   return {
     "@context": "https://schema.org",
     "@type": ["Organization", "ProfessionalService"],
@@ -31,8 +34,8 @@ export function organizationJsonLd(): Node {
     description: SITE.description,
     slogan: SITE.positioning,
     foundingDate: SITE.foundingDate,
-    email: EMAIL,
-    telephone: PHONES.map((phone) => phone.e164),
+    email: settings.email,
+    telephone: settings.phones.map((phone) => phone.e164),
     address: postalAddress,
     areaServed: [
       { "@type": "Country", name: "Nigeria" },
@@ -44,7 +47,7 @@ export function organizationJsonLd(): Node {
       "Executive Coaching",
       "Market Expansion",
     ],
-    sameAs: [LINKEDIN],
+    sameAs: [settings.linkedin],
   };
 }
 
@@ -123,8 +126,13 @@ export function articleJsonLd(insight: Insight): Node {
     author: { "@type": "Organization", name: insight.author, "@id": ORG_ID },
     publisher: { "@id": ORG_ID },
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
-    ...(insight.coverImage ? { image: `${SITE.url}${insight.coverImage.src}` } : {}),
+    ...(insight.coverImage ? { image: absoluteImageUrl(insight.coverImage.src) } : {}),
   };
+}
+
+/** Cloudinary URLs are already absolute; only relative `/public` paths need the site origin prefixed. */
+function absoluteImageUrl(src: string): string {
+  return /^https?:\/\//.test(src) ? src : `${SITE.url}${src}`;
 }
 
 export function breadcrumbJsonLd(

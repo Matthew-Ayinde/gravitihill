@@ -5,7 +5,7 @@ import { CtaPanel } from "@/components/sections/CtaPanel";
 import { Section, SectionLabel, SectionLabelInline } from "@/components/ui/Section";
 import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 import { Icon } from "@/components/icons";
-import { PRACTICES } from "@/content/services";
+import { getPractices } from "@/content/services";
 import { pageMetadata } from "@/lib/seo";
 import { indexNumber } from "@/lib/utils";
 
@@ -16,8 +16,9 @@ export const metadata: Metadata = pageMetadata({
   path: "/services",
 });
 
-export default function ServicesPage() {
-  const totalOfferings = PRACTICES.reduce(
+export default async function ServicesPage() {
+  const practices = await getPractices();
+  const totalOfferings = practices.reduce(
     (sum, practice) => sum + practice.offerings.length,
     0,
   );
@@ -34,7 +35,7 @@ export default function ServicesPage() {
         }
         lede="Brand work here interrogates the process that fulfils the promise. Advisory work interrogates what the market has been told to expect. Both are staffed by the same people, which is the point."
         index={[
-          { label: "Practices", value: String(PRACTICES.length) },
+          { label: "Practices", value: String(practices.length) },
           { label: "Services", value: String(totalOfferings) },
           { label: "Sectors", value: "3" },
         ]}
@@ -49,7 +50,7 @@ export default function ServicesPage() {
 
           <div className="col-span-12 lg:col-span-9">
             <RevealGroup as="ul" className="border-t border-rule">
-              {PRACTICES.map((practice, i) => (
+              {practices.map((practice, i) => (
                 <RevealItem as="li" key={practice.slug}>
                   <Link
                     href={`/services/${practice.slug}`}

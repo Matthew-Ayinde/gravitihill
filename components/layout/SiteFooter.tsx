@@ -1,22 +1,19 @@
 import Link from "next/link";
 import { Lockup } from "@/components/ui/Lockup";
-import {
-  ADDRESS,
-  EMAIL,
-  FOOTER_NAV,
-  LINKEDIN,
-  PHONES,
-  SITE,
-} from "@/lib/site";
+import { FOOTER_NAV, SITE } from "@/lib/site";
+import { getSiteSettings } from "@/lib/settings";
 
 /**
  * Dark footer on --ridge with the white-wordmark lockup.
  *
  * The address block here is the NAP of record — it, the contact page and the
- * JSON-LD all read the same constants, so local SEO never sees a variant.
+ * JSON-LD all read the same lib/settings.ts getter, so local SEO never sees
+ * a variant.
  */
-export function SiteFooter() {
+export async function SiteFooter() {
   const year = new Date().getFullYear();
+  const { address: ADDRESS, email: EMAIL, phones: PHONES, linkedin: LINKEDIN } =
+    await getSiteSettings();
 
   return (
     <footer className="bg-ridge text-white">

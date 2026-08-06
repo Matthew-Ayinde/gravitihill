@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 import { Icon } from "@/components/icons";
-import { PRACTICES } from "@/content/services";
+import { getPractices } from "@/content/services";
 import { indexNumber } from "@/lib/utils";
 
 /**
@@ -20,10 +20,11 @@ import { indexNumber } from "@/lib/utils";
  *    1024px the services are simply always visible, because a hover affordance
  *    on a touch device is a hidden feature.
  */
-export function PracticeList() {
+export async function PracticeList() {
+  const practices = await getPractices();
   return (
     <RevealGroup as="ul" className="border-t border-rule">
-      {PRACTICES.map((practice, i) => (
+      {practices.map((practice, i) => (
         <RevealItem as="li" key={practice.slug}>
           <Link
             href={`/services/${practice.slug}`}

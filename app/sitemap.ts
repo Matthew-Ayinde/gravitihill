@@ -1,15 +1,20 @@
 import type { MetadataRoute } from "next";
-import { PRACTICES } from "@/content/services";
-import { SECTORS } from "@/content/sectors";
-import { INSIGHTS } from "@/content/insights";
+import { getPractices } from "@/content/services";
+import { getSectors } from "@/content/sectors";
+import { getInsights } from "@/content/insights";
 import { SITE } from "@/lib/site";
 
 /**
  * Generated from the content modules, not hand-maintained. Adding a practice,
  * a sector or an article puts it in the sitemap with no further action.
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+  const [practices, sectors, insights] = await Promise.all([
+    getPractices(),
+    getSectors(),
+    getInsights(),
+  ]);
 
   const staticRoutes: MetadataRoute.Sitemap = (
     [
@@ -29,19 +34,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     ...staticRoutes,
-    ...PRACTICES.map((practice) => ({
+    ...practices.map((practice) => ({
       url: `${SITE.url}/services/${practice.slug}`,
       lastModified: now,
       changeFrequency: "yearly" as const,
       priority: 0.8,
     })),
-    ...SECTORS.map((sector) => ({
+    ...sectors.map((sector) => ({
       url: `${SITE.url}/sectors/${sector.slug}`,
       lastModified: now,
       changeFrequency: "yearly" as const,
       priority: 0.7,
     })),
-    ...INSIGHTS.map((insight) => ({
+    ...insights.map((insight) => ({
       url: `${SITE.url}/insights/${insight.slug}`,
       lastModified: new Date(insight.publishedAt),
       changeFrequency: "yearly" as const,

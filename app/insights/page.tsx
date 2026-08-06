@@ -4,7 +4,7 @@ import { CtaPanel } from "@/components/sections/CtaPanel";
 import { InsightsIndex, type FilterableRow } from "@/components/sections/InsightsIndex";
 import { Section, SectionLabel, SectionLabelInline } from "@/components/ui/Section";
 import { EditorialImage } from "@/components/ui/EditorialImage";
-import { INSIGHTS, INSIGHT_CATEGORIES } from "@/content/insights";
+import { getInsights, getInsightCategories } from "@/content/insights";
 import { pageMetadata } from "@/lib/seo";
 import { editorialDate } from "@/lib/utils";
 
@@ -15,10 +15,12 @@ export const metadata: Metadata = pageMetadata({
   path: "/insights",
 });
 
-export default function InsightsPage() {
+export default async function InsightsPage() {
+  const [insights, categories] = await Promise.all([getInsights(), getInsightCategories()]);
+
   // Rows are built and rendered here, on the server. The client component
   // receives elements plus a category string — never the content module.
-  const rows: FilterableRow[] = INSIGHTS.map((insight) => ({
+  const rows: FilterableRow[] = insights.map((insight) => ({
     id: insight.slug,
     href: `/insights/${insight.slug}`,
     category: insight.category,
@@ -51,8 +53,8 @@ export default function InsightsPage() {
         }
         lede="We publish when we have something specific to argue. Each of these takes a position a reader could disagree with."
         index={[
-          { label: "Articles", value: String(INSIGHTS.length) },
-          { label: "Categories", value: String(INSIGHT_CATEGORIES.length) },
+          { label: "Articles", value: String(insights.length) },
+          { label: "Categories", value: String(categories.length) },
         ]}
       />
 
@@ -64,7 +66,7 @@ export default function InsightsPage() {
           </div>
 
           <div className="col-span-12 lg:col-span-9">
-            <InsightsIndex items={rows} categories={INSIGHT_CATEGORIES} />
+            <InsightsIndex items={rows} categories={categories} />
           </div>
         </div>
       </Section>

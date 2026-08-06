@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -43,12 +44,28 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // /admin is a tool, not a marketing surface — middleware flags every
+  // request under it with `x-is-admin` so this single root layout can skip
+  // SiteHeader/SiteFooter/MotionRoot/the Organization JSON-LD for it, rather
+  // than restructuring the whole app directory into two root layouts.
+  const isAdmin = (await headers()).get("x-is-admin") === "1";
+
+  if (isAdmin) {
+    return (
+      <html lang="en" className={`${archivo.variable} h-full`}>
+        <body className="min-h-full">{children}</body>
+      </html>
+    );
+  }
+
+  const orgJsonLd = await organizationJsonLd();
+
   return (
     <html lang="en" className={`${archivo.variable} h-full`}>
       <body className="flex min-h-full flex-col">
         {/* Organization + ProfessionalService, emitted once for every route. */}
-        <JsonLd data={organizationJsonLd()} />
+        <JsonLd data={orgJsonLd} />
         <div className="flex min-h-full flex-col">
           <a
             href="#main"

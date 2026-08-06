@@ -14,10 +14,10 @@ import { TypedHeadline } from "@/components/motion/TypedHeadline";
 import { Reveal } from "@/components/motion/Reveal";
 import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 import { Icon } from "@/components/icons";
-import { ABOUT } from "@/content/about";
-import { DNA_PILLARS } from "@/content/dna";
-import { INSIGHTS } from "@/content/insights";
-import { NAKED_BOARD } from "@/content/naked-board";
+import { getAbout } from "@/content/about";
+import { getDnaPillars } from "@/content/dna";
+import { getInsights } from "@/content/insights";
+import { getNakedBoard } from "@/content/naked-board";
 import { CUMULATIVE_YEARS } from "@/content/team";
 import { webSiteJsonLd } from "@/lib/jsonld";
 import { SITE } from "@/lib/site";
@@ -32,8 +32,14 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-export default function Home() {
-  const latest = INSIGHTS.slice(0, 3);
+export default async function Home() {
+  const [about, dnaPillars, insights, nakedBoard] = await Promise.all([
+    getAbout(),
+    getDnaPillars(),
+    getInsights(),
+    getNakedBoard(),
+  ]);
+  const latest = insights.slice(0, 3);
 
   return (
     <>
@@ -60,7 +66,7 @@ export default function Home() {
 
           {/* Evidence in the margin rather than a label above the headline. */}
           <dl className="col-span-12 self-end lg:col-span-2 lg:col-start-11">
-            {ABOUT.facts.map((fact) => (
+            {about.facts.map((fact) => (
               <div key={fact.label} className="border-t border-rule py-2.5">
                 <dt className="type-eyebrow text-ink-muted">{fact.label}</dt>
                 <dd className="type-subhead text-body-lg">{fact.value}</dd>
@@ -98,7 +104,7 @@ export default function Home() {
               lines={["Re-definers of", "Brand Building."]}
             />
             <Reveal as="p" className="measure mt-10 text-body-lg">
-              {ABOUT.precis}
+              {about.precis}
             </Reveal>
 
             {/* The 55+ years figure set as editorial data — a line in a
@@ -165,7 +171,7 @@ export default function Home() {
               as="ul"
               className="mt-14 grid gap-px border border-rule bg-rule sm:grid-cols-2"
             >
-              {DNA_PILLARS.map((pillar, i) => (
+              {dnaPillars.map((pillar, i) => (
                 <RevealItem
                   as="li"
                   key={pillar.name}
@@ -215,13 +221,13 @@ export default function Home() {
               The Naked Board.
             </h2>
             <p className="measure mt-8 text-body-lg text-white/75">
-              {NAKED_BOARD.premise} Our proprietary executive coaching platform
+              {nakedBoard.premise} Our proprietary executive coaching platform
               exists for exactly those conversations — succession, founder
               dependence, a culture that punishes bad news.
             </p>
 
             <ul className="mt-10 flex flex-wrap gap-x-8 gap-y-2">
-              {NAKED_BOARD.stages.slice(0, 3).map((stage) => (
+              {nakedBoard.stages.slice(0, 3).map((stage) => (
                 <li
                   key={stage.name}
                   className="type-eyebrow flex items-center gap-2 text-white/55"

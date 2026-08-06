@@ -11,24 +11,25 @@ import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 import { Icon } from "@/components/icons";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbJsonLd, serviceJsonLd } from "@/lib/jsonld";
-import { PRACTICES, getPractice } from "@/content/services";
+import { getPractices, getPractice } from "@/content/services";
 import { getSector } from "@/content/sectors";
 import { pageMetadata } from "@/lib/seo";
 import { indexNumber } from "@/lib/utils";
 
 /**
  * One template over a typed content source — there are no four near-identical
- * page files. Adding a practice is an entry in content/services.ts.
+ * page files. Adding a practice is an entry in /admin/services.
  */
-export function generateStaticParams() {
-  return PRACTICES.map((practice) => ({ slug: practice.slug }));
+export async function generateStaticParams() {
+  const practices = await getPractices();
+  return practices.map((practice) => ({ slug: practice.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: PageProps<"/services/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const practice = getPractice(slug);
+  const practice = await getPractice(slug);
   if (!practice) return {};
 
   return pageMetadata({
@@ -42,12 +43,12 @@ export default async function PracticePage({
   params,
 }: PageProps<"/services/[slug]">) {
   const { slug } = await params;
-  const practice = getPractice(slug);
+  const practice = await getPractice(slug);
   if (!practice) notFound();
 
-  const sectors = practice.relatedSectors
-    .map(getSector)
-    .filter((sector) => sector !== undefined);
+  const sectors = (await Promise.all(practice.relatedSectors.map(getSector))).filter(
+    (sector) => sector !== undefined,
+  );
 
   return (
     <>

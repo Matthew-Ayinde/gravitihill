@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Reveal } from "@/components/motion/Reveal";
-import { ADDRESS, EMAIL, PHONES, WHATSAPP_URL } from "@/lib/site";
+import { getSiteSettings, whatsappUrl } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 
 /**
@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
  * converts better than a form, so the number gets the type size that admission
  * implies. The form is offered second, not first.
  */
-export function CtaPanel({
+export async function CtaPanel({
   eyebrow = "Start",
   heading = "Start a conversation.",
   className,
@@ -20,20 +20,21 @@ export function CtaPanel({
   heading?: string;
   className?: string;
 }) {
-  const primary = PHONES[0];
+  const settings = await getSiteSettings();
+  const primary = settings.phones[0];
 
   const routes = [
     {
       label: "WhatsApp",
       value: primary.display,
-      href: WHATSAPP_URL,
+      href: whatsappUrl(settings),
       external: true,
       note: "Fastest route. Message prefilled.",
     },
     {
       label: "Email",
-      value: EMAIL,
-      href: `mailto:${EMAIL}`,
+      value: settings.email,
+      href: `mailto:${settings.email}`,
       external: true,
       note: "For briefs, RFPs and documents.",
     },
@@ -87,8 +88,8 @@ export function CtaPanel({
           </ul>
 
           <address className="mt-10 text-white/55">
-            {ADDRESS.street}, {ADDRESS.locality}, {ADDRESS.region},{" "}
-            {ADDRESS.country}
+            {settings.address.street}, {settings.address.locality}, {settings.address.region},{" "}
+            {settings.address.country}
           </address>
         </div>
       </div>

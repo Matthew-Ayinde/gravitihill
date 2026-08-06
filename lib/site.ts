@@ -37,16 +37,12 @@ export const EMAIL = "info@gravitihill.com";
 export const LINKEDIN = "https://www.linkedin.com/company/graviti-hill";
 
 /**
- * WhatsApp deeplink for the primary number, message prefilled.
- * In this market WhatsApp converts better than a form — it gets equal weight
- * on /contact, not a footnote.
+ * ADDRESS/PHONES/EMAIL/LINKEDIN above are compiled-in fallback defaults only
+ * — lib/settings.ts reads the admin-editable versions from MongoDB (falling
+ * back to these if no `settings` document exists yet) and is what pages
+ * actually import. See lib/settings.ts for the WhatsApp deeplink builder too;
+ * it depends on the live phone list, not this file.
  */
-export const WHATSAPP_URL = `https://wa.me/${PHONES[0].e164.replace(
-  "+",
-  "",
-)}?text=${encodeURIComponent(
-  "Hello Graviti Hill — I would like to discuss a project.",
-)}`;
 
 export type NavChild = { label: string; href: string; note: string };
 export type NavItem = { label: string; href: string; children?: NavChild[] };

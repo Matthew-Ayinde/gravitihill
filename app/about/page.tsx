@@ -10,9 +10,9 @@ import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 import { Icon } from "@/components/icons";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbJsonLd, personJsonLd } from "@/lib/jsonld";
-import { ABOUT } from "@/content/about";
-import { DNA_PILLARS } from "@/content/dna";
-import { TEAM } from "@/content/team";
+import { getAbout } from "@/content/about";
+import { getDnaPillars } from "@/content/dna";
+import { getTeam } from "@/content/team";
 import { pageMetadata } from "@/lib/seo";
 import { indexNumber } from "@/lib/utils";
 
@@ -23,12 +23,18 @@ export const metadata: Metadata = pageMetadata({
   path: "/about",
 });
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const [about, dnaPillars, team] = await Promise.all([
+    getAbout(),
+    getDnaPillars(),
+    getTeam(),
+  ]);
+
   return (
     <>
       <JsonLd
         data={[
-          ...TEAM.map(personJsonLd),
+          ...team.map(personJsonLd),
           breadcrumbJsonLd([{ name: "About", path: "/about" }]),
         ]}
       />
@@ -41,8 +47,8 @@ export default function AboutPage() {
             <span className="accent-word">Building.</span>
           </>
         }
-        lede={ABOUT.precis}
-        index={ABOUT.facts}
+        lede={about.precis}
+        index={about.facts}
       />
 
       {/* ── Origin ──────────────────────────────────────────────────────── */}
@@ -61,7 +67,7 @@ export default function AboutPage() {
             />
 
             <div className="mt-12 space-y-14">
-              {ABOUT.origin.map((block, blockIndex) => (
+              {about.origin.map((block, blockIndex) => (
                 <div key={block.heading}>
                   <h3 className="type-eyebrow text-green">
                     {indexNumber(blockIndex)}
@@ -86,7 +92,7 @@ export default function AboutPage() {
                       className="mt-14 border-t border-rule pt-8"
                     >
                       <p className="type-display max-w-[22ch] text-h2 text-green">
-                        {ABOUT.pullQuote}
+                        {about.pullQuote}
                       </p>
                     </Reveal>
                   )}
@@ -111,7 +117,7 @@ export default function AboutPage() {
             </h2>
 
             <RevealGroup as="ul" className="mt-16 border-t border-rule">
-              {DNA_PILLARS.map((pillar, i) => (
+              {dnaPillars.map((pillar, i) => (
                 <RevealItem
                   as="li"
                   key={pillar.name}
@@ -165,7 +171,7 @@ export default function AboutPage() {
 
             <div className="mt-16 border-b border-rule">
               <PreviewRows
-                items={TEAM.map((person) => ({
+                items={team.map((person) => ({
                   id: person.slug,
                   leading: person.role,
                   title: person.name,
@@ -179,7 +185,7 @@ export default function AboutPage() {
             </div>
 
             <ul className="mt-14 grid gap-10 sm:grid-cols-3">
-              {TEAM.map((person) => (
+              {team.map((person) => (
                 <li key={person.slug}>
                   <h3 className="type-eyebrow text-green">{person.name}</h3>
                   <ul className="mt-3 space-y-1.5">

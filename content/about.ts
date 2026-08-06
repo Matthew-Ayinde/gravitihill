@@ -1,46 +1,33 @@
+import { unstable_cache } from "next/cache";
+import type { About } from "@/lib/schemas";
+import { getAbout as readAboutDoc } from "@/lib/repositories/about";
+
 /**
  * ABOUT — positioning, purpose, origin.
  *
  * ── CMS seam ────────────────────────────────────────────────────────────────
- * Data layer for /about and the précis section on /.
+ * Data layer for /about and the précis section on /, backed by MongoDB.
+ * Singleton document — `npm run seed` (or a first save from /admin/about)
+ * must exist before these pages can render.
  *
- * Facts are verified: founded 2022 in Lagos; positioning "Re-definers of Brand
- * Building"; purpose to build and sustain future-forward businesses; founded on
- * the tension between creative thinking and tangible business impact. Do not
- * add clients, awards or figures to this file.
+ * Facts are verified: founded 2022 in Lagos; positioning "Re-definers of
+ * Brand Building"; purpose to build and sustain future-forward businesses.
+ * Do not add clients, awards or figures that aren't verified.
  */
 
-export const ABOUT = {
-  positioning: "Re-definers of Brand Building",
-  purpose: "We build and sustain future-forward businesses.",
+const TAG = "about";
 
-  precis:
-    "Graviti Hill is a business advisory and branding firm founded in Lagos in 2022. We work with enterprises, multinationals entering West Africa, and scale-ups that have outgrown their first operating model.",
+const readAbout = unstable_cache(async () => readAboutDoc(), [TAG], {
+  tags: [TAG],
+  revalidate: 3600,
+});
 
-  origin: [
-    {
-      heading: "The gap we were built to close",
-      body: [
-        "Graviti Hill was founded in 2022 on a specific frustration. Nigerian business is not short of ideas. It is short of the discipline that turns an idea into a measurable outcome — and the gap between the two had become the most expensive thing in the room.",
-        "Creative thinking and commercial impact were being run as separate conversations by separate people, usually in separate buildings. The strategy deck said one thing, the operating model permitted another, and the brand promised a third.",
-      ],
-    },
-    {
-      heading: "What that means in practice",
-      body: [
-        "We staff brand and advisory work from the same bench. A brand engagement here will interrogate the process that fulfils the promise; an advisory engagement will interrogate what the market has been told to expect.",
-        "It is a slower way to sell work and a faster way to change a business.",
-      ],
-    },
-  ],
-
-  pullQuote:
-    "Nigerian business is not short of ideas. It is short of the discipline that turns one into a measurable outcome.",
-
-  /** Rendered as editorial data in the hero margin, not as a stat card. */
-  facts: [
-    { label: "Founded", value: "2022" },
-    { label: "Base", value: "Lagos, NG" },
-    { label: "Leadership", value: "55+ yrs" },
-  ],
-} as const;
+export async function getAbout(): Promise<About> {
+  const doc = await readAbout();
+  if (!doc) {
+    throw new Error(
+      'About has no content yet. Run "npm run seed" or save it from /admin/about.',
+    );
+  }
+  return doc;
+}

@@ -6,9 +6,9 @@ import { Reveal } from "@/components/motion/Reveal";
 import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 import { HeadlineReveal } from "@/components/motion/HeadlineReveal";
 import { Icon } from "@/components/icons";
-import { NAKED_BOARD } from "@/content/naked-board";
+import { getNakedBoard } from "@/content/naked-board";
 import { pageMetadata } from "@/lib/seo";
-import { WHATSAPP_URL } from "@/lib/site";
+import { getSiteSettings, whatsappUrl } from "@/lib/settings";
 import { indexNumber } from "@/lib/utils";
 
 export const metadata: Metadata = pageMetadata({
@@ -23,8 +23,9 @@ export const metadata: Metadata = pageMetadata({
  * framing, a sequence rather than a service list. It should read as a platform
  * the firm owns, not as a fifth practice page.
  */
-export default function NakedBoardPage() {
+export default async function NakedBoardPage() {
   const grid = ["lg:col-start-1", "lg:col-start-2", "lg:col-start-3", "lg:col-start-4", "lg:col-start-5"];
+  const [nakedBoard, settings] = await Promise.all([getNakedBoard(), getSiteSettings()]);
 
   return (
     <>
@@ -36,7 +37,7 @@ export default function NakedBoardPage() {
             The Naked <span className="accent-word-dark">Board.</span>
           </>
         }
-        lede={NAKED_BOARD.premise}
+        lede={nakedBoard.premise}
         index={[
           { label: "Format", value: "Closed cohort" },
           { label: "Sessions", value: "Unrecorded" },
@@ -68,7 +69,7 @@ export default function NakedBoardPage() {
               ]}
             />
             <div className="measure mt-10 space-y-6 text-body-lg text-white/75">
-              {NAKED_BOARD.positioning.map((paragraph, i) => (
+              {nakedBoard.positioning.map((paragraph, i) => (
                 <Reveal as="p" key={i}>
                   {paragraph}
                 </Reveal>
@@ -101,7 +102,7 @@ export default function NakedBoardPage() {
             {/* Each stage steps one column further in — the programme
                 advancing, expressed as layout rather than an animation. */}
             <RevealGroup as="ol" className="grid-12 mt-16 gap-y-0">
-              {NAKED_BOARD.stages.map((stage, i) => (
+              {nakedBoard.stages.map((stage, i) => (
                 <RevealItem
                   as="li"
                   key={stage.name}
@@ -144,7 +145,7 @@ export default function NakedBoardPage() {
             </h2>
 
             <RevealGroup as="ul" className="mt-14 border-t border-rule">
-              {NAKED_BOARD.audience.map((item, i) => (
+              {nakedBoard.audience.map((item, i) => (
                 <RevealItem
                   as="li"
                   key={item}
@@ -159,7 +160,7 @@ export default function NakedBoardPage() {
             </RevealGroup>
 
             <p className="type-eyebrow mt-10 text-ink-muted">
-              {NAKED_BOARD.commitment}
+              {nakedBoard.commitment}
             </p>
           </div>
         </div>
@@ -193,7 +194,7 @@ export default function NakedBoardPage() {
                 Start a conversation
               </ButtonLink>
               <ButtonLink
-                href={WHATSAPP_URL}
+                href={whatsappUrl(settings)}
                 tone="dark"
                 variant="secondary"
                 target="_blank"

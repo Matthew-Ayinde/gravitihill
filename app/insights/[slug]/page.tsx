@@ -7,21 +7,22 @@ import { CtaPanel } from "@/components/sections/CtaPanel";
 import { Section } from "@/components/ui/Section";
 import { EditorialImage } from "@/components/ui/EditorialImage";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { INSIGHTS, getInsight, relatedInsights } from "@/content/insights";
+import { getInsights, getInsight, getRelatedInsights } from "@/content/insights";
 import { articleJsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 import { pageMetadata } from "@/lib/seo";
 import { SITE } from "@/lib/site";
 import { editorialDate } from "@/lib/utils";
 
-export function generateStaticParams() {
-  return INSIGHTS.map((insight) => ({ slug: insight.slug }));
+export async function generateStaticParams() {
+  const insights = await getInsights();
+  return insights.map((insight) => ({ slug: insight.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: PageProps<"/insights/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const insight = getInsight(slug);
+  const insight = await getInsight(slug);
   if (!insight) return {};
 
   return pageMetadata({
@@ -38,11 +39,11 @@ export default async function InsightPage({
   params,
 }: PageProps<"/insights/[slug]">) {
   const { slug } = await params;
-  const insight = getInsight(slug);
+  const insight = await getInsight(slug);
   if (!insight) notFound();
 
   const url = `${SITE.url}/insights/${insight.slug}`;
-  const related = relatedInsights(insight.slug);
+  const related = await getRelatedInsights(insight.slug);
 
   return (
     <>

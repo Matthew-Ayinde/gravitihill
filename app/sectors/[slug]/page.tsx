@@ -8,20 +8,21 @@ import { EditorialImage } from "@/components/ui/EditorialImage";
 import { Reveal } from "@/components/motion/Reveal";
 import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 import { Icon } from "@/components/icons";
-import { SECTORS, getSector } from "@/content/sectors";
-import { PRACTICES } from "@/content/services";
+import { getSectors, getSector } from "@/content/sectors";
+import { getPractices } from "@/content/services";
 import { pageMetadata } from "@/lib/seo";
 import { indexNumber } from "@/lib/utils";
 
-export function generateStaticParams() {
-  return SECTORS.map((sector) => ({ slug: sector.slug }));
+export async function generateStaticParams() {
+  const sectors = await getSectors();
+  return sectors.map((sector) => ({ slug: sector.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: PageProps<"/sectors/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const sector = getSector(slug);
+  const sector = await getSector(slug);
   if (!sector) return {};
 
   return pageMetadata({
@@ -35,11 +36,12 @@ export default async function SectorPage({
   params,
 }: PageProps<"/sectors/[slug]">) {
   const { slug } = await params;
-  const sector = getSector(slug);
+  const sector = await getSector(slug);
   if (!sector) notFound();
 
-  const position = SECTORS.findIndex((s) => s.slug === sector.slug);
-  const practices = PRACTICES.filter((practice) =>
+  const [sectors, allPractices] = await Promise.all([getSectors(), getPractices()]);
+  const position = sectors.findIndex((s) => s.slug === sector.slug);
+  const practices = allPractices.filter((practice) =>
     practice.relatedSectors.includes(sector.slug),
   );
 
