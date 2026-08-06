@@ -53,14 +53,17 @@ export async function createSession(payload: SessionPayload): Promise<void> {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    path: "/admin",
+    // Must cover /api/admin/* too (e.g. MediaPicker's fetch calls), which
+    // doesn't fall under the /admin path prefix — a cookie scoped to /admin
+    // is never sent on /api/admin/media requests, so those 401 silently.
+    path: "/",
     maxAge: 60 * 60 * 24 * 7,
   });
 }
 
 export async function destroySession(): Promise<void> {
   const store = await cookies();
-  store.delete({ name: COOKIE_NAME, path: "/admin" });
+  store.delete({ name: COOKIE_NAME, path: "/" });
 }
 
 /** Reads and verifies the session from within a Server Component/Action. */

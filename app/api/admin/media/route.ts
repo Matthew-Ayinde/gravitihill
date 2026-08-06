@@ -5,7 +5,10 @@ import { requireSession } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
-const MAX_BYTES = 8 * 1024 * 1024;
+// Vercel hard-caps serverless function request bodies at 4.5MB — not
+// configurable — so this stays under that regardless of what the app itself
+// would otherwise allow, with headroom for multipart overhead.
+const MAX_BYTES = 4 * 1024 * 1024;
 
 export async function GET() {
   await requireSession();
@@ -27,7 +30,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "File must be an image." }, { status: 400 });
   }
   if (file.size > MAX_BYTES) {
-    return NextResponse.json({ message: "Image must be under 8MB." }, { status: 400 });
+    return NextResponse.json({ message: "Image must be under 4MB." }, { status: 400 });
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());

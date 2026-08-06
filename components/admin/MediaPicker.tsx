@@ -36,8 +36,11 @@ export function MediaPicker({
     if (!browsing || library.length > 0) return;
     setLoading(true);
     fetch("/api/admin/media")
-      .then((r) => r.json())
-      .then((data: MediaAsset[]) => setLibrary(data))
+      .then((r) => {
+        if (!r.ok) throw new Error();
+        return r.json();
+      })
+      .then((data: MediaAsset[]) => setLibrary(Array.isArray(data) ? data : []))
       .catch(() => setError("Could not load the media library."))
       .finally(() => setLoading(false));
   }, [browsing, library.length]);
@@ -56,7 +59,7 @@ export function MediaPicker({
       setSelected({ src: asset.secureUrl, alt: asset.alt, ratio: asset.ratio, blurDataURL: asset.blurDataURL });
       setBrowsing(false);
     } catch {
-      setError("Upload failed. Check the file is an image under 8MB.");
+      setError("Upload failed. Check the file is an image under 4MB.");
     } finally {
       setUploading(false);
     }
