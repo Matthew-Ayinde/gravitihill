@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 /**
  * Section rhythm across the site is light-dominant with three deliberate dark
  * moments (Sectors, The Naked Board, contact). A dark panel should feel like a
- * held breath, not a theme change — so `ridge` sets the text colour and nothing
+ * held breath, not a theme change, so `ridge` sets the text colour and nothing
  * else; components inside opt into dark treatment explicitly.
  */
 type Tone = "canvas" | "alt" | "ridge";
@@ -43,7 +43,7 @@ export function Section({
 }
 
 /**
- * The section eyebrow lives in the left margin as a sticky label — an index
+ * The section eyebrow lives in the left margin as a sticky label: an index
  * number and a name, horizontal, never rotated. It holds position while the
  * section's content scrolls past it.
  */
@@ -70,7 +70,7 @@ export function SectionLabel({
         {index}
       </span>
       <span aria-hidden="true" className="mx-2">
-        —
+        -
       </span>
       {children}
     </p>
@@ -78,7 +78,7 @@ export function SectionLabel({
 }
 
 /**
- * Mobile counterpart to SectionLabel — the sticky margin label has nowhere to
+ * Mobile counterpart to SectionLabel: the sticky margin label has nowhere to
  * live under 1024px, so it sits inline above the heading instead.
  */
 export function SectionLabelInline({
@@ -104,7 +104,7 @@ export function SectionLabelInline({
         {index}
       </span>
       <span aria-hidden="true" className="mx-2">
-        —
+        -
       </span>
       {children}
     </p>

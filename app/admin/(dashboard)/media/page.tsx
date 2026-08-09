@@ -45,8 +45,8 @@ export default async function AdminMediaPage() {
             <div className="mt-2">
               <DeleteButton
                 action={deleteFromLibraryAction.bind(null, asset.publicId)}
-                confirmMessage="Remove this from the media library? Content already using it keeps rendering."
-                label="Remove from library"
+                confirmMessage="Delete this permanently from Cloudinary? Any page still using it will show a broken image — check where it's used first."
+                label="Delete"
               />
             </div>
           </li>

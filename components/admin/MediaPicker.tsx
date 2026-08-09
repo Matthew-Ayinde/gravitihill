@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
+import { destroyRemoteVideo } from "@/lib/admin/media-client";
 import type { Img, MediaAsset } from "@/lib/schemas";
 import { cn } from "@/lib/utils";
 
@@ -12,17 +13,25 @@ import { cn } from "@/lib/utils";
  * `.blurDataURL`) matching `imageSchema` exactly, so the parent form's
  * FormData carries an embeddable snapshot — the same shape content/media.ts
  * produced for the old static site. No separate join at read time.
+ *
+ * `allowVideo` adds a second, optional control beneath the chosen still: an
+ * ambient video upload (`${field}.video.mp4`), matching `imageSchema.video`
+ * — the same enhancement AmbientVideo already renders elsewhere. It only
+ * appears once a still is selected, since the still is always the poster and
+ * the schema requires `src` regardless of whether a video is attached.
  */
 export function MediaPicker({
   field,
   label,
   initial,
   optional = true,
+  allowVideo = false,
 }: {
   field: string;
   label: string;
   initial?: Img;
   optional?: boolean;
+  allowVideo?: boolean;
 }) {
   const [library, setLibrary] = useState<MediaAsset[]>([]);
   const [loading, setLoading] = useState(false);
@@ -31,6 +40,11 @@ export function MediaPicker({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [alt, setAlt] = useState(initial?.alt ?? "");
+  const [video, setVideo] = useState<{ mp4?: string; webm?: string } | undefined>(
+    initial?.video,
+  );
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [videoError, setVideoError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!browsing || library.length > 0) return;
@@ -65,6 +79,31 @@ export function MediaPicker({
     }
   }
 
+  async function handleVideoUpload(file: File) {
+    setUploadingVideo(true);
+    setVideoError(null);
+    try {
+      const body = new FormData();
+      body.set("file", file);
+      const res = await fetch("/api/admin/hero-video", { method: "POST", body });
+      if (!res.ok) throw new Error();
+      const { url } = (await res.json()) as { url: string };
+      // A video being replaced, not just added — clean up the one it's
+      // superseding rather than leaving it orphaned in Cloudinary.
+      if (video?.mp4) destroyRemoteVideo(video.mp4);
+      setVideo({ mp4: url });
+    } catch {
+      setVideoError("Upload failed. Check the file is a video under 3MB.");
+    } finally {
+      setUploadingVideo(false);
+    }
+  }
+
+  function removeVideo() {
+    if (video?.mp4) destroyRemoteVideo(video.mp4);
+    setVideo(undefined);
+  }
+
   return (
     <div>
       <span className="type-eyebrow mb-3 block text-ink-muted">{label}</span>
@@ -83,6 +122,12 @@ export function MediaPicker({
       <input type="hidden" name={`${field}.alt`} value={selected?.alt ?? ""} />
       <input type="hidden" name={`${field}.ratio`} value={selected?.ratio ?? "3:2"} />
       <input type="hidden" name={`${field}.blurDataURL`} value={selected?.blurDataURL ?? ""} />
+      {allowVideo && (
+        <>
+          <input type="hidden" name={`${field}.video.mp4`} value={video?.mp4 ?? ""} />
+          <input type="hidden" name={`${field}.video.webm`} value={video?.webm ?? ""} />
+        </>
+      )}
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <Button type="button" variant="secondary" className="px-4 py-2 text-caption" onClick={() => setBrowsing((v) => !v)}>
@@ -93,12 +138,66 @@ export function MediaPicker({
             type="button"
             variant="secondary"
             className="px-4 py-2 text-caption"
-            onClick={() => setSelected(undefined)}
+            onClick={() => {
+              setSelected(undefined);
+              removeVideo();
+            }}
           >
             Remove image
           </Button>
         )}
       </div>
+
+      {allowVideo && selected && (
+        <div className="mt-6 max-w-sm border-t border-rule pt-6">
+          <span className="type-eyebrow mb-2 block text-ink-muted">
+            Ambient video (optional)
+          </span>
+          <p className="mb-3 text-caption text-ink-muted">
+            A short, muted, looping clip that plays over the still above. Keep
+            it under ~8 seconds and 3MB — it never blocks the page, and drops
+            back to the still under reduced motion or a slow connection.
+          </p>
+
+          {video?.mp4 ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <video
+                src={video.mp4}
+                muted
+                loop
+                playsInline
+                autoPlay
+                className="h-20 w-32 border border-rule object-cover"
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                className="px-4 py-2 text-caption"
+                onClick={removeVideo}
+              >
+                Remove video
+              </Button>
+            </div>
+          ) : (
+            <label className={cn("inline-block", uploadingVideo && "opacity-50")}>
+              <span className="type-eyebrow inline-flex cursor-pointer items-center border border-rule px-4 py-2.5 text-ink hover:bg-canvas-alt">
+                {uploadingVideo ? "Uploading…" : "Upload video"}
+              </span>
+              <input
+                type="file"
+                accept="video/mp4,video/webm"
+                className="sr-only"
+                disabled={uploadingVideo}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleVideoUpload(file);
+                }}
+              />
+            </label>
+          )}
+          {videoError && <p className="mt-3 text-caption text-ink">{videoError}</p>}
+        </div>
+      )}
 
       {browsing && (
         <div className="mt-4 border border-rule p-4">

@@ -3,7 +3,7 @@ import type { SocialPost } from "@/lib/schemas";
 import { listSocialPosts } from "@/lib/repositories/social";
 
 /**
- * SOCIAL WALL — static-feeling, curated, three formats.
+ * SOCIAL WALL: static-feeling, curated, three formats.
  *
  * ── CMS seam ────────────────────────────────────────────────────────────────
  * Data layer for the social section on /, backed by MongoDB. Still no live

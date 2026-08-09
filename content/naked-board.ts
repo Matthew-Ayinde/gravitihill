@@ -3,11 +3,11 @@ import type { NakedBoard } from "@/lib/schemas";
 import { getNakedBoard as readNakedBoardDoc } from "@/lib/repositories/naked-board";
 
 /**
- * THE NAKED BOARD — the proprietary executive coaching platform.
+ * THE NAKED BOARD: the proprietary executive coaching platform.
  *
  * ── CMS seam ────────────────────────────────────────────────────────────────
  * Data layer for /the-naked-board and the dark teaser on /, backed by
- * MongoDB. Singleton document — `npm run seed` (or a first save from
+ * MongoDB. Singleton document: `npm run seed` (or a first save from
  * /admin/naked-board) must exist before these pages can render.
  */
 

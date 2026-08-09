@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 /**
  * Placeholder-tolerant leadership portrait.
  *
- * With no `photo` on the record — the current and expected state — this renders
+ * With no `photo` on the record (the current and expected state), this renders
  * a typographic monogram: the person's initials in --green on --canvas-alt, set
  * in the display face at portrait ratio. The layout is complete and composed
  * without a single headshot, which is exactly what the brief requires.

@@ -8,12 +8,13 @@ import { MotionRoot } from "@/components/motion/MotionRoot";
 import { PageFade } from "@/components/motion/PageFade";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { organizationJsonLd } from "@/lib/jsonld";
+import { getHomeHeroMedia } from "@/lib/home-hero";
 import { SITE } from "@/lib/site";
 
 /**
- * Archivo carries both a weight axis (100–900) and a width axis (62–125), so a
+ * Archivo carries both a weight axis (100-900) and a width axis (62-125), so a
  * single superfamily reproduces Acumin's Extra Condensed / Semi Condensed /
- * Normal system exactly — one file, three widths, no mismatched pairing.
+ * Normal system exactly: one file, three widths, no mismatched pairing.
  *
  * Declaring `axes: ["wdth"]` keeps this to a single variable font download.
  * Swap path to real Acumin is documented in README §Typography and touches only
@@ -45,7 +46,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  // /admin is a tool, not a marketing surface — middleware flags every
+  // /admin is a tool, not a marketing surface. Middleware flags every
   // request under it with `x-is-admin` so this single root layout can skip
   // SiteHeader/SiteFooter/MotionRoot/the Organization JSON-LD for it, rather
   // than restructuring the whole app directory into two root layouts.
@@ -59,7 +60,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     );
   }
 
-  const orgJsonLd = await organizationJsonLd();
+  const [orgJsonLd, homeHero] = await Promise.all([organizationJsonLd(), getHomeHeroMedia()]);
 
   return (
     <html lang="en" className={`${archivo.variable} h-full`}>
@@ -74,7 +75,14 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             Skip to content
           </a>
           <MotionRoot>
-            <SiteHeader />
+            {/* SiteHeader is global and route-agnostic; it can't fetch the
+                home page's content itself. Whether "/" has a dark background
+                is admin-configurable content, not a fact about the route,
+                so it's read here (once, cached, for every route) and handed
+                down — the same way DARK_HERO_ROUTES flags a fully-dark page
+                like /the-naked-board, just resolved from data instead of a
+                hardcoded list. */}
+            <SiteHeader homeHeroHasMedia={homeHero.items.length > 0} />
             <PageFade>{children}</PageFade>
             <SiteFooter />
           </MotionRoot>

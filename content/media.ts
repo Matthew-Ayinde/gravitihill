@@ -2,7 +2,7 @@ import { imageSchema, type Img } from "@/lib/schemas";
 import { z } from "zod";
 
 /**
- * MEDIA LIBRARY — placeholder photography.
+ * MEDIA LIBRARY: placeholder photography.
  *
  * ── CMS seam ────────────────────────────────────────────────────────────────
  * Every image slot on the site resolves through this module. Content modules
@@ -10,7 +10,7 @@ import { z } from "zod";
  * swapping the whole library is one file.
  *
  * ── Grade ───────────────────────────────────────────────────────────────────
- * All frames are processed identically — resized to 1600x1067 (3:2), saturation
+ * All frames are processed identically: resized to 1600x1067 (3:2), saturation
  * 0.42, contrast +7%, a 10% cool-slate overlay, light sharpen. That is what
  * makes images from many photographers read as one commissioned shoot. Re-run
  * the same grade on any replacement.

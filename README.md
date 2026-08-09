@@ -139,6 +139,7 @@ content/social.ts       → socialPosts collection    (edit at /admin/social)
 content/naked-board.ts  → nakedBoard singleton       (edit at /admin/naked-board)
 content/about.ts        → about singleton            (edit at /admin/about)
 lib/settings.ts         → settings singleton (NAP)    (edit at /admin/settings)
+lib/home-hero.ts        → homeHero singleton          (edit at /admin/home)
 ```
 
 Reads are wrapped in `unstable_cache` with one tag per collection
@@ -164,13 +165,43 @@ own shell (`app/admin/(dashboard)/layout.tsx`) instead.
   index order).
 - **The Naked Board, About, Settings** — singleton forms (one record each, no
   list view).
+- **Home hero** (`/admin/home`) — the optional background behind the `/` hero:
+  zero to five slides (`HOME_HERO_MAX_ITEMS` in `lib/schemas.ts`), each a
+  still image with an optional short ambient video looping over it. Empty by
+  default, which renders the original type-only hero with no layout change.
+  Two or more slides auto-rotate on the public page (`HeroBackground`, a
+  crossfade every 7s) — a second animated moment on a site whose brief
+  allows exactly one, so it's opt-in rather than default, and disabled
+  entirely under reduced motion (first slide only, no timer). A still is
+  required before a video can attach to its slide (it's always the poster
+  and the LCP-safe first paint); video uploads go through
+  `app/api/admin/hero-video/route.ts` to Cloudinary as a `video` resource
+  (no brand-grade transform — that pipeline is image-only), downscaled to a
+  1920px width ceiling and capped at 3MB — tighter than the general image
+  cap, since a hero clip sits behind the LCP-critical headline and the
+  brief's own guidance for ambient video is "under ~8 seconds and ~1.5MB."
+  Both fields are just `imageSchema`'s existing `src` / `video` shape — the
+  same one `AmbientVideo` already renders on sector and practice imagery.
+  Removing a slide's video (replaced, detached, or the whole slide deleted)
+  destroys it in Cloudinary immediately, via a `DELETE` on the same route —
+  unlike library images, a hero clip has no catalog and no other reuse path,
+  so there's nothing to preserve by leaving it orphaned.
 - **Media library** (`/admin/media`) — every image field elsewhere in the
-  admin opens a picker that browses this library or uploads a new file.
-  Uploads go through `app/api/admin/media/route.ts`, which applies the brand's
-  photographic grade (`lib/cloudinary.ts`'s `BRAND_TRANSFORM` — desaturate,
-  +7% contrast, cool-slate overlay) as a Cloudinary eager transformation, and
-  generates a blur placeholder the same way `content/media.ts`'s hand-authored
-  ones were made, just automatically.
+  admin opens a picker that browses this library or uploads a new file (image
+  uploads are capped at 4MB — Vercel's serverless request-body limit — and
+  the brand grade downstream normalizes every asset to 1600×1067 regardless
+  of the source size, so that cap is an upload-UX sanity check, not a
+  public-facing load-time lever). Uploads go through
+  `app/api/admin/media/route.ts`, which applies the brand's photographic
+  grade (`lib/cloudinary.ts`'s `BRAND_TRANSFORM` — desaturate, +7% contrast,
+  cool-slate overlay) as a Cloudinary eager transformation, and generates a
+  blur placeholder the same way `content/media.ts`'s hand-authored ones were
+  made, just automatically. **Delete is a real delete** — it destroys the
+  asset in Cloudinary, not just the catalog entry, so the confirm dialog
+  warns that any page still using it will show a broken image. Content
+  documents embed a resolved image snapshot at save time rather than
+  referencing this catalog by id, so there's no reverse lookup to warn you
+  *which* pages — check before deleting something that might be in use.
 - **Enquiries** (`/admin/enquiries`) — every `/contact` submission, logged
   independently of whether the email notification sent.
 

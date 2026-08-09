@@ -4,7 +4,7 @@ import { verifySession, SESSION_COOKIE_NAME } from "@/lib/auth";
 /**
  * Gates every /admin route except the login page itself. Runs on the Edge
  * runtime, so session verification goes through `jose` (verifySession),
- * never bcrypt or the MongoDB driver — those stay server-only, reached only
+ * never bcrypt or the MongoDB driver. Those stay server-only, reached only
  * from Server Actions and Route Handlers after this gate has already passed.
  *
  * Also flags every /admin request with an `x-is-admin` request header so the
@@ -20,7 +20,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // /api/admin/* is fetched by client components (e.g. MediaPicker) with the
-  // browser's own cookies, so it needs the same gate as the pages — a 401
+  // browser's own cookies, so it needs the same gate as the pages: a 401
   // here, not a redirect, since it's called from JS rather than navigated to.
   if (request.nextUrl.pathname.startsWith("/api/admin/")) {
     const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;

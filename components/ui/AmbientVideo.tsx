@@ -24,6 +24,35 @@ import type { Img } from "@/lib/schemas";
  * render the still. The video is an upgrade that arrives after the image is
  * already on screen — it can never delay LCP.
  */
+
+/**
+ * The three-condition playback gate above, factored out so other ambient
+ * video surfaces (the home hero's rotating background) can reuse the exact
+ * same reduced-motion / save-data / connection-speed decision rather than
+ * re-implementing it and risking the two drifting apart.
+ */
+export function useAmbientPlaybackAllowed(): boolean {
+  const reduced = useReducedMotion();
+  const [allowed, setAllowed] = useState(false);
+
+  useEffect(() => {
+    if (reduced) {
+      setAllowed(false);
+      return;
+    }
+    const conn = (
+      navigator as Navigator & {
+        connection?: { saveData?: boolean; effectiveType?: string };
+      }
+    ).connection;
+    if (conn?.saveData) return;
+    if (conn?.effectiveType && /2g|3g/.test(conn.effectiveType)) return;
+    setAllowed(true);
+  }, [reduced]);
+
+  return allowed;
+}
+
 export function AmbientVideo({
   image,
   sizes,
@@ -35,24 +64,8 @@ export function AmbientVideo({
   priority?: boolean;
   className?: string;
 }) {
-  const reduced = useReducedMotion();
-  const [play, setPlay] = useState(false);
+  const play = useAmbientPlaybackAllowed();
   const ref = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (reduced) {
-      setPlay(false);
-      return;
-    }
-    const conn = (
-      navigator as Navigator & {
-        connection?: { saveData?: boolean; effectiveType?: string };
-      }
-    ).connection;
-    if (conn?.saveData) return;
-    if (conn?.effectiveType && /2g|3g/.test(conn.effectiveType)) return;
-    setPlay(true);
-  }, [reduced]);
 
   // Pause when off-screen. A hero that keeps decoding frames after the reader
   // has scrolled past is spending battery on nothing.

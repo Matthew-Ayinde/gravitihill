@@ -7,8 +7,8 @@ import { listSectors } from "@/lib/repositories/sectors";
  *
  * ── CMS seam ────────────────────────────────────────────────────────────────
  * Data layer for /sectors, /sectors/[slug] and the signature pinned panel,
- * backed by MongoDB. Order matters — the panel advances Consumer → B2B →
- * Technology in this order — so lib/repositories/sectors.ts sorts by the
+ * backed by MongoDB. Order matters (the panel advances Consumer → B2B →
+ * Technology in this order), so lib/repositories/sectors.ts sorts by the
  * `order` field admin writes maintain, not by slug or insertion order.
  */
 

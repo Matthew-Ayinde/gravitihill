@@ -56,10 +56,28 @@ export function getImg(formData: FormData, field: string): Img | undefined {
   const src = str(formData, `${field}.src`);
   if (!src) return undefined;
   const ratio = str(formData, `${field}.ratio`);
+  const mp4 = optionalStr(formData, `${field}.video.mp4`);
+  const webm = optionalStr(formData, `${field}.video.webm`);
   return {
     src,
     alt: str(formData, `${field}.alt`),
     ratio: ratio === "4:5" ? "4:5" : "3:2",
     blurDataURL: optionalStr(formData, `${field}.blurDataURL`),
+    video: mp4 || webm ? { mp4, webm } : undefined,
   };
+}
+
+/**
+ * Reads a RepeatableHeroItems group — up to `max` MediaPickers named
+ * `${field}.0`, `${field}.1`, … — back into an ordered list, dropping any
+ * slot that has nothing selected (e.g. a slide that was added then never
+ * given an image).
+ */
+export function getImgList(formData: FormData, field: string, max: number): Img[] {
+  const items: Img[] = [];
+  for (let i = 0; i < max; i++) {
+    const img = getImg(formData, `${field}.${i}`);
+    if (img) items.push(img);
+  }
+  return items;
 }

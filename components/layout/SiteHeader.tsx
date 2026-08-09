@@ -14,7 +14,12 @@ const DARK_HERO_ROUTES = ["/the-naked-board"];
 
 const SOLIDIFY_AT = 80;
 
-export function SiteHeader() {
+export function SiteHeader({
+  homeHeroHasMedia = false,
+}: {
+  /** Whether the "/" hero currently has an admin-set background — see app/layout.tsx. */
+  homeHeroHasMedia?: boolean;
+}) {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
@@ -22,7 +27,8 @@ export function SiteHeader() {
   const reduced = useReducedMotion();
   const servicesRef = useRef<HTMLDivElement>(null);
 
-  const onDarkHero = DARK_HERO_ROUTES.includes(pathname);
+  const onDarkHero =
+    DARK_HERO_ROUTES.includes(pathname) || (pathname === "/" && homeHeroHasMedia);
   const solid = scrolled || mobileOpen;
   const light = onDarkHero && !solid;
 

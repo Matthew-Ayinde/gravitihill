@@ -1,8 +1,8 @@
-# BUILD BRIEF — Graviti Hill Limited Website
+# BUILD BRIEF: Graviti Hill Limited Website
 
 **Role:** You are a staff-level product engineer and design lead. You have shipped marketing sites for management consultancies and you are known for work that looks commissioned, not generated. Every decision below is deliberate. Do not improvise around it.
 
-**Stack (already scaffolded — do not re-init):** Next.js 16 (App Router), TypeScript (strict), Tailwind CSS, framer-motion. Deploy target: Vercel.
+**Stack (already scaffolded, do not re-init):** Next.js 16 (App Router), TypeScript (strict), Tailwind CSS, framer-motion. Deploy target: Vercel.
 
 **The single job of this site:** make Graviti Hill credible enough to be shortlisted on an enterprise RFP. Primary audience is Nigerian enterprise C-suite and multinationals entering West Africa; secondary is funded startups and scale-ups. Every visual decision is subordinate to that. A visitor should close the tab thinking *these people are serious*, not *nice website*.
 
@@ -20,7 +20,7 @@ The Graviti Hill mark (blue-to-green wave/hill) may **only** appear as the appro
 
 Approved lockups only: black wordmark on light backgrounds, white wordmark on dark backgrounds, green (`#206616`) wordmark as an alternate on light. Maintain clear space equal to the height of the mark's cap-height on all four sides.
 
-This means **the site's visual signature must come from typography, layout, colour discipline and motion — not from the brand mark.** That is the hard part of this brief. Do it properly.
+This means **the site's visual signature must come from typography, layout, colour discipline and motion, not from the brand mark.** That is the hard part of this brief. Do it properly.
 
 ### 0.2 The anti-generic ban list
 The client will reject anything that looks AI-assembled. These are banned outright:
@@ -69,7 +69,7 @@ Service and sector detail pages use `generateStaticParams` over a typed content 
 
 **Global nav:** About · Services (dropdown/mega-panel) · Sectors · Insights · Contact. One CTA: **Start a conversation** → `/contact`. Sticky, transparent over the hero, solidifying to `--canvas` with a hairline bottom rule after ~80px of scroll. Mobile: full-screen overlay, staggered link reveal, no hamburger-to-X cuteness beyond a clean two-line morph.
 
-**Footer:** three columns — navigation, contact block (address, email, three phone numbers), and a short positioning line. Bottom bar: legal, LinkedIn, © year. Dark (`--ridge`) with the white-wordmark lockup.
+**Footer:** three columns: navigation, contact block (address, email, three phone numbers), and a short positioning line. Bottom bar: legal, LinkedIn, © year. Dark (`--ridge`) with the white-wordmark lockup.
 
 ---
 
@@ -85,14 +85,14 @@ Defined in `globals.css` as CSS custom properties, surfaced to Tailwind via `@th
 | `--canvas-alt` | `#EDECED` | Alternating section background (brand light gray) |
 | `--ink` | `#0B0B0B` | Body text (brand black) |
 | `--ink-muted` | `#5A5F5A` | Secondary text, captions, metadata |
-| `--green` | `#206616` | Primary brand — headings, key shapes, emphasis |
+| `--green` | `#206616` | Primary brand: headings, key shapes, emphasis |
 | `--ridge` | `#0D2A0B` | Dark-panel background. Derived by darkening `--green`; used **only** as a surface, never as type or a mark colour |
 | `--accent` | `#8ABF4D` | Icons, data points, single highlighted words, active states |
 | `--white` | `#FFFFFF` | Type and surfaces on dark |
 | `--rule` | `rgba(11,11,11,0.12)` | Hairline dividers on light |
 | `--rule-dark` | `rgba(255,255,255,0.16)` | Hairline dividers on dark |
 
-**Enforced balance: 70% neutral / 20% dark green / 10% accent.** The accent green is a scalpel — one highlighted word in a headline, an active nav underline, an icon fill, a data point. Never a button fill, never a large area, never a background.
+**Enforced balance: 70% neutral / 20% dark green / 10% accent.** The accent green is a scalpel: one highlighted word in a headline, an active nav underline, an icon fill, a data point. Never a button fill, never a large area, never a background.
 
 Buttons: primary is `--green` fill with white label; on dark panels it inverts to white fill with `--green` label. Secondary is a hairline outline. No third button style.
 
@@ -100,13 +100,13 @@ Buttons: primary is `--green` fill with white label; on dark panels it inverts t
 
 The brand specifies **Acumin Variable Extra Condensed** (primary) and **Acumin Variable Semi Condensed** (secondary). Acumin is Adobe Fonts and cannot be self-hosted, so build on a free variable substitute with a one-line swap path.
 
-**Use `Archivo` (Google Fonts, variable) — it carries both a weight axis (100–900) and a width axis (`wdth` 62–125), which lets a single superfamily reproduce Acumin's Extra Condensed / Semi Condensed / Normal system exactly.** This is the reason for the choice: one family, three widths, no mismatched pairing.
+**Use `Archivo` (Google Fonts, variable). It carries both a weight axis (100-900) and a width axis (`wdth` 62-125), which lets a single superfamily reproduce Acumin's Extra Condensed / Semi Condensed / Normal system exactly.** This is the reason for the choice: one family, three widths, no mismatched pairing.
 
 ```
-Display  — Archivo,  wdth 72,  wght 600–700,  tracking -0.02em   (hero, page titles, section heads)
-Subhead  — Archivo,  wdth 88,  wght 500–600,  tracking -0.01em   (card titles, service names)
-Body     — Archivo,  wdth 100, wght 400,      tracking 0,  1.6 line-height
-Eyebrow  — Archivo,  wdth 112, wght 600,      uppercase, tracking 0.14em, 12px
+Display  : Archivo,  wdth 72,  wght 600-700,  tracking -0.02em   (hero, page titles, section heads)
+Subhead  : Archivo,  wdth 88,  wght 500-600,  tracking -0.01em   (card titles, service names)
+Body     : Archivo,  wdth 100, wght 400,      tracking 0,  1.6 line-height
+Eyebrow  : Archivo,  wdth 112, wght 600,      uppercase, tracking 0.14em, 12px
 ```
 
 Load via `next/font/google` with `variable: '--font-archivo'`, `display: 'swap'`, and the axes declared so only one file downloads. Set widths with `font-variation-settings`, exposed as Tailwind utilities (`.w-xcond`, `.w-semicond`, `.w-normal`, `.w-wide`).
@@ -131,11 +131,11 @@ Headlines are set tight and large. Measure for body copy caps at **68 characters
 
 12-column grid, `max-width: 1440px`, gutters `clamp(1.25rem, 5vw, 6rem)`. Section vertical rhythm: `clamp(6rem, 12vh, 11rem)`.
 
-Asymmetry is the rule. Prose sits in columns 1–7 or 6–12, never dead-centre. Section eyebrows sit in the left margin as a sticky label where vertical space allows. Editorial hairline rules (`--rule`, 1px) separate content blocks — not borders around cards.
+Asymmetry is the rule. Prose sits in columns 1-7 or 6-12, never dead-centre. Section eyebrows sit in the left margin as a sticky label where vertical space allows. Editorial hairline rules (`--rule`, 1px) separate content blocks, not borders around cards.
 
 Cards, where they exist, are `--canvas-alt` or hairline-outlined, `border-radius: 4px` maximum. **No shadows.** Depth comes from surface contrast and generous space.
 
-Section rhythm across the site — light-dominant with three deliberate dark moments:
+Section rhythm across the site, light-dominant with three deliberate dark moments:
 
 ```
 LIGHT   hero, about, services overview, leadership, insights, social wall
@@ -148,7 +148,7 @@ Dark panels use `--ridge` with white type and `--accent` used once. They should 
 
 Replace all current stock (the rocket, the gold particle wave, the leaf shadow, the flatlay). Curate replacements with a single consistent grade: **desaturated, cool-neutral, documentary.** Real African business environments, architecture, ports and logistics, boardrooms, manufacturing floors, Lagos infrastructure. No smiling-team-around-a-laptop. No hands-shaking. No people looking at a chart.
 
-Rules: full-bleed or column-aligned only, never floated mid-paragraph. Aspect ratios `3:2` and `4:5` only. All images via `next/image` with `sizes`, blur placeholders, and real `alt` text. Apply a consistent subtle treatment — a `--ridge` overlay at 8–14% on dark panels — so mismatched stock reads as one library.
+Rules: full-bleed or column-aligned only, never floated mid-paragraph. Aspect ratios `3:2` and `4:5` only. All images via `next/image` with `sizes`, blur placeholders, and real `alt` text. Apply a consistent subtle treatment (a `--ridge` overlay at 8-14% on dark panels) so mismatched stock reads as one library.
 
 Leadership headshots: build a placeholder-tolerant `<PersonCard>` that renders a typographic monogram block (initials in `--green` on `--canvas-alt`) when `photo` is absent, so the layout is complete without real photography. Same principle for client logos: `<LogoWall>` renders nothing rather than empty boxes when the array is empty.
 

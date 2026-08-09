@@ -7,7 +7,7 @@ import { listTeam } from "@/lib/repositories/team";
  *
  * ── CMS seam ────────────────────────────────────────────────────────────────
  * Data layer for the /about leadership index and the Person JSON-LD, backed
- * by MongoDB. `photo` stays optional on every record — PersonCard renders a
+ * by MongoDB. `photo` stays optional on every record. PersonCard renders a
  * typographic monogram in its place, so the page is complete and composed
  * even for a leader added without a headshot.
  */
@@ -25,7 +25,7 @@ export async function getTeam(): Promise<Person[]> {
 
 /**
  * Verified: leadership carries 55+ years cumulative experience. Kept as a
- * static, verified figure rather than admin-editable — AGENTS.md is explicit
+ * static, verified figure rather than admin-editable. AGENTS.md is explicit
  * that figures like this are not to be invented or casually revised; update
  * it here deliberately if the leadership roster changes materially.
  */

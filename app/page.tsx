@@ -5,6 +5,7 @@ import { SectorsSection } from "@/components/sections/SectorsSection";
 import { SocialWall } from "@/components/sections/SocialWall";
 import { CtaPanel } from "@/components/sections/CtaPanel";
 import { PreviewRows } from "@/components/sections/PreviewRows";
+import { HeroBackground } from "@/components/sections/HeroBackground";
 import { Section, SectionLabel, SectionLabelInline } from "@/components/ui/Section";
 import { EditorialImage } from "@/components/ui/EditorialImage";
 import { ButtonLink } from "@/components/ui/Button";
@@ -19,12 +20,13 @@ import { getDnaPillars } from "@/content/dna";
 import { getInsights } from "@/content/insights";
 import { getNakedBoard } from "@/content/naked-board";
 import { CUMULATIVE_YEARS } from "@/content/team";
+import { getHomeHeroMedia } from "@/lib/home-hero";
 import { webSiteJsonLd } from "@/lib/jsonld";
 import { SITE } from "@/lib/site";
-import { editorialDate, indexNumber } from "@/lib/utils";
+import { cn, editorialDate, indexNumber } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  // Absolute — home does not take the `%s | Graviti Hill` template.
+  // Absolute: home does not take the `%s | Graviti Hill` template.
   title: {
     absolute: "Graviti Hill | Business Advisory & Brand Building, Lagos",
   },
@@ -33,33 +35,57 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const [about, dnaPillars, insights, nakedBoard] = await Promise.all([
+  const [about, dnaPillars, insights, nakedBoard, hero] = await Promise.all([
     getAbout(),
     getDnaPillars(),
     getInsights(),
     getNakedBoard(),
+    getHomeHeroMedia(),
   ]);
   const latest = insights.slice(0, 3);
+  const hasHeroMedia = hero.items.length > 0;
 
   return (
     <>
       <JsonLd data={webSiteJsonLd()} />
 
       {/* ══ 1. Hero ═══════════════════════════════════════════════════════
-          Type-first, no image, no eyebrow label.
+          Type-first. No eyebrow label, and, by default, no image: the
+          brief protects the hero's LCP by making the headline itself the
+          LCP element. An admin can opt into a background at /admin/home;
+          when they do, that trade is made deliberately (see the comment
+          on the background layer below), and the section switches to its
+          dark-panel palette so type stays legible over photography.
 
           The headline types on. Untyped characters stay in the DOM at
-          opacity 0, so the line box is the full string from the first frame —
+          opacity 0, so the line box is the full string from the first frame:
           no reflow, no CLS. The full text is in the server HTML for crawlers
           and screen readers; reduced motion and no-JS resolve to plain text
           through CSS alone. See TypedHeadline for the LCP trade-off. */}
-      <section className="pt-36 pb-16 lg:pt-48">
+      <section
+        className={cn(
+          "relative overflow-hidden pt-36 pb-16 lg:pt-48",
+          hasHeroMedia && "text-white",
+        )}
+      >
+        {/* aria-hidden inside HeroBackground: purely decorative, the
+            headline carries the meaning. No `priority`-vs-font tug-of-war to
+            solve here since the headline is server-rendered text with no
+            webfont blocking it; the trade this layer makes is that a
+            full-bleed background becomes a second, larger LCP candidate than
+            that text on first paint, which is why it stays admin-optional
+            rather than default. See HeroBackground for the rotation itself. */}
+        {hasHeroMedia && <HeroBackground items={hero.items} />}
+
         <div className="shell grid-12 gap-y-12">
           <TypedHeadline
             className="type-display col-span-12 text-hero lg:col-span-9"
             segments={[
               { text: "We build and sustain " },
-              { text: "future-forward", className: "accent-word" },
+              {
+                text: "future-forward",
+                className: hasHeroMedia ? "accent-word-dark" : "accent-word",
+              },
               { text: " businesses." },
             ]}
           />
@@ -67,8 +93,21 @@ export default async function Home() {
           {/* Evidence in the margin rather than a label above the headline. */}
           <dl className="col-span-12 self-end lg:col-span-2 lg:col-start-11">
             {about.facts.map((fact) => (
-              <div key={fact.label} className="border-t border-rule py-2.5">
-                <dt className="type-eyebrow text-ink-muted">{fact.label}</dt>
+              <div
+                key={fact.label}
+                className={cn(
+                  "border-t py-2.5",
+                  hasHeroMedia ? "border-rule-dark" : "border-rule",
+                )}
+              >
+                <dt
+                  className={cn(
+                    "type-eyebrow",
+                    hasHeroMedia ? "text-white/60" : "text-ink-muted",
+                  )}
+                >
+                  {fact.label}
+                </dt>
                 <dd className="type-subhead text-body-lg">{fact.value}</dd>
               </div>
             ))}
@@ -76,13 +115,25 @@ export default async function Home() {
         </div>
 
         <div className="shell mt-16 lg:mt-24">
-          <div className="grid-12 gap-y-8 border-t border-rule pt-9">
-            <p className="measure col-span-12 text-body-lg lg:col-span-6">
+          <div
+            className={cn(
+              "grid-12 gap-y-8 border-t pt-9",
+              hasHeroMedia ? "border-rule-dark" : "border-rule",
+            )}
+          >
+            <p
+              className={cn(
+                "measure col-span-12 text-body-lg lg:col-span-6",
+                hasHeroMedia && "text-white/85",
+              )}
+            >
               Founded in Lagos in 2022 to close the distance between a good idea
               and a measurable outcome. Brand and advisory, run by one team.
             </p>
             <div className="col-span-12 lg:col-span-4 lg:col-start-9 lg:justify-self-end">
-              <ButtonLink href="/contact">Start a conversation</ButtonLink>
+              <ButtonLink href="/contact" tone={hasHeroMedia ? "dark" : "light"}>
+                Start a conversation
+              </ButtonLink>
             </div>
           </div>
         </div>
@@ -107,7 +158,7 @@ export default async function Home() {
               {about.precis}
             </Reveal>
 
-            {/* The 55+ years figure set as editorial data — a line in a
+            {/* The 55+ years figure set as editorial data: a line in a
                 record, not a stat card with a big number and an icon. */}
             <Reveal className="mt-12 border-t border-rule pt-6">
               <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
@@ -222,7 +273,7 @@ export default async function Home() {
             </h2>
             <p className="measure mt-8 text-body-lg text-white/75">
               {nakedBoard.premise} Our proprietary executive coaching platform
-              exists for exactly those conversations — succession, founder
+              exists for exactly those conversations: succession, founder
               dependence, a culture that punishes bad news.
             </p>
 
@@ -246,7 +297,7 @@ export default async function Home() {
       </Section>
 
       {/* ══ 7. Insights ═══════════════════════════════════════════════════
-          Editorial rows, not a three-card grid — and the same component the
+          Editorial rows, not a three-card grid, and the same component the
           /insights index uses, so one interaction serves both surfaces. */}
       <Section tone="alt" labelledBy="insights-heading">
         <div className="shell grid-12 gap-y-10">

@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
  *
  * The base group inherits `currentColor`, so an icon takes its primary fill
  * from whatever colour its container sets. The accent group re-scopes
- * `currentColor` via `accentClassName` — one class, no fill props to thread.
+ * `currentColor` via `accentClassName`: one class, no fill props to thread.
  */
 
 export type IconProps = {

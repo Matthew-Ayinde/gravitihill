@@ -1,14 +1,20 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { listDnaPillarsWithSlug } from "@/lib/repositories/dna";
+import { SavedToast } from "@/components/admin/SavedToast";
 
 export const metadata: Metadata = { title: "Brand DNA", robots: { index: false } };
 
-export default async function AdminDnaPage() {
-  const pillars = await listDnaPillarsWithSlug();
+export default async function AdminDnaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ saved?: string }>;
+}) {
+  const [pillars, { saved }] = await Promise.all([listDnaPillarsWithSlug(), searchParams]);
 
   return (
     <div>
+      <SavedToast saved={saved === "1"} />
       <div className="flex items-baseline justify-between">
         <div>
           <p className="type-eyebrow text-green">Content</p>

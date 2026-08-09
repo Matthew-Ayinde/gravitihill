@@ -4,21 +4,25 @@ import { findPractice } from "@/lib/repositories/practices";
 import { listSectors } from "@/lib/repositories/sectors";
 import { PracticeForm } from "@/components/admin/forms/PracticeForm";
 import { DeleteButton } from "@/components/admin/DeleteButton";
+import { SavedToast } from "@/components/admin/SavedToast";
 import { deletePracticeAction } from "../actions";
 
 export const metadata: Metadata = { title: "Edit service", robots: { index: false } };
 
 export default async function EditPracticePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ saved?: string }>;
 }) {
   const { slug } = await params;
-  const [practice, sectors] = await Promise.all([findPractice(slug), listSectors()]);
+  const [practice, sectors, { saved }] = await Promise.all([findPractice(slug), listSectors(), searchParams]);
   if (!practice) notFound();
 
   return (
     <div>
+      <SavedToast saved={saved === "1"} />
       <div className="flex items-baseline justify-between">
         <div>
           <p className="type-eyebrow text-green">Services</p>

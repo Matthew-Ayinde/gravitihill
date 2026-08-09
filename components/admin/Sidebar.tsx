@@ -10,6 +10,7 @@ const NAV: { label: string; href: string }[] = [
   { label: "Team", href: "/admin/team" },
   { label: "Brand DNA", href: "/admin/dna" },
   { label: "The Naked Board", href: "/admin/naked-board" },
+  { label: "Home hero", href: "/admin/home" },
   { label: "Social wall", href: "/admin/social" },
   { label: "About", href: "/admin/about" },
   { label: "Settings", href: "/admin/settings" },

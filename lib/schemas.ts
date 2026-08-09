@@ -255,6 +255,25 @@ export const settingsSchema = z.object({
 });
 export type Settings = z.infer<typeof settingsSchema>;
 
+/* ── Home hero ────────────────────────────────────────────────────────────────
+   Optional background for the / hero: zero to five slides, each reusing
+   imageSchema exactly — a still is the slide, and `video` is the same
+   ambient-video enhancement AmbientVideo already renders elsewhere (a
+   poster is always required before a clip can attach). Zero slides is a
+   first-class state: the hero renders exactly as the original type-only
+   design. More than one slide auto-rotates on the public page.
+
+   Capped at 5 — a rotating background is already a second animated moment
+   on a site whose brief allows one; five is enough for real variety without
+   turning the hero into a carousel, and it bounds total page weight even
+   though only the active (and, briefly, the incoming) slide is ever
+   mounted in the DOM at once. */
+export const HOME_HERO_MAX_ITEMS = 5;
+export const homeHeroSchema = z.object({
+  items: z.array(imageSchema).max(HOME_HERO_MAX_ITEMS).default([]),
+});
+export type HomeHero = z.infer<typeof homeHeroSchema>;
+
 /* ── Media library ───────────────────────────────────────────────────────────
    The admin's Cloudinary asset catalog — what MediaPicker browses. Content
    documents never reference this by id; they embed a resolved `imageSchema`

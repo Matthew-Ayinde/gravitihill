@@ -1,14 +1,14 @@
 import * as z from "zod/mini";
 
 /**
- * The contact schema — the one schema on the site that has to run in a browser.
+ * The contact schema: the one schema on the site that has to run in a browser.
  *
  * ── Why this file uses `zod/mini` ───────────────────────────────────────────
  * Everything in lib/schemas.ts validates content at build time and never
  * crosses the client boundary, so it uses Zod's ergonomic API. This schema is
  * imported by ContactForm, which is a client component, so it ships. The
- * classic API pulled ~50 kB gzipped onto /contact — the single most
- * commercially important page on the site — for eight fields of validation.
+ * classic API pulled ~50 kB gzipped onto /contact (the single most
+ * commercially important page on the site) for eight fields of validation.
  *
  * `zod/mini` is the same library through a tree-shakable entry point, not a
  * second validation stack: identical semantics, identical `safeParse`,
@@ -29,8 +29,8 @@ export const ENQUIRY_TYPES = [
 
 export const BUDGET_RANGES = [
   "Under ₦5m",
-  "₦5m – ₦20m",
-  "₦20m – ₦50m",
+  "₦5m-₦20m",
+  "₦20m-₦50m",
   "Over ₦50m",
   "Not yet defined",
 ] as const;
@@ -39,7 +39,7 @@ export const enquiryTypeSchema = z.enum(ENQUIRY_TYPES);
 export const budgetRangeSchema = z.enum(BUDGET_RANGES);
 
 /**
- * Errors are written in the interface voice — plain, specific, no apology.
+ * Errors are written in the interface voice: plain, specific, no apology.
  * Values are trimmed by the caller before parsing, so length checks measure
  * real content rather than whitespace.
  */
@@ -53,7 +53,7 @@ export const contactSchema = z.object({
   budget: z.optional(z.union([budgetRangeSchema, z.literal("")])),
   message: z
     .string()
-    .check(z.minLength(20, "Tell us a little more — 20 characters at least")),
+    .check(z.minLength(20, "Tell us a little more: 20 characters at least")),
   /**
    * Honeypot. Bots fill it; humans never see it.
    *

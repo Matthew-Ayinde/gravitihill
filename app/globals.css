@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   GRAVITI HILL — DESIGN TOKENS
+   GRAVITI HILL: DESIGN TOKENS
    ----------------------------------------------------------------------------
    Six load-bearing colours. --ink-muted, --white, --rule and --rule-dark are
    derived support (a tint and two alphas), not independent design decisions.
@@ -12,14 +12,14 @@
 
    ── The accent-as-type rule (measured, not assumed) ─────────────────────────
    Contrast of --accent #8ABF4D on --canvas #FDFDFC is 2.14:1. That fails WCAG
-   2.2 AA at every size — including the 3:1 large-text threshold — so --accent
+   2.2 AA at every size, including the 3:1 large-text threshold, so --accent
    is never type on a light surface, not even a display-scale headline word.
    On --ridge #0D2A0B it measures 7.12:1 and passes at all sizes.
 
    Therefore:
-     · light surfaces — the highlighted word is --green (6.94:1)
-     · dark surfaces  — the highlighted word is --accent (7.12:1)
-     · either surface — --accent is free on rules, icon fills, progress bars,
+     · light surfaces: the highlighted word is --green (6.94:1)
+     · dark surfaces : the highlighted word is --accent (7.12:1)
+     · either surface: --accent is free on rules, icon fills, progress bars,
                         markers and focus rings, which are non-text
    Use .accent-word / .accent-word-dark rather than reaching for the colour
    directly, so the rule travels with the markup.
@@ -146,7 +146,7 @@
 }
 
 /* The single highlighted word in a headline. Two utilities rather than one
-   colour, because which token is legal depends on the surface — see the
+   colour, because which token is legal depends on the surface: see the
    accent-as-type rule at the top of this file. */
 @utility accent-word {
   color: var(--green);
@@ -188,7 +188,7 @@
 }
 
 /* The caret exists only while the line is being written. On the last character
-   it fades out and stays gone — it is punctuation for the animation, not a
+   it fades out and stays gone. It is punctuation for the animation, not a
    permanent fixture, and a caret parked forever under an enterprise headline
    reads as an unfinished page. `forwards` holds it at zero so no timer or
    extra state is needed to retire it. */
@@ -224,8 +224,8 @@
 
 /* ============================================================================
    LAYOUT SHELL
-   12-column grid, 1440px max, fluid gutters. Asymmetry is the rule —
-   prose sits in columns 1–7 or 6–12, never dead-centre.
+   12-column grid, 1440px max, fluid gutters. Asymmetry is the rule:
+   prose sits in columns 1-7 or 6-12, never dead-centre.
    ========================================================================== */
 
 @utility shell {
@@ -282,7 +282,7 @@
     font-family: var(--font-display);
   }
 
-  /* WCAG 2.2 AA — visible focus, 2px, offset, --accent.
+  /* WCAG 2.2 AA: visible focus, 2px, offset, --accent.
      Accent is legitimate here: a non-text element. */
   :focus-visible {
     outline: 2px solid var(--accent);
@@ -330,7 +330,7 @@
 }
 
 /* ============================================================================
-   REDUCED MOTION — NON-NEGOTIABLE
+   REDUCED MOTION: NON-NEGOTIABLE
    All transforms and reveals off. Content renders in its final state.
    ========================================================================== */
 
