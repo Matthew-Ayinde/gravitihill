@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { listMedia, insertMedia } from "@/lib/repositories/media";
 import { uploadImage, buildBlurDataURL } from "@/lib/cloudinary";
-import { requireSession } from "@/lib/auth";
+import { requireApiSession, SessionExpiredError, sessionExpiredResponse } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -11,13 +11,23 @@ export const runtime = "nodejs";
 const MAX_BYTES = 4 * 1024 * 1024;
 
 export async function GET() {
-  await requireSession();
+  try {
+    await requireApiSession();
+  } catch (error) {
+    if (error instanceof SessionExpiredError) return sessionExpiredResponse();
+    throw error;
+  }
   const media = await listMedia();
   return NextResponse.json(media);
 }
 
 export async function POST(request: Request) {
-  await requireSession();
+  try {
+    await requireApiSession();
+  } catch (error) {
+    if (error instanceof SessionExpiredError) return sessionExpiredResponse();
+    throw error;
+  }
 
   const formData = await request.formData();
   const file = formData.get("file");

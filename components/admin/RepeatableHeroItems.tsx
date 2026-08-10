@@ -63,7 +63,7 @@ export function RepeatableHeroItems({ initial }: { initial: Img[] }) {
 
       <p className="mb-6 max-w-md text-caption text-ink-muted">
         One slide is a static background. Two or more auto-rotate, crossfading
-        every few seconds — disabled entirely under reduced motion, which
+        every few seconds, disabled entirely under reduced motion, which
         shows only the first slide.
       </p>
 

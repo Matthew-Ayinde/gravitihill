@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { uploadVideo, destroyVideo, publicIdFromUrl } from "@/lib/cloudinary";
-import { requireSession } from "@/lib/auth";
+import { requireApiSession, SessionExpiredError, sessionExpiredResponse } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -13,7 +13,12 @@ export const runtime = "nodejs";
 const MAX_BYTES = 3 * 1024 * 1024;
 
 export async function POST(request: Request) {
-  await requireSession();
+  try {
+    await requireApiSession();
+  } catch (error) {
+    if (error instanceof SessionExpiredError) return sessionExpiredResponse();
+    throw error;
+  }
 
   const formData = await request.formData();
   const file = formData.get("file");
@@ -47,7 +52,12 @@ export async function POST(request: Request) {
  * deleted) it is gone for good rather than left orphaned in storage.
  */
 export async function DELETE(request: Request) {
-  await requireSession();
+  try {
+    await requireApiSession();
+  } catch (error) {
+    if (error instanceof SessionExpiredError) return sessionExpiredResponse();
+    throw error;
+  }
 
   const body = (await request.json().catch(() => null)) as { url?: string } | null;
   const url = body?.url;

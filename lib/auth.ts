@@ -1,5 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { NextResponse } from "next/server";
 
 /**
  * Admin session: a signed JWT (via `jose`, Edge-compatible so middleware.ts
@@ -74,11 +76,43 @@ export async function getSession(): Promise<SessionPayload | null> {
   return verifySession(token);
 }
 
-/** Server Actions call this first — belt-and-braces beyond the middleware gate. */
+/**
+ * Server Actions / Server Components call this first. An expired or missing
+ * session sends the browser straight to the login page — the natural result
+ * for a `useActionState` form post — rather than throwing and surfacing an
+ * uncaught-error page.
+ */
 export async function requireSession(): Promise<SessionPayload> {
   const session = await getSession();
-  if (!session) throw new Error("Not authenticated.");
+  if (!session) redirect("/admin/login");
   return session;
+}
+
+/**
+ * Thrown by `requireApiSession`. A distinct type (rather than a generic
+ * Error) so Route Handlers can tell "not signed in" apart from a real
+ * failure downstream (e.g. a Cloudinary error) and respond with 401 instead
+ * of a 500 — `redirect()` isn't an option here since these routes are called
+ * via `fetch()` from client components, which would just follow it to the
+ * login page's HTML and fail trying to parse that as JSON.
+ */
+export class SessionExpiredError extends Error {
+  constructor() {
+    super("Session expired.");
+    this.name = "SessionExpiredError";
+  }
+}
+
+/** Route Handlers call this first — see `SessionExpiredError`. */
+export async function requireApiSession(): Promise<SessionPayload> {
+  const session = await getSession();
+  if (!session) throw new SessionExpiredError();
+  return session;
+}
+
+/** The 401 a Route Handler returns when `requireApiSession` rejects. */
+export function sessionExpiredResponse(): NextResponse {
+  return NextResponse.json({ message: "Session expired. Sign in again." }, { status: 401 });
 }
 
 export { COOKIE_NAME as SESSION_COOKIE_NAME };

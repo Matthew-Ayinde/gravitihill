@@ -67,13 +67,20 @@ export function MediaPicker({
       body.set("file", file);
       body.set("alt", alt);
       const res = await fetch("/api/admin/media", { method: "POST", body });
-      if (!res.ok) throw new Error();
+      if (res.status === 401) {
+        window.location.href = "/admin/login";
+        return;
+      }
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => null)) as { message?: string } | null;
+        throw new Error(payload?.message ?? "Upload failed.");
+      }
       const asset: MediaAsset = await res.json();
       setLibrary((lib) => [asset, ...lib]);
       setSelected({ src: asset.secureUrl, alt: asset.alt, ratio: asset.ratio, blurDataURL: asset.blurDataURL });
       setBrowsing(false);
-    } catch {
-      setError("Upload failed. Check the file is an image under 4MB.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed.");
     } finally {
       setUploading(false);
     }
@@ -86,14 +93,21 @@ export function MediaPicker({
       const body = new FormData();
       body.set("file", file);
       const res = await fetch("/api/admin/hero-video", { method: "POST", body });
-      if (!res.ok) throw new Error();
+      if (res.status === 401) {
+        window.location.href = "/admin/login";
+        return;
+      }
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => null)) as { message?: string } | null;
+        throw new Error(payload?.message ?? "Upload failed.");
+      }
       const { url } = (await res.json()) as { url: string };
       // A video being replaced, not just added — clean up the one it's
       // superseding rather than leaving it orphaned in Cloudinary.
       if (video?.mp4) destroyRemoteVideo(video.mp4);
       setVideo({ mp4: url });
-    } catch {
-      setVideoError("Upload failed. Check the file is a video under 3MB.");
+    } catch (err) {
+      setVideoError(err instanceof Error ? err.message : "Upload failed.");
     } finally {
       setUploadingVideo(false);
     }
@@ -155,7 +169,7 @@ export function MediaPicker({
           </span>
           <p className="mb-3 text-caption text-ink-muted">
             A short, muted, looping clip that plays over the still above. Keep
-            it under ~8 seconds and 3MB — it never blocks the page, and drops
+            it under ~8 seconds and 3MB, it never blocks the page, and drops
             back to the still under reduced motion or a slow connection.
           </p>
 
