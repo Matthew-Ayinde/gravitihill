@@ -3,9 +3,31 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
-import { destroyRemoteVideo } from "@/lib/admin/media-client";
+import { destroyRemoteVideo, uploadWithProgress } from "@/lib/admin/media-client";
 import type { Img, MediaAsset } from "@/lib/schemas";
 import { cn } from "@/lib/utils";
+
+/** A thin determinate bar — the only feedback while an upload's in flight. */
+export function UploadProgress({ percent }: { percent: number }) {
+  return (
+    <div
+      className="mt-2 w-full max-w-55"
+      role="progressbar"
+      aria-valuenow={percent}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label="Upload progress"
+    >
+      <div className="h-0.5 w-full bg-rule">
+        <div
+          className="h-full bg-green transition-[width] duration-150 ease-out"
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+      <span className="mt-1 block text-caption text-ink-muted">{percent}%</span>
+    </div>
+  );
+}
 
 /**
  * Browse the Cloudinary-backed media library or upload a new image. Emits
@@ -38,12 +60,16 @@ export function MediaPicker({
   const [browsing, setBrowsing] = useState(false);
   const [selected, setSelected] = useState<Img | undefined>(initial);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [alt, setAlt] = useState(initial?.alt ?? "");
   const [video, setVideo] = useState<{ mp4?: string; webm?: string } | undefined>(
     initial?.video,
   );
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [videoUploadProgress, setVideoUploadProgress] = useState(0);
+  const [localVideoPreview, setLocalVideoPreview] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -60,22 +86,25 @@ export function MediaPicker({
   }, [browsing, library.length]);
 
   async function handleUpload(file: File) {
+    const objectUrl = URL.createObjectURL(file);
+    setLocalPreview(objectUrl);
     setUploading(true);
+    setUploadProgress(0);
     setError(null);
     try {
       const body = new FormData();
       body.set("file", file);
       body.set("alt", alt);
-      const res = await fetch("/api/admin/media", { method: "POST", body });
-      if (res.status === 401) {
+      const { status, data } = await uploadWithProgress("/api/admin/media", body, setUploadProgress);
+      if (status === 401) {
         window.location.href = "/admin/login";
         return;
       }
-      if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as { message?: string } | null;
+      if (status < 200 || status >= 300) {
+        const payload = data as { message?: string } | null;
         throw new Error(payload?.message ?? "Upload failed.");
       }
-      const asset: MediaAsset = await res.json();
+      const asset = data as MediaAsset;
       setLibrary((lib) => [asset, ...lib]);
       setSelected({ src: asset.secureUrl, alt: asset.alt, ratio: asset.ratio, blurDataURL: asset.blurDataURL });
       setBrowsing(false);
@@ -83,25 +112,34 @@ export function MediaPicker({
       setError(err instanceof Error ? err.message : "Upload failed.");
     } finally {
       setUploading(false);
+      URL.revokeObjectURL(objectUrl);
+      setLocalPreview(null);
     }
   }
 
   async function handleVideoUpload(file: File) {
+    const objectUrl = URL.createObjectURL(file);
+    setLocalVideoPreview(objectUrl);
     setUploadingVideo(true);
+    setVideoUploadProgress(0);
     setVideoError(null);
     try {
       const body = new FormData();
       body.set("file", file);
-      const res = await fetch("/api/admin/hero-video", { method: "POST", body });
-      if (res.status === 401) {
+      const { status, data } = await uploadWithProgress(
+        "/api/admin/hero-video",
+        body,
+        setVideoUploadProgress,
+      );
+      if (status === 401) {
         window.location.href = "/admin/login";
         return;
       }
-      if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as { message?: string } | null;
+      if (status < 200 || status >= 300) {
+        const payload = data as { message?: string } | null;
         throw new Error(payload?.message ?? "Upload failed.");
       }
-      const { url } = (await res.json()) as { url: string };
+      const { url } = data as { url: string };
       // A video being replaced, not just added — clean up the one it's
       // superseding rather than leaving it orphaned in Cloudinary.
       if (video?.mp4) destroyRemoteVideo(video.mp4);
@@ -110,6 +148,8 @@ export function MediaPicker({
       setVideoError(err instanceof Error ? err.message : "Upload failed.");
     } finally {
       setUploadingVideo(false);
+      URL.revokeObjectURL(objectUrl);
+      setLocalVideoPreview(null);
     }
   }
 
@@ -122,9 +162,17 @@ export function MediaPicker({
     <div>
       <span className="type-eyebrow mb-3 block text-ink-muted">{label}</span>
 
-      {selected ? (
+      {localPreview || selected ? (
         <div className="relative aspect-3/2 w-full max-w-sm overflow-hidden border border-rule">
-          <Image src={selected.src} alt={selected.alt} fill sizes="384px" className="object-cover" />
+          {localPreview ? (
+            // The file just picked, rendered from a local object URL while it
+            // uploads — next/image can't optimize a blob: URI, and there's
+            // nothing to fetch from Cloudinary yet.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={localPreview} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <Image src={selected!.src} alt={selected!.alt} fill sizes="384px" className="object-cover" />
+          )}
         </div>
       ) : (
         <div className="flex aspect-3/2 w-full max-w-sm items-center justify-center border border-dashed border-rule text-caption text-ink-muted">
@@ -192,22 +240,35 @@ export function MediaPicker({
                 Remove video
               </Button>
             </div>
-          ) : (
-            <label className={cn("inline-block", uploadingVideo && "opacity-50")}>
-              <span className="type-eyebrow inline-flex cursor-pointer items-center border border-rule px-4 py-2.5 text-ink hover:bg-canvas-alt">
-                {uploadingVideo ? "Uploading…" : "Upload video"}
-              </span>
-              <input
-                type="file"
-                accept="video/mp4,video/webm"
-                className="sr-only"
-                disabled={uploadingVideo}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) void handleVideoUpload(file);
-                }}
+          ) : localVideoPreview ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <video
+                src={localVideoPreview}
+                muted
+                loop
+                playsInline
+                autoPlay
+                className="h-20 w-32 border border-rule object-cover"
               />
-            </label>
+              <UploadProgress percent={videoUploadProgress} />
+            </div>
+          ) : (
+            <div className="inline-block">
+              <label className="inline-block">
+                <span className="type-eyebrow inline-flex cursor-pointer items-center border border-rule px-4 py-2.5 text-ink hover:bg-canvas-alt">
+                  Upload video
+                </span>
+                <input
+                  type="file"
+                  accept="video/mp4,video/webm"
+                  className="sr-only"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void handleVideoUpload(file);
+                  }}
+                />
+              </label>
+            </div>
           )}
           {videoError && <p className="mt-3 text-caption text-ink">{videoError}</p>}
         </div>
@@ -224,25 +285,34 @@ export function MediaPicker({
                 id={`${field}-alt`}
                 value={alt}
                 onChange={(e) => setAlt(e.target.value)}
+                onKeyDown={(e) => {
+                  // A plain text input inside a <form> submits on Enter by
+                  // default — this field is for labeling an upload in
+                  // progress, not for saving the whole slide list early.
+                  if (e.key === "Enter") e.preventDefault();
+                }}
                 placeholder="Describe the image for screen readers"
                 className="w-full rounded-sm border border-rule bg-canvas px-3 py-2.5 text-body"
               />
             </div>
-            <label className={cn("shrink-0", uploading && "opacity-50")}>
-              <span className="type-eyebrow inline-flex cursor-pointer items-center border border-rule px-4 py-2.5 text-ink hover:bg-canvas-alt">
-                {uploading ? "Uploading…" : "Upload new"}
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                className="sr-only"
-                disabled={uploading}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) void handleUpload(file);
-                }}
-              />
-            </label>
+            <div className="shrink-0">
+              <label className={cn("inline-block", uploading && "opacity-50")}>
+                <span className="type-eyebrow inline-flex cursor-pointer items-center border border-rule px-4 py-2.5 text-ink hover:bg-canvas-alt">
+                  {uploading ? "Uploading…" : "Upload new"}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void handleUpload(file);
+                  }}
+                />
+              </label>
+              {uploading && <UploadProgress percent={uploadProgress} />}
+            </div>
           </div>
 
           {error && <p className="mb-3 text-caption text-ink">{error}</p>}
