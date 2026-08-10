@@ -47,7 +47,7 @@ export async function POST(request: Request) {
 
   try {
     const uploaded = await uploadImage(buffer, "uploads");
-    const blurDataURL = await buildBlurDataURL(uploaded.publicId);
+    const blurDataURL = await buildBlurDataURL(uploaded.blurUrl ?? uploaded.publicId);
     const ratio = uploaded.width / uploaded.height >= 1 ? ("3:2" as const) : ("4:5" as const);
 
     const asset = {

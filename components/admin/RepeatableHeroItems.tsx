@@ -135,8 +135,21 @@ export function RepeatableHeroItems({
           throw new Error(`Couldn't read a preview frame from ${file.name}. Try a different clip.`);
         });
         const posterFile = new File([posterBlob], "poster.jpg", { type: "image/jpeg" });
-        const asset = await uploadImageFile(posterFile, (p) => setProgress(p * 0.5));
-        const url = await uploadVideoFile(file, (p) => setProgress(50 + p * 0.5));
+        // Poster and video don't depend on each other — upload concurrently
+        // rather than back-to-back, which roughly halves wall-clock time.
+        let posterProgress = 0;
+        let videoProgress = 0;
+        const reportCombined = () => setProgress(posterProgress * 0.5 + videoProgress * 0.5);
+        const [asset, url] = await Promise.all([
+          uploadImageFile(posterFile, (p) => {
+            posterProgress = p;
+            reportCombined();
+          }),
+          uploadVideoFile(file, (p) => {
+            videoProgress = p;
+            reportCombined();
+          }),
+        ]);
         next = { ...assetToImg(asset), video: { mp4: url } };
       }
 
