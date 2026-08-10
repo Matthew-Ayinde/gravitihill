@@ -20,10 +20,12 @@ import type { Img } from "@/lib/schemas";
  * slide renders and stays — no crossfade, matching the Sectors panel's own
  * fallback to a static state under the same setting.
  *
- * Only the active slide (and, briefly, the incoming one during a crossfade)
- * is ever mounted — slides are not preloaded up front — so total page
- * weight is bounded by how many the reader actually sits through, not by
- * how many the admin saved.
+ * Only the active slide and the one due up next are ever mounted — not the
+ * whole set — so total page weight stays bounded by two slides regardless
+ * of how many the admin saved. The "next" one is preloaded hidden as soon
+ * as its predecessor becomes active, which given the 7s dwell gives it
+ * ample time to warm the browser cache before its crossfade starts, so the
+ * swap itself never has to wait on a fetch.
  */
 
 const DWELL_MS = 7000;
@@ -44,6 +46,9 @@ export function HeroBackground({ items }: { items: Img[] }) {
   const current = items[active];
   if (!current) return null;
 
+  const upNext =
+    !reduced && items.length > 1 ? items[(active + 1) % items.length] : undefined;
+
   return (
     <div aria-hidden="true" className="absolute inset-0 -z-10">
       <AnimatePresence initial={false}>
@@ -60,10 +65,37 @@ export function HeroBackground({ items }: { items: Img[] }) {
         </m.div>
       </AnimatePresence>
 
+      {upNext && upNext !== current && <SlidePreload image={upNext} />}
+
       {/* Fixed, not admin-configurable — every slide reads at the same
           contrast regardless of what photography sits behind it. */}
       <div className="absolute inset-0 bg-ridge/60" />
     </div>
+  );
+}
+
+/** Warms the browser cache for a slide before it becomes active — invisible, never in flow. */
+function SlidePreload({ image }: { image: Img }) {
+  useEffect(() => {
+    if (image.video) return;
+    const img = new window.Image();
+    img.src = image.src;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [image.src]);
+
+  if (!image.video) return null;
+
+  return (
+    <video
+      key={image.video.mp4 ?? image.video.webm}
+      muted
+      playsInline
+      preload="auto"
+      className="absolute h-px w-px opacity-0"
+    >
+      {image.video.webm && <source src={image.video.webm} type="video/webm" />}
+      {image.video.mp4 && <source src={image.video.mp4} type="video/mp4" />}
+    </video>
   );
 }
 

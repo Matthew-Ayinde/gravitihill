@@ -58,9 +58,9 @@ async function uploadVideoFile(file: File, onProgress: (percent: number) => void
  * straight onto the trailing tile and it becomes a slide immediately — a
  * video gets its poster frame captured in-browser (see
  * extractVideoPosterFrame), so imageSchema's still-as-poster requirement
- * never surfaces as a separate step. Existing slides are thumbnails you
- * replace or remove in place; "Add motion loop" attaches an ambient clip to
- * a still that doesn't have one yet, same as before.
+ * never surfaces as a separate step. A slide is simply an image or a video;
+ * to change which, replace it. Existing slides are thumbnails you replace or
+ * remove in place.
  *
  * All state lives here as plain `Img[]`, submitted through the same
  * `items.0`, `items.1`, … hidden inputs lib/admin/form.ts's getImgList
@@ -182,37 +182,6 @@ export function RepeatableHeroItems({
     }
   }
 
-  async function addLoop(index: number, file: File) {
-    if (!file.type.startsWith("video/")) {
-      setError("Choose a video file for the motion loop.");
-      return;
-    }
-    if (file.size > MAX_VIDEO_BYTES) {
-      setError(`${file.name} is over 3MB — keep clips short.`);
-      return;
-    }
-    setError(null);
-    const previewUrl = URL.createObjectURL(file);
-    setPending({ kind: "video", previewUrl, progress: 0, index });
-    const setProgress = (p: number) =>
-      setPending((cur) => (cur ? { ...cur, progress: Math.round(p) } : cur));
-    try {
-      const url = await uploadVideoFile(file, setProgress);
-      setItems((list) => list.map((it, i) => (i === index ? { ...it, video: { mp4: url } } : it)));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed.");
-    } finally {
-      setPending(null);
-      URL.revokeObjectURL(previewUrl);
-    }
-  }
-
-  function removeLoop(index: number) {
-    const item = items[index];
-    if (item?.video?.mp4) destroyRemoteVideo(item.video.mp4);
-    setItems((list) => list.map((it, i) => (i === index ? { ...it, video: undefined } : it)));
-  }
-
   function removeItem(index: number) {
     const item = items[index];
     if (item?.video?.mp4) destroyRemoteVideo(item.video.mp4);
@@ -267,8 +236,6 @@ export function RepeatableHeroItems({
             pending={pending?.index === i ? pending : undefined}
             onReplace={(file) => void addFile(file, i)}
             onRemove={() => removeItem(i)}
-            onAddLoop={(file) => void addLoop(i, file)}
-            onRemoveLoop={() => removeLoop(i)}
           />
         ))}
 
@@ -309,15 +276,11 @@ function SlideCard({
   pending,
   onReplace,
   onRemove,
-  onAddLoop,
-  onRemoveLoop,
 }: {
   item: Img;
   pending?: Pending;
   onReplace: (file: File) => void;
   onRemove: () => void;
-  onAddLoop: (file: File) => void;
-  onRemoveLoop: () => void;
 }) {
   return (
     <div>
@@ -374,28 +337,6 @@ function SlideCard({
             }}
           />
         </label>
-        <span aria-hidden="true" className="text-ink-muted">
-          ·
-        </span>
-        {item.video?.mp4 ? (
-          <button type="button" onClick={onRemoveLoop} className="type-eyebrow text-ink-muted hover:text-ink">
-            Remove loop
-          </button>
-        ) : (
-          <label className="type-eyebrow cursor-pointer text-ink-muted hover:text-ink">
-            Add motion loop
-            <input
-              type="file"
-              accept="video/mp4,video/webm"
-              className="sr-only"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) onAddLoop(file);
-                e.target.value = "";
-              }}
-            />
-          </label>
-        )}
         <span aria-hidden="true" className="text-ink-muted">
           ·
         </span>
