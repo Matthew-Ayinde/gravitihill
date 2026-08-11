@@ -31,7 +31,12 @@ export function PageHero({
   const dark = tone === "dark";
 
   return (
-    <section className={cn("pt-36 pb-20 lg:pt-44 lg:pb-28", dark && "bg-ridge text-white")}>
+    <section
+      className={cn(
+        "pt-36 pb-20 lg:pt-44 lg:pb-28 2xl:pt-56 2xl:pb-32",
+        dark && "bg-ridge text-white",
+      )}
+    >
       <div className="shell grid-12 gap-y-10">
         <div className="col-span-12 lg:col-span-8">
           <p className={cn("type-eyebrow", dark ? "text-accent" : "text-green")}>

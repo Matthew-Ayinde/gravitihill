@@ -53,7 +53,10 @@
   /* Layout */
   --gutter: clamp(1.25rem, 5vw, 6rem);
   --shell: 1440px;
-  --section-y: clamp(6rem, 12vh, 11rem);
+  /* Height-led, with a width term so rhythm keeps growing past 1440px
+     shell width instead of flatlining at 11rem on wide/short XL and
+     ultrawide monitors where 12vh alone stops climbing. */
+  --section-y: clamp(6rem, 12vh + 2vw, 15rem);
 
   /* Motion */
   --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);

@@ -59,7 +59,7 @@ export default async function InsightPage({
 
       <article>
         {/* ── Article head ────────────────────────────────────────────── */}
-        <header className="pt-36 pb-14 lg:pt-44">
+        <header className="pt-36 pb-14 lg:pt-44 2xl:pt-56">
           <div className="shell grid-12 gap-y-8">
             <div className="col-span-12 lg:col-span-9">
               <p className="type-eyebrow text-green">

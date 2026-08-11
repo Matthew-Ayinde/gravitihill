@@ -64,7 +64,7 @@ export default async function Home() {
           through CSS alone. See TypedHeadline for the LCP trade-off. */}
       <section
         className={cn(
-          "relative overflow-hidden pt-36 pb-16 lg:pt-48",
+          "relative overflow-hidden pt-36 pb-16 lg:flex lg:min-h-screen lg:flex-col lg:justify-between lg:pt-48 lg:pb-20 2xl:pt-56 2xl:pb-24",
           hasHeroMedia && "text-white",
         )}
       >
@@ -114,7 +114,7 @@ export default async function Home() {
           </dl>
         </div>
 
-        <div className="shell mt-16 lg:mt-24">
+        <div className="shell mt-16 lg:mt-0">
           <div
             className={cn(
               "grid-12 gap-y-8 border-t pt-9",
