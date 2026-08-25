@@ -37,6 +37,44 @@
   --rule: rgba(11, 11, 11, 0.12);
   --rule-dark: rgba(255, 255, 255, 0.16);
 
+  /* ── Extended palette ────────────────────────────────────────────────────
+     Additive, not a repaint: green stays the primary brand action colour
+     everywhere it already is. Each new token has one job.
+       --blue     : pulled from the logo mark's own blue. Secondary/interactive
+                    — hover glows, data highlights, the 3D scene's "cool" light.
+       --gold     : the rarest colour on the site. One stat, one marker, per
+                    page. Non-text uses (rules, icon fills, markers) and text
+                    on dark surfaces only — see the contrast note below.
+       --gold-ink : the same stat colour, darkened for the one case --gold
+                    itself can't cover: as text sitting on --canvas/--canvas-alt.
+       --abyss    : a second dark, deeper than --ridge, so a dark panel can
+                    hold two depth planes instead of one flat fill.
+       --navy     : the site's final dark note. Reserved for the footer only
+                    — the one dark surface deliberately built from --blue's
+                    family rather than --green's, so the page's last beat
+                    reads as arrival, not a fourth repeat of the same fill.
+     No purple/violet/indigo, no gradients — those bans hold regardless of
+     how much the palette otherwise opens up.
+
+     ── Gold contrast (measured, same discipline as the --accent rule above) ──
+     --gold #C89B3C on --canvas #FDFDFC is 2.5:1 — fails AA even at the large-
+     text threshold, so it never sits as text on a light surface. On --ridge
+     it measures 6.05:1 and passes normal text. --gold-ink #8A6317 exists
+     specifically for light surfaces: 5.3:1 on --canvas, safe at any size. */
+  --blue: #1b4f8c;
+  --blue-light: #4f86c6;
+  --gold: #c89b3c;
+  --gold-ink: #8a6317;
+  --abyss: #04140c;
+  --navy: #0a1a2e;
+  --rule-blue: rgba(27, 79, 140, 0.24);
+
+  /* ── 3D ──────────────────────────────────────────────────────────────────
+     CSS transforms only — no WebGL, no Three.js, no Lottie. Depth comes from
+     perspective + rotateX/Y + translateZ, pointer- and scroll-driven. */
+  --perspective: 1400px;
+  --ease-3d: cubic-bezier(0.16, 1, 0.3, 1);
+
   /* Font swap path — see README §Typography.
      Acumin Variable (Adobe Fonts) drops in here with no component edits. */
   --font-display: var(--font-archivo), "Archivo", ui-sans-serif, system-ui,
@@ -74,6 +112,13 @@
   --color-white: var(--white);
   --color-rule: var(--rule);
   --color-rule-dark: var(--rule-dark);
+  --color-blue: var(--blue);
+  --color-blue-light: var(--blue-light);
+  --color-gold: var(--gold);
+  --color-gold-ink: var(--gold-ink);
+  --color-abyss: var(--abyss);
+  --color-navy: var(--navy);
+  --color-rule-blue: var(--rule-blue);
 
   --font-display: var(--font-display);
   --font-body: var(--font-body);
@@ -330,6 +375,43 @@
   &:focus-visible::after {
     transform: scaleX(1);
   }
+}
+
+/* ============================================================================
+   MARQUEE
+   Pure-CSS infinite ribbon for <Marquee>. Content is duplicated by the
+   component; the track only ever needs to travel exactly -50%.
+   ========================================================================== */
+
+@keyframes marquee {
+  from {
+    transform: translateX(0%);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@utility animate-marquee {
+  animation: marquee linear infinite;
+}
+
+/* ============================================================================
+   3D
+   CSS transforms only — perspective + rotateX/Y + translateZ. Used by
+   <Tilt3D> and the hero/sectors depth scenes. No WebGL, no Three.js.
+   ========================================================================== */
+
+@utility perspective-scene {
+  perspective: var(--perspective);
+}
+
+@utility preserve-3d {
+  transform-style: preserve-3d;
+}
+
+@utility backface-hidden {
+  backface-visibility: hidden;
 }
 
 /* ============================================================================

@@ -171,10 +171,25 @@ export function PreviewRows({
         <m.div
           aria-hidden="true"
           className="pointer-events-none fixed top-0 left-0 z-40 w-[22rem]"
-          style={{ x: springX, y: springY, translateX: "-50%", translateY: "-50%" }}
+          style={{
+            x: springX,
+            y: springY,
+            translateX: "-50%",
+            translateY: "-50%",
+            transformPerspective: 800,
+          }}
           initial={false}
-          animate={{ opacity: activeItem?.preview ? 1 : 0 }}
-          transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+          // A per-element perspective (via the transformPerspective motion
+          // value) rather than an ancestor `perspective-scene` class: this
+          // panel is `fixed`, and a transformed ancestor would hijack the
+          // containing block every other fixed element on the page relies
+          // on. The panel tilts into place on its own axis, unrelated to
+          // anything around it.
+          animate={{
+            opacity: activeItem?.preview ? 1 : 0,
+            rotateX: activeItem?.preview ? 0 : -8,
+          }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
         >
           {activeItem?.preview}
         </m.div>

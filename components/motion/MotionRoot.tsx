@@ -2,6 +2,7 @@
 
 import { LazyMotion } from "framer-motion";
 import type { ReactNode } from "react";
+import { SmoothScroll } from "./SmoothScroll";
 
 /**
  * The site's single motion provider.
@@ -19,6 +20,7 @@ export function MotionRoot({ children }: { children: ReactNode }) {
       features={() => import("./features").then((f) => f.default)}
       strict
     >
+      <SmoothScroll />
       {children}
     </LazyMotion>
   );

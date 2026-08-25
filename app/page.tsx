@@ -14,11 +14,17 @@ import { HeadlineReveal } from "@/components/motion/HeadlineReveal";
 import { TypedHeadline } from "@/components/motion/TypedHeadline";
 import { Reveal } from "@/components/motion/Reveal";
 import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
+import { Magnetic } from "@/components/motion/Magnetic";
+import { Marquee } from "@/components/motion/Marquee";
+import { Parallax } from "@/components/motion/Parallax";
+import { Tilt3D } from "@/components/motion/Tilt3D";
 import { Icon } from "@/components/icons";
 import { getAbout } from "@/content/about";
 import { getDnaPillars } from "@/content/dna";
 import { getInsights } from "@/content/insights";
 import { getNakedBoard } from "@/content/naked-board";
+import { getPractices } from "@/content/services";
+import { getSectors } from "@/content/sectors";
 import { CUMULATIVE_YEARS } from "@/content/team";
 import { getHomeHeroMedia } from "@/lib/home-hero";
 import { webSiteJsonLd } from "@/lib/jsonld";
@@ -35,15 +41,24 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const [about, dnaPillars, insights, nakedBoard, hero] = await Promise.all([
-    getAbout(),
-    getDnaPillars(),
-    getInsights(),
-    getNakedBoard(),
-    getHomeHeroMedia(),
-  ]);
+  const [about, dnaPillars, insights, nakedBoard, hero, practices, sectors] =
+    await Promise.all([
+      getAbout(),
+      getDnaPillars(),
+      getInsights(),
+      getNakedBoard(),
+      getHomeHeroMedia(),
+      getPractices(),
+      getSectors(),
+    ]);
   const latest = insights.slice(0, 3);
   const hasHeroMedia = hero.items.length > 0;
+  const marqueeWords = [
+    ...practices.map((p) => p.name),
+    ...sectors.map((s) => s.name),
+    "Lagos",
+    "West Africa",
+  ];
 
   return (
     <>
@@ -64,7 +79,7 @@ export default async function Home() {
           through CSS alone. See TypedHeadline for the LCP trade-off. */}
       <section
         className={cn(
-          "relative overflow-hidden pt-36 pb-16 lg:flex lg:min-h-screen lg:flex-col lg:justify-between lg:pt-48 lg:pb-20 2xl:pt-56 2xl:pb-24",
+          "perspective-scene relative overflow-hidden pt-36 pb-16 lg:flex lg:min-h-screen lg:flex-col lg:justify-between lg:pt-48 lg:pb-20 2xl:pt-56 2xl:pb-24",
           hasHeroMedia && "text-white",
         )}
       >
@@ -77,7 +92,11 @@ export default async function Home() {
             rather than default. See HeroBackground for the rotation itself. */}
         {hasHeroMedia && <HeroBackground items={hero.items} />}
 
-        <div className="shell grid-12 gap-y-12">
+        {/* The hero as a real depth scene, not a flat banner: this block
+            sits on its own Z-plane and leans very slightly toward the
+            cursor. `max=3` keeps it a texture, not a toy — the headline
+            stays the LCP element and renders with it, not after it. */}
+        <Tilt3D as="div" max={3} scale={1} className="shell grid-12 gap-y-12">
           <TypedHeadline
             className="type-display col-span-12 text-hero lg:col-span-9"
             segments={[
@@ -112,7 +131,7 @@ export default async function Home() {
               </div>
             ))}
           </dl>
-        </div>
+        </Tilt3D>
 
         <div className="shell mt-16 lg:mt-0">
           <div
@@ -131,14 +150,28 @@ export default async function Home() {
               and a measurable outcome. Brand and advisory, run by one team.
             </p>
             <div className="col-span-12 lg:col-span-4 lg:col-start-9 lg:justify-self-end">
-              <ButtonLink href="/contact" tone={hasHeroMedia ? "dark" : "light"}>
-                Start a conversation
-              </ButtonLink>
+              <Magnetic strength={0.35}>
+                <ButtonLink href="/contact" tone={hasHeroMedia ? "dark" : "light"}>
+                  Start a conversation
+                </ButtonLink>
+              </Magnetic>
             </div>
           </div>
         </div>
 
       </section>
+
+      {/* ══ Ambient ribbon — the practices and sectors, restated as texture.
+          Decorative and aria-hidden: both lists are fully navigable in the
+          nav and the sections below. ═══════════════════════════════════════ */}
+      <div className="border-y border-rule bg-canvas-alt py-5">
+        <Marquee
+          items={marqueeWords}
+          itemClassName="type-eyebrow text-ink-muted"
+          speed={38}
+          tilt
+        />
+      </div>
 
       {/* ══ 2. About précis ═══════════════════════════════════════════════ */}
       <Section tone="alt">
@@ -159,13 +192,18 @@ export default async function Home() {
             </Reveal>
 
             {/* The 55+ years figure set as editorial data: a line in a
-                record, not a stat card with a big number and an icon. */}
+                record, not a stat card with a big number and an icon.
+                This is the one figure on the page that gets gold — the
+                rarest colour on the site, spent here and nowhere else on
+                this route. --gold-ink, not --gold: this sits on --canvas-alt,
+                and --gold itself only clears WCAG contrast on a dark
+                surface (see the note in globals.css). */}
             <Reveal className="mt-12 border-t border-rule pt-6">
               <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
                 <dt className="type-eyebrow text-ink-muted">
                   Cumulative leadership experience
                 </dt>
-                <dd className="type-display text-h2">
+                <dd className="type-display text-h2 text-gold-ink">
                   {CUMULATIVE_YEARS}
                   <span className="type-subhead ml-3 text-h3 text-ink-muted">
                     years
@@ -220,30 +258,31 @@ export default async function Home() {
 
             <RevealGroup
               as="ul"
-              className="mt-14 grid gap-px border border-rule bg-rule sm:grid-cols-2"
+              className="perspective-scene mt-14 grid gap-px border border-rule bg-rule sm:grid-cols-2"
             >
               {dnaPillars.map((pillar, i) => (
-                <RevealItem
-                  as="li"
-                  key={pillar.name}
-                  className="relative bg-canvas p-8 lg:p-10"
-                >
-                  <span className="type-eyebrow absolute top-8 right-8 text-ink-muted lg:top-10 lg:right-10">
-                    {indexNumber(i)}
-                  </span>
+                <RevealItem as="li" key={pillar.name} className="h-full">
+                  {/* The tilt is the whole 3D statement here: no glare, no
+                      gradient sheen — just the card leaning off the plane
+                      toward the cursor, and settling back when it leaves. */}
+                  <Tilt3D className="relative h-full bg-canvas p-8 lg:p-10">
+                    <span className="type-eyebrow absolute top-8 right-8 text-ink-muted lg:top-10 lg:right-10">
+                      {indexNumber(i)}
+                    </span>
 
-                  {/* Icon sits on the name's baseline, not stacked above a
-                      centred column. This is a matrix, not a feature grid. */}
-                  <h3 className="type-subhead flex items-baseline gap-3 pr-10 text-h3">
-                    <Icon
-                      name={pillar.icon}
-                      className="h-5 w-5 shrink-0 translate-y-0.5 text-green"
-                    />
-                    {pillar.name}
-                  </h3>
-                  <p className="measure-tight mt-4 text-body-lg text-ink-muted">
-                    {pillar.summary}
-                  </p>
+                    {/* Icon sits on the name's baseline, not stacked above a
+                        centred column. This is a matrix, not a feature grid. */}
+                    <h3 className="type-subhead flex items-baseline gap-3 pr-10 text-h3">
+                      <Icon
+                        name={pillar.icon}
+                        className="h-5 w-5 shrink-0 translate-y-0.5 text-green"
+                      />
+                      {pillar.name}
+                    </h3>
+                    <p className="measure-tight mt-4 text-body-lg text-ink-muted">
+                      {pillar.summary}
+                    </p>
+                  </Tilt3D>
                 </RevealItem>
               ))}
             </RevealGroup>
@@ -252,8 +291,23 @@ export default async function Home() {
       </Section>
 
       {/* ══ 6. The Naked Board teaser ═════════════════════════════════════ */}
-      <Section tone="ridge" labelledBy="tnb-heading">
-        <div className="shell grid-12 gap-y-10">
+      <Section tone="ridge" labelledBy="tnb-heading" className="relative overflow-hidden">
+        {/* A ghost numeral, not a wave: pure type, drifting a beat slower than
+            the section scrolls past. Depth without touching the mark. */}
+        <Parallax
+          direction="down"
+          range={0.2}
+          className="pointer-events-none absolute -top-10 right-0 z-0 select-none"
+        >
+          <span
+            aria-hidden="true"
+            className="type-display block text-[28rem] leading-none text-white/4"
+          >
+            05
+          </span>
+        </Parallax>
+
+        <div className="shell grid-12 relative z-10 gap-y-10">
           <div className="col-span-12 lg:col-span-3">
             <SectionLabel index="05" tone="dark">
               Platform

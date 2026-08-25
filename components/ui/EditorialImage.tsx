@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { AmbientVideo } from "@/components/ui/AmbientVideo";
+import { ParallaxFrame } from "@/components/ui/ParallaxFrame";
 import type { Img } from "@/lib/schemas";
 import { cn } from "@/lib/utils";
 
@@ -75,28 +76,34 @@ export function EditorialImage({
   return (
     <figure className={cn("relative w-full", className)}>
       <div className={cn("relative w-full overflow-hidden", RATIO[effectiveRatio])}>
-        {image.video ? (
-          // Ambient motion, if this record carries any. Falls back to the still
-          // under reduced motion or a metered connection — see AmbientVideo.
-          <AmbientVideo
-            image={{ ...image, video: image.video }}
-            sizes={sizes}
-            priority={priority}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-        ) : (
-          <Image
-            src={image.src}
-            alt={image.alt}
-            fill
-            sizes={sizes}
-            priority={priority}
-            className="object-cover"
-            {...(image.blurDataURL
-              ? { placeholder: "blur" as const, blurDataURL: image.blurDataURL }
-              : {})}
-          />
-        )}
+        {/* The image drifts within this frame as it crosses the viewport —
+            see ParallaxFrame. The overlay below is a sibling, not a child of
+            it, so the tint stays fixed while the photograph moves under it. */}
+        <ParallaxFrame>
+          {image.video ? (
+            // Ambient motion, if this record carries any. Falls back to the
+            // still under reduced motion or a metered connection — see
+            // AmbientVideo.
+            <AmbientVideo
+              image={{ ...image, video: image.video }}
+              sizes={sizes}
+              priority={priority}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : (
+            <Image
+              src={image.src}
+              alt={image.alt}
+              fill
+              sizes={sizes}
+              priority={priority}
+              className="object-cover"
+              {...(image.blurDataURL
+                ? { placeholder: "blur" as const, blurDataURL: image.blurDataURL }
+                : {})}
+            />
+          )}
+        </ParallaxFrame>
         {/* Consistent grade across a mismatched library. */}
         <div
           aria-hidden="true"

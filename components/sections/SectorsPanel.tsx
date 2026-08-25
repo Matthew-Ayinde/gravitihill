@@ -17,9 +17,9 @@ import { indexNumber } from "@/lib/utils";
  * THE SIGNATURE INTERACTION
  * ════════════════════════════════════════════════════════════════════════════
  *
- * A full-viewport --ridge panel that pins while the reader scrolls through
- * three states: Consumer → B2B → Technology. It is the one bold moment on the
- * site; nothing else is allowed to compete with it.
+ * A full-viewport --abyss panel that pins while the reader scrolls through
+ * three states: Consumer → B2B → Technology, rotating between them in 3D
+ * rather than crossfading. It is the site's flagship bold moment.
  *
  * Mechanics
  * ---------
@@ -77,7 +77,11 @@ export function SectorsPanel({
     <section
       id="sectors"
       aria-labelledby="sectors-panel-heading"
-      className="bg-ridge text-white"
+      // --abyss, not --ridge: the site's three dark moments (this,
+      // The Naked Board, Contact) used to be one identical fill. This one
+      // now sits a plane deeper, so the rhythm reads as two depths rather
+      // than a single dark colour reused three times.
+      className="bg-abyss text-white"
     >
       <h2 id="sectors-panel-heading" className="sr-only">
         Sectors
@@ -101,6 +105,9 @@ function PinnedPanel({
   const listRef = useRef<HTMLUListElement>(null);
   const [active, setActive] = useState(0);
   const [markerY, setMarkerY] = useState(0);
+  // Which way the reader is scrolling through the sectors — the 3D rotation
+  // below turns toward that direction rather than always the same way.
+  const [direction, setDirection] = useState(1);
 
   const { scrollYProgress } = useScroll({
     target: container,
@@ -114,7 +121,11 @@ function PinnedPanel({
   );
 
   useMotionValueEvent(activeIndex, "change", (value) => {
-    setActive((current) => (current === value ? current : value));
+    setActive((current) => {
+      if (current === value) return current;
+      setDirection(value > current ? 1 : -1);
+      return value;
+    });
   });
 
   // The accent marker slides to the active row. Offsets are measured rather
@@ -188,14 +199,25 @@ function PinnedPanel({
 
             {/* ── Visual + copy ─────────────────────────────────────── */}
             <div className="col-span-6 col-start-7">
-              <div className="relative aspect-3/2 w-full overflow-hidden">
-                <AnimatePresence initial={false}>
+              {/* The one 3D rotation on the site's flagship moment: the
+                  outgoing sector turns away on its Y axis as the incoming
+                  one turns in, rather than a flat crossfade. Real perspective
+                  depth, no WebGL — a `perspective-scene` ancestor and two
+                  `rotateY` keyframes either side of 0. */}
+              <div className="perspective-scene relative aspect-3/2 w-full overflow-hidden">
+                <AnimatePresence initial={false} custom={direction}>
                   <m.div
                     key={sector.slug}
-                    className="absolute inset-0"
-                    initial={{ opacity: 0, scale: 1.04 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 1 }}
+                    custom={direction}
+                    className="preserve-3d backface-hidden absolute inset-0"
+                    variants={{
+                      enter: (dir: number) => ({ opacity: 0, rotateY: 28 * dir }),
+                      center: { opacity: 1, rotateY: 0 },
+                      exit: (dir: number) => ({ opacity: 0, rotateY: -28 * dir }),
+                    }}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
                     transition={{ duration: 0.7, ease: EASE_BRAND }}
                   >
                     {sector.visual}

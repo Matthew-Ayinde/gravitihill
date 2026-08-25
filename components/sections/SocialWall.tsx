@@ -1,5 +1,7 @@
 import { Section, SectionLabel, SectionLabelInline } from "@/components/ui/Section";
 import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
+import { Marquee } from "@/components/motion/Marquee";
+import { Tilt3D } from "@/components/motion/Tilt3D";
 import { getSocialPosts } from "@/content/social";
 import type { SocialPost } from "@/lib/schemas";
 import { editorialDate } from "@/lib/utils";
@@ -18,6 +20,7 @@ import { editorialDate } from "@/lib/utils";
  */
 export async function SocialWall({ index = "05" }: { index?: string }) {
   const posts = await getSocialPosts();
+  const signals = posts.map((post) => socialLabel(post));
   return (
     <Section labelledBy="social-heading">
       <div className="shell grid-12 gap-y-8">
@@ -37,7 +40,7 @@ export async function SocialWall({ index = "05" }: { index?: string }) {
       <div className="mt-14 overflow-x-auto md:overflow-visible">
         <RevealGroup
           as="ul"
-          className="shell flex snap-x snap-mandatory gap-px md:grid md:grid-cols-3"
+          className="perspective-scene shell flex snap-x snap-mandatory gap-px md:grid md:grid-cols-3"
         >
           {posts.map((post) => (
             <RevealItem
@@ -50,17 +53,30 @@ export async function SocialWall({ index = "05" }: { index?: string }) {
           ))}
         </RevealGroup>
       </div>
+
+      <div className="mt-14 border-t border-rule py-5">
+        <Marquee items={signals} itemClassName="type-eyebrow text-ink-muted" speed={30} tilt />
+      </div>
     </Section>
   );
 }
 
+/** A short, decorative label for the ambient ribbon below the wall — not the
+ *  card content itself, so a long quote never has to be truncated for it. */
+function socialLabel(post: SocialPost): string {
+  if (post.format === "quote") return post.attribution;
+  if (post.format === "stat") return post.source;
+  return post.kicker;
+}
+
 function SocialCard({ post }: { post: SocialPost }) {
   return (
-    <a
+    <Tilt3D
+      as="a"
       href={post.href}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex h-full min-h-[22rem] flex-col justify-between border border-rule bg-canvas p-8 transition-colors duration-200 ease-brand hover:bg-canvas-alt"
+      className="flex h-full min-h-88 flex-col justify-between border border-rule bg-canvas p-8 transition-colors duration-200 ease-brand hover:bg-canvas-alt"
     >
       <p className="type-eyebrow text-ink-muted">
         {post.format === "quote" && "Quote"}
@@ -97,6 +113,6 @@ function SocialCard({ post }: { post: SocialPost }) {
         <time dateTime={post.postedAt}>{editorialDate(post.postedAt)}</time>
         <span>LinkedIn ↗</span>
       </p>
-    </a>
+    </Tilt3D>
   );
 }

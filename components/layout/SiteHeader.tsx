@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { m, useReducedMotion } from "framer-motion";
 import { Lockup } from "@/components/ui/Lockup";
 import { ButtonLink } from "@/components/ui/Button";
+import { Magnetic } from "@/components/motion/Magnetic";
 import { NAV } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -123,13 +124,15 @@ export function SiteHeader({
               ),
             )}
             <li>
-              <ButtonLink
-                href="/contact"
-                tone={light ? "dark" : "light"}
-                className="px-5 py-3 text-[0.8125rem]"
-              >
-                Start a conversation
-              </ButtonLink>
+              <Magnetic strength={0.3}>
+                <ButtonLink
+                  href="/contact"
+                  tone={light ? "dark" : "light"}
+                  className="px-5 py-3 text-[0.8125rem]"
+                >
+                  Start a conversation
+                </ButtonLink>
+              </Magnetic>
             </li>
           </ul>
         </nav>

@@ -43,9 +43,37 @@ export const lineMaskVariants: Variants = {
 /** Shared viewport config so every reveal on the site triggers identically. */
 export const VIEWPORT = { once: true, margin: "-12%" } as const;
 
-/** The 240ms page crossfade. Chosen over the --ridge wipe: a full-screen wipe
- *  would be a second attention-grabbing effect, and boldness is spent once. */
+/** The page transition: a settle-in fade+rise on route change. */
 export const pageTransition: Transition = {
-  duration: 0.24,
+  duration: 0.5,
   ease: EASE_BRAND,
 };
+
+/**
+ * ── Pronounced motion layer ──────────────────────────────────────────────
+ * Parallax, magnetism and ambient scroll depth, used throughout the site
+ * (not just one signature moment). Kept in this file so every component
+ * reads timing and easing from one place rather than inventing its own.
+ */
+
+/** Larger entrance for hero-weight moments: more travel, a touch of scale. */
+export const bigRevealVariants: Variants = {
+  hidden: { opacity: 0, y: 48, scale: 0.97 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.9, ease: EASE_BRAND },
+  },
+};
+
+/** Spring feel for cursor-attracted ("magnetic") elements. */
+export const MAGNETIC_SPRING = { stiffness: 150, damping: 15, mass: 0.15 } as const;
+
+/** Damped spring for trailing/cursor-follow elements. */
+export const TRAIL_SPRING = { stiffness: 120, damping: 24 } as const;
+
+/** Default vertical travel range for the <Parallax> wrapper, as a fraction
+ *  of the element's own height. 0.15 reads clearly without ever detaching
+ *  content from the rhythm of the scroll. */
+export const PARALLAX_RANGE = 0.15;

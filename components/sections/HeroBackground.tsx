@@ -1,8 +1,14 @@
 "use client";
 
-import { AnimatePresence, m, useReducedMotion } from "framer-motion";
+import {
+  AnimatePresence,
+  m,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from "framer-motion";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAmbientPlaybackAllowed } from "@/components/ui/AmbientVideo";
 import { EASE_BRAND } from "@/lib/motion";
 import type { Img } from "@/lib/schemas";
@@ -34,6 +40,24 @@ const CROSSFADE_S = 0.9;
 export function HeroBackground({ items }: { items: Img[] }) {
   const reduced = useReducedMotion();
   const [active, setActive] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // The background lags the fold as it scrolls out — a slower rate than the
+  // foreground content above it, which is the depth cue parallax trades on.
+  // Overscanned via scale so the drift never exposes an edge.
+  //
+  // Gated on `mounted`: useScroll has nothing to measure before the DOM
+  // exists, so the pre-mount client render must match the server's static
+  // markup exactly, or React flags a hydration mismatch on every route with
+  // an admin-set hero background.
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end start"],
+  });
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (reduced || items.length < 2) return;
@@ -48,22 +72,29 @@ export function HeroBackground({ items }: { items: Img[] }) {
 
   const upNext =
     !reduced && items.length > 1 ? items[(active + 1) % items.length] : undefined;
+  const live = mounted && !reduced;
 
   return (
-    <div aria-hidden="true" className="absolute inset-0 -z-10">
-      <AnimatePresence initial={false}>
-        <m.div
-          key={active}
-          data-motion
-          className="absolute inset-0"
-          initial={{ opacity: 0, scale: 1.04 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: CROSSFADE_S, ease: EASE_BRAND }}
-        >
-          <HeroSlide image={current} priority={active === 0} />
-        </m.div>
-      </AnimatePresence>
+    <div ref={ref} aria-hidden="true" className="absolute inset-0 -z-10 overflow-hidden">
+      <m.div
+        data-motion
+        className="absolute inset-0 scale-[1.12]"
+        style={live ? { y } : undefined}
+      >
+        <AnimatePresence initial={false}>
+          <m.div
+            key={active}
+            data-motion
+            className="absolute inset-0"
+            initial={{ opacity: 0, scale: 1.04 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: CROSSFADE_S, ease: EASE_BRAND }}
+          >
+            <HeroSlide image={current} priority={active === 0} />
+          </m.div>
+        </AnimatePresence>
+      </m.div>
 
       {upNext && upNext !== current && <SlidePreload image={upNext} />}
 
