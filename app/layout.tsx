@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { MotionRoot } from "@/components/motion/MotionRoot";
 import { PageFade } from "@/components/motion/PageFade";
+import { SplashScreen } from "@/components/motion/SplashScreen";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { organizationJsonLd } from "@/lib/jsonld";
 import { getHomeHeroMedia } from "@/lib/home-hero";
@@ -85,6 +86,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             <SiteHeader homeHeroHasMedia={homeHero.items.length > 0} />
             <PageFade>{children}</PageFade>
             <SiteFooter />
+            {/* Sibling of PageFade, not a descendant: see SplashScreen's
+                header comment for why it can't live inside the tilted
+                page wrapper. */}
+            <SplashScreen />
           </MotionRoot>
         </div>
       </body>
