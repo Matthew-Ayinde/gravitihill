@@ -7,6 +7,7 @@ import { Lockup } from "@/components/ui/Lockup";
 import { Icon } from "@/components/icons";
 import { GrainOverlay } from "@/components/motion/GrainOverlay";
 import { EASE_BRAND } from "@/lib/motion";
+import { markHeroReady, resetHeroReady } from "@/lib/hero-gate";
 import type { IconName } from "@/lib/schemas";
 
 /**
@@ -49,6 +50,13 @@ import type { IconName } from "@/lib/schemas";
  * narrating a page that isn't visibly there yet. The one live control is the
  * "Skip" button, auto-focused so keyboard users land somewhere useful
  * immediately; Escape does the same.
+ *
+ * ── Coordinating with the hero's typewriter ─────────────────────────────
+ * The home hero's TypedHeadline mounts underneath this gate and would
+ * otherwise type its whole line out unseen behind the doors. `markHeroReady`
+ * (see `lib/hero-gate`) releases it at the moment the doors start moving —
+ * on the timed exit, on Skip, and immediately when the gate doesn't run at
+ * all (reduced motion, or not the home route).
  */
 
 const MANIFEST: { icon: IconName; label: string }[] = [
@@ -84,9 +92,11 @@ export function SplashScreen() {
   useEffect(() => {
     if (!isHome || reduced) {
       setPhase("idle");
+      markHeroReady(); // no gate running — let the hero type immediately
       return;
     }
 
+    resetHeroReady(); // re-arm for a client-side navigation back to "/"
     setPhase("hold");
     setTick(0);
 
@@ -108,7 +118,10 @@ export function SplashScreen() {
       setTick((t) => t + 1);
     }, TICK_MS);
 
-    timers.current.toExit = window.setTimeout(() => setPhase("exit"), HOLD_MS);
+    timers.current.toExit = window.setTimeout(() => {
+      setPhase("exit");
+      markHeroReady(); // doors start moving — the headline can start typing
+    }, HOLD_MS);
     timers.current.toDone = window.setTimeout(() => {
       setPhase("done");
       unlock();
@@ -127,6 +140,7 @@ export function SplashScreen() {
     window.clearTimeout(timers.current.toExit);
     window.clearTimeout(timers.current.toDone);
     setPhase("exit");
+    markHeroReady();
     timers.current.toDone = window.setTimeout(() => {
       setPhase("done");
       document.documentElement.style.overflow = "";
@@ -154,7 +168,6 @@ export function SplashScreen() {
           }}
         >
           <GrainOverlay className="opacity-[0.08]" />
-          <div className="absolute inset-y-0 right-0 w-px bg-rule-dark" />
         </m.div>
 
         <m.div

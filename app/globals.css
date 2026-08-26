@@ -203,6 +203,32 @@
   color: var(--accent);
 }
 
+/* ── Home hero: outlined type ────────────────────────────────────────────
+   Requested for the / headline only — the fill drops out and the letterform
+   is carried by a stroke, so whatever sits behind the hero (photograph or
+   plain canvas) shows through the counters. Scoped to these four utilities
+   rather than folded into .accent-word / .type-display so every other
+   headline on the site keeps its solid fill. -webkit-text-stroke is
+   supported unprefixed by Firefox and Safari as well as Chromium; there is
+   no CSS fallback for the rare browser without it, so the sr-only string in
+   TypedHeadline stays the accessible copy regardless. */
+@utility hero-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--white);
+}
+@utility hero-outline-light {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--ink);
+}
+@utility accent-word-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--green);
+}
+@utility accent-word-outline-dark {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--accent);
+}
+
 /* ============================================================================
    TYPED HEADLINE
    ----------------------------------------------------------------------------

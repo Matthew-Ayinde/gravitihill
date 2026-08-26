@@ -1,8 +1,13 @@
 "use client";
 
 import { useReducedMotion } from "framer-motion";
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { cn } from "@/lib/utils";
+import {
+  getHeroReadyServerSnapshot,
+  getHeroReadySnapshot,
+  subscribeHeroReady,
+} from "@/lib/hero-gate";
 
 /**
  * Typewriter reveal for the home headline.
@@ -36,6 +41,13 @@ import { cn } from "@/lib/utils";
  *
  * Reduced motion and no-JS both resolve to the finished headline through CSS
  * alone — see the .type-pending rules in globals.css and the <noscript> below.
+ *
+ * ── Timing against the splash ────────────────────────────────────────────
+ * This mounts under SplashScreen's doors on every home load, so the schedule
+ * doesn't start on mount — it waits for the gate in `lib/hero-gate` to open,
+ * which SplashScreen flips the moment the doors start parting (or right away
+ * if there's no gate to wait for). Otherwise the whole line would type out
+ * hidden behind the doors and appear already finished when they open.
  */
 
 export type Segment = { text: string; className?: string };
@@ -68,6 +80,15 @@ export function TypedHeadline({
   className?: string;
 }) {
   const reduced = useReducedMotion();
+  // Gated on the splash: without this the schedule below would start the
+  // instant this component mounts, which is while SplashScreen's doors
+  // still cover the whole viewport — the line would finish typing unseen
+  // and appear whole the moment the doors part. See `lib/hero-gate`.
+  const heroReady = useSyncExternalStore(
+    subscribeHeroReady,
+    getHeroReadySnapshot,
+    getHeroReadyServerSnapshot,
+  );
   const full = useMemo(() => segments.map((s) => s.text).join(""), [segments]);
   const total = full.length;
 
@@ -92,6 +113,12 @@ export function TypedHeadline({
       return;
     }
 
+    // Hold at 0 until the splash gate opens (or reports there's no gate to
+    // wait for). `heroReady` flipping true re-runs this effect, and `start`
+    // is stamped from that frame, so the first character lands right as the
+    // doors start moving rather than at some arbitrary point mid-hold.
+    if (!heroReady) return;
+
     let raf = 0;
     let start = 0;
     let index = 0;
@@ -113,7 +140,7 @@ export function TypedHeadline({
 
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [reduced, schedule, total]);
+  }, [reduced, schedule, total, heroReady]);
 
   // Walk the segments, splitting each at the cursor.
   let offset = 0;

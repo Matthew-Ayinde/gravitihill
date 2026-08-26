@@ -9,11 +9,10 @@ import { cn } from "@/lib/utils";
  * `perspective-scene` ancestor, spring-damped so it settles rather than
  * snaps, and returns flat on pointer leave.
  *
- * No glare/sheen overlay — that reads as glassmorphism the moment it's
- * added, which is banned regardless of how the rest of the palette opens
- * up. The only visual consequence of the tilt is the tilt itself, plus a
- * shadow that grows with it: shadows exist here because tilt *causes* them,
- * not as decoration on a card that never moves.
+ * No glare/sheen overlay and no shadow — both read as decoration bolted
+ * onto the tilt rather than a consequence of it, and §2.3/§0.2 rule out
+ * shadows on cards outright. The only visual effect is the tilt (plus the
+ * hover scale) itself.
  *
  * Fine-pointer desktop only. Touch and reduced motion render the child
  * completely flat, with no listeners attached.
@@ -73,14 +72,7 @@ export function Tilt3D({
       data-motion
       className={cn("preserve-3d", className)}
       style={{ rotateX, rotateY }}
-      // The shadow is tinted --blue rather than neutral black: the closest
-      // this site gets to a "light source" for its 3D scene. It only exists
-      // as a direct consequence of the tilt (hover-triggered), never sitting
-      // on the card at rest — so this isn't the banned shadow-on-every-card.
-      whileHover={{
-        scale,
-        boxShadow: "0 28px 56px -20px rgba(27, 79, 140, 0.35)",
-      }}
+      whileHover={{ scale }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       onPointerMove={(event) => {
         const rect = ref.current?.getBoundingClientRect();

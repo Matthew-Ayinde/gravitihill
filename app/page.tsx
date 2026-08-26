@@ -96,16 +96,29 @@ export default async function Home() {
             sits on its own Z-plane and leans very slightly toward the
             cursor. `max=3` keeps it a texture, not a toy — the headline
             stays the LCP element and renders with it, not after it. */}
-        <Tilt3D as="div" max={3} scale={1} className="shell grid-12 gap-y-12">
+        <Tilt3D
+          as="div"
+          max={3}
+          scale={1}
+          className="shell grid-12 gap-y-12"
+        >
           <TypedHeadline
             className="type-display col-span-12 text-hero lg:col-span-9"
             segments={[
-              { text: "We build and sustain " },
+              {
+                text: "We build and sustain ",
+                className: hasHeroMedia ? "hero-outline" : "hero-outline-light",
+              },
               {
                 text: "future-forward",
-                className: hasHeroMedia ? "accent-word-dark" : "accent-word",
+                className: hasHeroMedia
+                  ? "accent-word-outline-dark"
+                  : "accent-word-outline",
               },
-              { text: " businesses." },
+              {
+                text: " businesses.",
+                className: hasHeroMedia ? "hero-outline" : "hero-outline-light",
+              },
             ]}
           />
 
@@ -146,7 +159,7 @@ export default async function Home() {
                 hasHeroMedia && "text-white/85",
               )}
             >
-              Founded in Lagos in 2022 to close the distance between a good idea
+              Founded in Lagos to close the distance between a good idea
               and a measurable outcome. Brand and advisory, run by one team.
             </p>
             <div className="col-span-12 lg:col-span-4 lg:col-start-9 lg:justify-self-end">
