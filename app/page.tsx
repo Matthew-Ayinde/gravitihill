@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AboutPrecis } from "@/components/sections/AboutPrecis";
 import { PracticeList } from "@/components/sections/PracticeList";
 import { SectorsSection } from "@/components/sections/SectorsSection";
 import { SocialWall } from "@/components/sections/SocialWall";
@@ -10,9 +11,7 @@ import { Section, SectionLabel, SectionLabelInline } from "@/components/ui/Secti
 import { EditorialImage } from "@/components/ui/EditorialImage";
 import { ButtonLink } from "@/components/ui/Button";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { HeadlineReveal } from "@/components/motion/HeadlineReveal";
 import { TypedHeadline } from "@/components/motion/TypedHeadline";
-import { Reveal } from "@/components/motion/Reveal";
 import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { Marquee } from "@/components/motion/Marquee";
@@ -186,53 +185,10 @@ export default async function Home() {
         />
       </div>
 
-      {/* ══ 2. About précis ═══════════════════════════════════════════════ */}
-      <Section tone="alt">
-        <div className="shell grid-12 gap-y-10">
-          <div className="col-span-12 lg:col-span-3">
-            <SectionLabel index="01">Who we are</SectionLabel>
-            <SectionLabelInline index="01">Who we are</SectionLabelInline>
-          </div>
-
-          <div className="col-span-12 lg:col-span-8 lg:col-start-5">
-            <HeadlineReveal
-              as="h2"
-              className="type-display text-h2"
-              lines={["Re-definers of", "Brand Building."]}
-            />
-            <Reveal as="p" className="measure mt-10 text-body-lg">
-              {about.precis}
-            </Reveal>
-
-            {/* The 55+ years figure set as editorial data: a line in a
-                record, not a stat card with a big number and an icon.
-                This is the one figure on the page that gets gold — the
-                rarest colour on the site, spent here and nowhere else on
-                this route. --gold-ink, not --gold: this sits on --canvas-alt,
-                and --gold itself only clears WCAG contrast on a dark
-                surface (see the note in globals.css). */}
-            <Reveal className="mt-12 border-t border-rule pt-6">
-              <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-                <dt className="type-eyebrow text-ink-muted">
-                  Cumulative leadership experience
-                </dt>
-                <dd className="type-display text-h2 text-gold-ink">
-                  {CUMULATIVE_YEARS}
-                  <span className="type-subhead ml-3 text-h3 text-ink-muted">
-                    years
-                  </span>
-                </dd>
-              </dl>
-            </Reveal>
-
-            <Reveal className="mt-10">
-              <Link href="/about" className="link-draw type-eyebrow">
-                Read the full story
-              </Link>
-            </Reveal>
-          </div>
-        </div>
-      </Section>
+      {/* ══ 2. About précis ═══════════════════════════════════════════════
+          See AboutPrecis for why this section runs bigger than a standard
+          body section and is the first to carry a photograph. ═══════════ */}
+      <AboutPrecis about={about} cumulativeYears={CUMULATIVE_YEARS} />
 
       {/* ══ 3. Practices ══════════════════════════════════════════════════ */}
       <Section labelledBy="practices-heading">
@@ -252,6 +208,7 @@ export default async function Home() {
           </div>
         </div>
       </Section>
+
 
       {/* ══ 4. THE SIGNATURE ══════════════════════════════════════════════ */}
       <SectorsSection index="03" />

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PageHero } from "@/components/sections/PageHero";
+import { AboutHero } from "@/components/sections/AboutHero";
 import { CtaPanel } from "@/components/sections/CtaPanel";
 import { PreviewRows } from "@/components/sections/PreviewRows";
 import { Section, SectionLabel, SectionLabelInline } from "@/components/ui/Section";
@@ -39,7 +39,7 @@ export default async function AboutPage() {
         ]}
       />
 
-      <PageHero
+      <AboutHero
         eyebrow="About"
         title={
           <>
@@ -49,6 +49,7 @@ export default async function AboutPage() {
         }
         lede={about.precis}
         index={about.facts}
+        heroImages={about.heroImages}
       />
 
       {/* ── Origin ──────────────────────────────────────────────────────── */}

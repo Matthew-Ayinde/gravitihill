@@ -199,6 +199,9 @@ export const socialPostSchema = z.discriminatedUnion("format", [
 export type SocialPost = z.infer<typeof socialPostSchema>;
 
 /* ── About ───────────────────────────────────────────────────────────────── */
+/** Mirrors HOME_HERO_MAX_ITEMS's role: caps the hero's documentary-photo
+ *  cluster at the three tiles ImageCluster's fixed POSITION layout expects. */
+export const ABOUT_HERO_MAX_ITEMS = 3;
 export const aboutSchema = z.object({
   positioning: z.string().min(1),
   purpose: z.string().min(1),
@@ -208,6 +211,9 @@ export const aboutSchema = z.object({
     .min(1),
   pullQuote: z.string().min(1),
   facts: z.array(z.object({ label: z.string().min(1), value: z.string().min(1) })).min(1),
+  /** Absent is the expected state today — the /about hero falls back to a
+   *  typographic plate, same principle as every other imagery slot. */
+  heroImages: z.array(imageSchema).max(ABOUT_HERO_MAX_ITEMS).default([]),
 });
 export type About = z.infer<typeof aboutSchema>;
 

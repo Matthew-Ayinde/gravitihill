@@ -62,20 +62,38 @@ async function uploadVideoFile(file: File, onProgress: (percent: number) => void
  * to change which, replace it. Existing slides are thumbnails you replace or
  * remove in place.
  *
- * All state lives here as plain `Img[]`, submitted through the same
- * `items.0`, `items.1`, … hidden inputs lib/admin/form.ts's getImgList
- * already reads — so the server action needed no changes. Comparing that
- * state to `initial` is what drives HeroForm's dirty flag; HeroForm remounts
- * this component (via a key derived from the saved hero) once a save
- * actually lands, so `initial` — and the dirty check — reflect the system's
- * confirmed state rather than an optimistic guess.
+ * All state lives here as plain `Img[]`, submitted through hidden inputs
+ * named `${field}.0`, `${field}.1`, … that lib/admin/form.ts's getImgList
+ * already reads — so a caller's server action needs no changes beyond
+ * pointing getImgList at the same `field`. Comparing that state to `initial`
+ * is what drives a form's dirty flag; a form remounts this component (via a
+ * key derived from the saved record) once a save actually lands, so
+ * `initial` — and the dirty check — reflect the system's confirmed state
+ * rather than an optimistic guess.
+ *
+ * Generalised beyond the home hero: `max`/`field`/`label` let a second
+ * caller (the /about hero's documentary-photo cluster) reuse the same grid,
+ * upload flow and library picker at a different cap and copy, without a
+ * parallel component to maintain. `allowVideo` defaults to on to preserve
+ * the home hero's existing behaviour exactly; About's cluster turns it off
+ * since ImageCluster only ever renders stills.
  */
 export function RepeatableHeroItems({
   initial,
   onDirtyChange,
+  field = "items",
+  max = HOME_HERO_MAX_ITEMS,
+  label = "Slides",
+  allowVideo = true,
+  helpText,
 }: {
   initial: Img[];
   onDirtyChange?: (dirty: boolean) => void;
+  field?: string;
+  max?: number;
+  label?: string;
+  allowVideo?: boolean;
+  helpText?: string;
 }) {
   const [items, setItems] = useState<Img[]>(initial);
   const [pending, setPending] = useState<Pending | null>(null);
@@ -108,6 +126,10 @@ export function RepeatableHeroItems({
     const isImage = file.type.startsWith("image/");
     if (!isVideo && !isImage) {
       setError(`${file.name} isn't an image or video.`);
+      return false;
+    }
+    if (isVideo && !allowVideo) {
+      setError(`${file.name} is a video — this field only takes stills.`);
       return false;
     }
     if (isImage && file.size > MAX_IMAGE_BYTES) {
@@ -172,10 +194,10 @@ export function RepeatableHeroItems({
   }
 
   async function handleFiles(fileList: File[]) {
-    let capacity = HOME_HERO_MAX_ITEMS - items.length;
+    let capacity = max - items.length;
     for (const file of fileList) {
       if (capacity <= 0) {
-        setError("Only 5 slides are allowed — remove one to add more.");
+        setError(`Only ${max} ${max === 1 ? "image is" : "images are"} allowed — remove one to add more.`);
         break;
       }
       if (await addFile(file)) capacity -= 1;
@@ -189,7 +211,7 @@ export function RepeatableHeroItems({
   }
 
   function pickFromLibrary(asset: MediaAsset) {
-    if (items.length >= HOME_HERO_MAX_ITEMS) return;
+    if (items.length >= max) return;
     setItems((list) => [...list, assetToImg(asset)]);
     setBrowsing(false);
   }
@@ -198,7 +220,7 @@ export function RepeatableHeroItems({
     <div>
       <div className="mb-4 flex items-baseline justify-between">
         <span className="type-eyebrow text-ink-muted">
-          Slides ({items.length}/{HOME_HERO_MAX_ITEMS})
+          {label} ({items.length}/{max})
         </span>
         <button
           type="button"
@@ -210,19 +232,22 @@ export function RepeatableHeroItems({
       </div>
 
       <p className="mb-6 max-w-md text-caption text-ink-muted">
-        Drop up to five images or short video clips. One slide is a static
-        background; two or more crossfade automatically, in the order added.
-        A video becomes its own slide — no still needed first.
+        {helpText ??
+          "Drop up to five images or short video clips. One slide is a static background; two or more crossfade automatically, in the order added. A video becomes its own slide — no still needed first."}
       </p>
 
       {items.map((item, i) => (
         <Fragment key={i}>
-          <input type="hidden" name={`items.${i}.src`} value={item.src} />
-          <input type="hidden" name={`items.${i}.alt`} value={item.alt} />
-          <input type="hidden" name={`items.${i}.ratio`} value={item.ratio} />
-          <input type="hidden" name={`items.${i}.blurDataURL`} value={item.blurDataURL ?? ""} />
-          <input type="hidden" name={`items.${i}.video.mp4`} value={item.video?.mp4 ?? ""} />
-          <input type="hidden" name={`items.${i}.video.webm`} value={item.video?.webm ?? ""} />
+          <input type="hidden" name={`${field}.${i}.src`} value={item.src} />
+          <input type="hidden" name={`${field}.${i}.alt`} value={item.alt} />
+          <input type="hidden" name={`${field}.${i}.ratio`} value={item.ratio} />
+          <input type="hidden" name={`${field}.${i}.blurDataURL`} value={item.blurDataURL ?? ""} />
+          {allowVideo && (
+            <>
+              <input type="hidden" name={`${field}.${i}.video.mp4`} value={item.video?.mp4 ?? ""} />
+              <input type="hidden" name={`${field}.${i}.video.webm`} value={item.video?.webm ?? ""} />
+            </>
+          )}
         </Fragment>
       ))}
 
@@ -234,15 +259,17 @@ export function RepeatableHeroItems({
             key={i}
             item={item}
             pending={pending?.index === i ? pending : undefined}
+            allowVideo={allowVideo}
             onReplace={(file) => void addFile(file, i)}
             onRemove={() => removeItem(i)}
           />
         ))}
 
-        {items.length < HOME_HERO_MAX_ITEMS && (
+        {items.length < max && (
           <AddTile
             pending={pending && pending.index === undefined ? pending : undefined}
             dragActive={dragActive}
+            allowVideo={allowVideo}
             onFiles={(files) => void handleFiles(files)}
             onDragActive={setDragActive}
           />
@@ -257,7 +284,7 @@ export function RepeatableHeroItems({
               <button
                 key={asset.publicId}
                 type="button"
-                disabled={items.length >= HOME_HERO_MAX_ITEMS}
+                disabled={items.length >= max}
                 onClick={() => pickFromLibrary(asset)}
                 className="relative aspect-square overflow-hidden border border-rule hover:border-green disabled:opacity-40"
               >
@@ -274,11 +301,13 @@ export function RepeatableHeroItems({
 function SlideCard({
   item,
   pending,
+  allowVideo,
   onReplace,
   onRemove,
 }: {
   item: Img;
   pending?: Pending;
+  allowVideo: boolean;
   onReplace: (file: File) => void;
   onRemove: () => void;
 }) {
@@ -328,7 +357,7 @@ function SlideCard({
           Replace
           <input
             type="file"
-            accept="image/*,video/*"
+            accept={allowVideo ? "image/*,video/*" : "image/*"}
             className="sr-only"
             onChange={(e) => {
               const file = e.target.files?.[0];
@@ -351,11 +380,13 @@ function SlideCard({
 function AddTile({
   pending,
   dragActive,
+  allowVideo,
   onFiles,
   onDragActive,
 }: {
   pending?: Pending;
   dragActive: boolean;
+  allowVideo: boolean;
   onFiles: (files: File[]) => void;
   onDragActive: (active: boolean) => void;
 }) {
@@ -401,13 +432,15 @@ function AddTile({
         </>
       ) : (
         <label className="cursor-pointer px-4">
-          <span className="type-eyebrow block text-ink">Add image or video</span>
+          <span className="type-eyebrow block text-ink">
+            {allowVideo ? "Add image or video" : "Add image"}
+          </span>
           <span className="mt-1 block text-caption text-ink-muted">
             Drop a file, or click to browse
           </span>
           <input
             type="file"
-            accept="image/*,video/*"
+            accept={allowVideo ? "image/*,video/*" : "image/*"}
             multiple
             className="sr-only"
             onChange={(e) => {

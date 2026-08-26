@@ -28,4 +28,7 @@ export const SEED_ABOUT = {
     { label: "Base", value: "Lagos, NG" },
     { label: "Leadership", value: "55+ yrs" },
   ],
+  // No curated photography yet — the /about hero renders its typographic
+  // plate until real stills are added from /admin/about.
+  heroImages: [],
 };

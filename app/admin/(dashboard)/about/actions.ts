@@ -1,10 +1,10 @@
 "use server";
 
 import { updateTag } from "next/cache";
-import { aboutSchema, type About } from "@/lib/schemas";
+import { ABOUT_HERO_MAX_ITEMS, aboutSchema, type About } from "@/lib/schemas";
 import { saveAbout } from "@/lib/repositories/about";
 import { requireSession } from "@/lib/auth";
-import { str } from "@/lib/admin/form";
+import { str, getImgList } from "@/lib/admin/form";
 import type { ActionState } from "@/components/admin/StatusBanner";
 
 function zipOrigin(formData: FormData): About["origin"] {
@@ -40,6 +40,7 @@ export async function saveAboutAction(_prev: ActionState, formData: FormData): P
     origin: zipOrigin(formData),
     pullQuote: str(formData, "pullQuote"),
     facts: zipFacts(formData),
+    heroImages: getImgList(formData, "heroImages", ABOUT_HERO_MAX_ITEMS),
   });
 
   if (!parsed.success) {

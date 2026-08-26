@@ -1,5 +1,7 @@
+import Image from "next/image";
 import { SectorsPanel, type SectorPanelItem } from "@/components/sections/SectorsPanel";
-import { EditorialImage } from "@/components/ui/EditorialImage";
+import { AmbientVideo } from "@/components/ui/AmbientVideo";
+import { ParallaxFrame } from "@/components/ui/ParallaxFrame";
 import { Icon } from "@/components/icons";
 import { getSectors } from "@/content/sectors";
 import type { Sector } from "@/lib/schemas";
@@ -33,6 +35,17 @@ export async function SectorsSection({ index = "04" }: { index?: string }) {
 }
 
 /**
+ * Full-bleed, not boxed. §5.2 calls this "the full-bleed sector image" — the
+ * client panel now pins it edge-to-edge for the full height of the viewport
+ * rather than a contained 3:2 plate, so this renders to fill whatever box its
+ * parent gives it rather than declaring its own aspect ratio.
+ *
+ * That means it can't route through <EditorialImage>, which enforces a fixed
+ * 3:2/4:5 ratio for every other image on the site — this is the one place the
+ * brief explicitly asks for the exception. It keeps the same grade (the
+ * --abyss tint), the same ambient-video and blur-placeholder handling, and
+ * the same ParallaxFrame drift as everywhere else, just unboxed.
+ *
  * With photography absent — the expected state — this is a typographic plate
  * carrying the sector numeral, consistent with how leadership monograms stand
  * in for headshots. Real imagery drops in through `sector.image` with no
@@ -47,17 +60,36 @@ function SectorVisual({
 }) {
   if (sector.image) {
     return (
-      <EditorialImage
-        image={sector.image}
-        tone="dark"
-        sizes="(min-width: 1024px) 50vw, 100vw"
-        className="h-full"
-      />
+      <div className="relative h-full w-full overflow-hidden">
+        <ParallaxFrame>
+          {sector.image.video ? (
+            <AmbientVideo
+              image={{ ...sector.image, video: sector.image.video }}
+              sizes="(min-width: 1024px) 66vw, 100vw"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : (
+            <Image
+              src={sector.image.src}
+              alt={sector.image.alt}
+              fill
+              sizes="(min-width: 1024px) 66vw, 100vw"
+              className="object-cover"
+              {...(sector.image.blurDataURL
+                ? { placeholder: "blur" as const, blurDataURL: sector.image.blurDataURL }
+                : {})}
+            />
+          )}
+        </ParallaxFrame>
+        {/* Consistent grade across a mismatched library — same treatment as
+            EditorialImage's dark-tone overlay. */}
+        <div aria-hidden="true" className="absolute inset-0 bg-ridge/14" />
+      </div>
     );
   }
 
   return (
-    <div className="flex aspect-3/2 h-full w-full items-end justify-between bg-white/6 p-8 ring-1 ring-inset ring-rule-dark">
+    <div className="flex h-full w-full items-end justify-between bg-white/6 p-10 ring-1 ring-inset ring-rule-dark">
       <span className="type-eyebrow text-white/45">
         {sector.name} — West Africa
       </span>

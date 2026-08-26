@@ -12,6 +12,9 @@ import { cn } from "@/lib/utils";
  * Layout is asymmetric by default: title in columns 1–8, the index block in
  * 10–12, prose never dead-centre.
  */
+
+
+ 
 export function PageHero({
   eyebrow,
   title,
