@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAmbientPlaybackAllowed } from "@/components/ui/AmbientVideo";
 import { EASE_BRAND } from "@/lib/motion";
 import type { Img } from "@/lib/schemas";
+import { releaseVideoElement } from "@/lib/utils";
 
 /**
  * The home hero's optional background: one static slide, or several
@@ -107,6 +108,8 @@ export function HeroBackground({ items }: { items: Img[] }) {
 
 /** Warms the browser cache for a slide before it becomes active — invisible, never in flow. */
 function SlidePreload({ image }: { image: Img }) {
+  const ref = useRef<HTMLVideoElement>(null);
+
   useEffect(() => {
     if (image.video) return;
     const img = new window.Image();
@@ -114,11 +117,23 @@ function SlidePreload({ image }: { image: Img }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [image.src]);
 
+  // This element exists purely to force-buffer the *next* slide's video —
+  // `preload="auto"` tells the browser to fully download and decode it. That
+  // makes cleanup on the way out mandatory, not optional: it is re-created
+  // every DWELL_MS for as long as the hero rotates, i.e. for as long as the
+  // tab stays open. Letting each one leave the DOM without an explicit
+  // release is what turns this warm-cache trick into an unbounded video
+  // decoder leak instead of a one-time convenience. See releaseVideoElement.
+  useEffect(() => {
+    return () => releaseVideoElement(ref.current);
+  }, []);
+
   if (!image.video) return null;
 
   return (
     <video
       key={image.video.mp4 ?? image.video.webm}
+      ref={ref}
       muted
       playsInline
       preload="auto"
@@ -132,10 +147,21 @@ function SlidePreload({ image }: { image: Img }) {
 
 function HeroSlide({ image, priority }: { image: Img; priority: boolean }) {
   const playAllowed = useAmbientPlaybackAllowed();
+  const ref = useRef<HTMLVideoElement>(null);
+
+  // Same leak as SlidePreload, from the other end of the rotation: this is
+  // the *visible* video, and it's swapped for a new one every DWELL_MS as
+  // the hero advances. Release its decode buffers explicitly before
+  // AnimatePresence removes it, rather than trusting garbage collection to
+  // reclaim them on its own.
+  useEffect(() => {
+    return () => releaseVideoElement(ref.current);
+  }, []);
 
   if (image.video && playAllowed) {
     return (
       <video
+        ref={ref}
         poster={image.src}
         muted
         loop

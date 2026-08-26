@@ -24,3 +24,28 @@ export function isoDate(iso: string): string {
 export function indexNumber(i: number): string {
   return String(i + 1).padStart(2, "0");
 }
+
+/**
+ * Forces a `<video>` element to give back its decode buffers before it's
+ * unmounted or its source swapped.
+ *
+ * Removing a video node from the DOM (or just re-rendering it with new
+ * `<source>` children, which is what a keyed swap does) does not reliably
+ * release the memory Chromium allocated to decode it — the element has to be
+ * told explicitly: pause, drop every `<source>`, clear `src`, then call
+ * `load()` to reset the media pipeline. Skipping this is what turns a
+ * *rotating* video (hero backgrounds, any auto-advancing carousel) into a
+ * slow, unbounded memory leak: each swap allocates a new decoder and the old
+ * one is never freed, which compounds for as long as the tab stays open.
+ *
+ * Call this from a cleanup function — either a `useEffect` cleanup keyed to
+ * the element's identity, or right before mutating a persistent element's
+ * source.
+ */
+export function releaseVideoElement(video: HTMLVideoElement | null): void {
+  if (!video) return;
+  video.pause();
+  while (video.firstChild) video.removeChild(video.firstChild);
+  video.removeAttribute("src");
+  video.load();
+}

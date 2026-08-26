@@ -4,6 +4,7 @@ import { useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { Img } from "@/lib/schemas";
+import { releaseVideoElement } from "@/lib/utils";
 
 /**
  * Ambient motion for an image slot: muted, looping, inline, no controls, no
@@ -82,6 +83,14 @@ export function AmbientVideo({
     io.observe(el);
     return () => io.disconnect();
   }, [play]);
+
+  // Same reasoning as HeroBackground's rotating slides: any surface that
+  // mounts and unmounts this component repeatedly in one session — a hover
+  // rail swapping previews, an admin re-saving media — should not leave a
+  // trail of un-released video decoders behind it.
+  useEffect(() => {
+    return () => releaseVideoElement(ref.current);
+  }, []);
 
   if (!play) {
     return (

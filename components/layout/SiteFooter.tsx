@@ -49,7 +49,7 @@ export async function SiteFooter() {
           lines={["Re-definers of", "Brand Building."]}
         />
 
-        <div className="mt-14 flex flex-wrap items-center justify-between gap-8 border-t border-rule-dark pt-10">
+        <div className="mt-14 flex flex-wrap items-center justify-between gap-8 border-rule-dark pt-10">
           <p className="measure-tight text-white/65">
             Let&rsquo;s talk about the outcome you&rsquo;re trying to reach.
           </p>
