@@ -26,6 +26,20 @@ export function indexNumber(i: number): string {
 }
 
 /**
+ * Extracts a leading integer from an index value — `"55+"` → 55, `"2022"` →
+ * 2022, `"3 sectors"` → 3. Returns `null` for anything that doesn't open with
+ * a digit (a name, a date string already formatted editorially), so callers
+ * can fall back to rendering the value as plain text untouched.
+ *
+ * Used to drive <CountUp> on the secondary routes' PageHero/AboutHero index
+ * panels — never on the home route, which sets its own facts markup by hand.
+ */
+export function leadingInt(value: string): number | null {
+  const match = /^\d+/.exec(value.trim());
+  return match ? Number.parseInt(match[0], 10) : null;
+}
+
+/**
  * Forces a `<video>` element to give back its decode buffers before it's
  * unmounted or its source swapped.
  *

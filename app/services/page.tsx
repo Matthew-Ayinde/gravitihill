@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { PageHero } from "@/components/sections/PageHero";
 import { CtaPanel } from "@/components/sections/CtaPanel";
+import { PracticeStage, type PracticeStageItem } from "@/components/sections/PracticeStage";
 import { Section, SectionLabel, SectionLabelInline } from "@/components/ui/Section";
-import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
-import { Icon } from "@/components/icons";
 import { getPractices } from "@/content/services";
 import { pageMetadata } from "@/lib/seo";
-import { indexNumber } from "@/lib/utils";
 
 export const metadata: Metadata = pageMetadata({
   title: "Services",
@@ -22,6 +19,18 @@ export default async function ServicesPage() {
     (sum, practice) => sum + practice.offerings.length,
     0,
   );
+
+  const stageItems: PracticeStageItem[] = practices.map((practice) => ({
+    slug: practice.slug,
+    name: practice.name,
+    proposition: practice.proposition,
+    href: `/services/${practice.slug}`,
+    offerings: practice.offerings.map((offering) => ({
+      name: offering.name,
+      icon: offering.icon,
+    })),
+    cover: practice.cover,
+  }));
 
   return (
     <>
@@ -49,53 +58,7 @@ export default async function ServicesPage() {
           </div>
 
           <div className="col-span-12 lg:col-span-9">
-            <RevealGroup as="ul" className="border-t border-rule">
-              {practices.map((practice, i) => (
-                <RevealItem as="li" key={practice.slug}>
-                  <Link
-                    href={`/services/${practice.slug}`}
-                    className="group grid-12 gap-y-6 border-b border-rule py-12 transition-colors duration-200 ease-brand hover:bg-canvas-alt"
-                  >
-                    <div className="col-span-12 flex items-baseline gap-5 lg:col-span-5">
-                      <span className="type-eyebrow text-ink-muted">
-                        {indexNumber(i)}
-                      </span>
-                      <h2 className="type-display text-h2">{practice.name}</h2>
-                    </div>
-
-                    <div className="col-span-12 lg:col-span-6">
-                      <p className="measure text-body-lg">
-                        {practice.proposition}
-                      </p>
-                      <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2">
-                        {practice.offerings.slice(0, 3).map((offering) => (
-                          <li
-                            key={offering.name}
-                            className="type-eyebrow flex items-center gap-2 text-ink-muted"
-                          >
-                            <Icon
-                              name={offering.icon}
-                              className="h-4 w-4 text-green"
-                            />
-                            {offering.name}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <p className="type-eyebrow col-span-12 self-end text-ink-muted lg:col-span-1 lg:text-right">
-                      {practice.offerings.length} services
-                      <span
-                        aria-hidden="true"
-                        className="ml-3 inline-block transition-transform duration-200 ease-brand group-hover:translate-x-1"
-                      >
-                        →
-                      </span>
-                    </p>
-                  </Link>
-                </RevealItem>
-              ))}
-            </RevealGroup>
+            <PracticeStage items={stageItems} />
           </div>
         </div>
       </Section>
@@ -103,6 +66,7 @@ export default async function ServicesPage() {
       <CtaPanel
         eyebrow="Engage"
         heading="Tell us which of the four you think you need."
+        intense
       />
     </>
   );

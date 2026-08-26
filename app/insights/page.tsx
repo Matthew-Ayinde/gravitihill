@@ -71,7 +71,7 @@ export default async function InsightsPage() {
         </div>
       </Section>
 
-      <CtaPanel eyebrow="Engage" heading="Disagree with one of these? Say so." />
+      <CtaPanel eyebrow="Engage" heading="Disagree with one of these? Say so." intense />
     </>
   );
 }

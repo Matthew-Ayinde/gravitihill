@@ -1,6 +1,12 @@
 import type { ReactNode } from "react";
+import { CountUp } from "@/components/motion/CountUp";
+import { HudCorners } from "@/components/motion/HudCorners";
 import { ImageCluster } from "@/components/motion/ImageCluster";
+import { Reveal } from "@/components/motion/Reveal";
+import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
+import { ScanLine } from "@/components/motion/ScanLine";
 import type { Img } from "@/lib/schemas";
+import { leadingInt } from "@/lib/utils";
 
 /**
  * The /about hero.
@@ -49,34 +55,55 @@ export function AboutHero({
           <h1 className="type-display mt-6 text-h1 text-ink">{title}</h1>
 
           {index && index.length > 0 && (
-            <dl className="mt-10 max-w-md lg:mt-14">
-              {index.map((item) => (
-                <div
-                  key={item.label}
-                  className="flex items-baseline justify-between gap-6 border-t border-rule py-3"
-                >
-                  <dt className="type-eyebrow text-ink-muted">{item.label}</dt>
-                  <dd className="type-subhead text-body-lg">{item.value}</dd>
-                </div>
-              ))}
-            </dl>
+            <RevealGroup as="dl" className="mt-10 max-w-md lg:mt-14" stagger={0.06}>
+              {index.map((item) => {
+                const n = leadingInt(item.value);
+                const suffix = n !== null ? item.value.slice(String(n).length) : "";
+
+                return (
+                  <RevealItem
+                    as="div"
+                    key={item.label}
+                    className="flex items-baseline justify-between gap-6 border-t border-rule py-3"
+                  >
+                    <dt className="type-eyebrow text-ink-muted">{item.label}</dt>
+                    <dd className="type-subhead text-body-lg">
+                      {n !== null ? (
+                        <>
+                          <CountUp value={n} />
+                          {suffix}
+                        </>
+                      ) : (
+                        item.value
+                      )}
+                    </dd>
+                  </RevealItem>
+                );
+              })}
+            </RevealGroup>
           )}
         </div>
 
-        <div className="col-span-12 lg:col-span-4 lg:col-start-9">
+        <div className="relative col-span-12 lg:col-span-4 lg:col-start-9">
           {hasCluster ? (
             <ImageCluster
               className="mx-auto max-w-sm lg:max-w-none"
               items={heroImages.slice(0, 3).map((image) => ({ image }))}
             />
           ) : (
-            <AboutHeroPlate />
+            <div className="relative">
+              <ScanLine tone="light" duration={7} className="opacity-30" />
+              <HudCorners tone="light" size={22} />
+              <AboutHeroPlate />
+            </div>
           )}
         </div>
 
         {lede && (
           <div className="col-span-12 lg:col-span-7">
-            <p className="measure text-body-lg text-ink-muted">{lede}</p>
+            <Reveal as="p" className="measure text-body-lg text-ink-muted">
+              {lede}
+            </Reveal>
           </div>
         )}
       </div>

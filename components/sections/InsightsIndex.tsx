@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { PreviewRows, type PreviewRowItem } from "@/components/sections/PreviewRows";
+import { Spotlight } from "@/components/motion/Spotlight";
+import { EASE_BRAND } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 /**
@@ -11,6 +14,10 @@ import { cn } from "@/lib/utils";
  * React elements, not the content module — so filtering costs a category
  * string per row and ships no article data to the browser. The page stays
  * statically generated; only the visible subset changes.
+ *
+ * The filtered list cross-fades on a category change (keyed on `active`)
+ * rather than snapping — a small, cheap `AnimatePresence` swap, gone
+ * entirely under reduced motion.
  */
 
 export type FilterableRow = PreviewRowItem & { category: string };
@@ -23,13 +30,18 @@ export function InsightsIndex({
   categories: string[];
 }) {
   const [active, setActive] = useState<string | null>(null);
+  const reduced = useReducedMotion();
 
   const visible = active
     ? items.filter((item) => item.category === active)
     : items;
 
+  const list = <PreviewRows items={visible} />;
+
   return (
-    <div>
+    <div className="relative">
+      <Spotlight tone="light" size={640} />
+
       <div
         role="group"
         aria-label="Filter insights by category"
@@ -56,7 +68,21 @@ export function InsightsIndex({
       </div>
 
       <div className="mt-2">
-        <PreviewRows items={visible} />
+        {reduced ? (
+          list
+        ) : (
+          <AnimatePresence mode="wait" initial={false}>
+            <m.div
+              key={active ?? "all"}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.32, ease: EASE_BRAND }}
+            >
+              {list}
+            </m.div>
+          </AnimatePresence>
+        )}
       </div>
 
       <p className="sr-only" aria-live="polite">

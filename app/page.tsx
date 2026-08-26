@@ -161,13 +161,13 @@ export default async function Home() {
               Founded in Lagos to close the distance between a good idea
               and a measurable outcome. Brand and advisory, run by one team.
             </p>
-            <div className="col-span-12 lg:col-span-4 lg:col-start-9 lg:justify-self-end">
+            {/* <div className="col-span-12 lg:col-span-4 lg:col-start-9 lg:justify-self-end">
               <Magnetic strength={0.35}>
                 <ButtonLink href="/contact" tone={hasHeroMedia ? "dark" : "light"}>
                   Start a conversation
                 </ButtonLink>
               </Magnetic>
-            </div>
+            </div> */}
           </div>
         </div>
 

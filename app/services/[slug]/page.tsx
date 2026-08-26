@@ -6,6 +6,8 @@ import { CtaPanel } from "@/components/sections/CtaPanel";
 import { Section, SectionLabel, SectionLabelInline } from "@/components/ui/Section";
 import { EditorialImage } from "@/components/ui/EditorialImage";
 import { ButtonLink } from "@/components/ui/Button";
+import { HudCorners } from "@/components/motion/HudCorners";
+import { Magnetic } from "@/components/motion/Magnetic";
 import { Reveal } from "@/components/motion/Reveal";
 import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 import { Icon } from "@/components/icons";
@@ -72,7 +74,8 @@ export default async function PracticePage({
         ]}
       />
 
-      <div className="shell">
+      <div className="shell relative">
+        <HudCorners tone="light" size={28} className="z-10" />
         <EditorialImage
           image={practice.cover}
           caption={`${practice.name} — Lagos, Nigeria`}
@@ -107,9 +110,11 @@ export default async function PracticePage({
                 <p className="type-display mt-4 max-w-[18ch] text-h2">
                   Executive coaching runs through The Naked Board.
                 </p>
-                <ButtonLink href={practice.platformHref} className="mt-8">
-                  Go to The Naked Board
-                </ButtonLink>
+                <Magnetic strength={0.3} className="mt-8">
+                  <ButtonLink href={practice.platformHref}>
+                    Go to The Naked Board
+                  </ButtonLink>
+                </Magnetic>
               </Reveal>
             )}
           </div>
@@ -138,14 +143,14 @@ export default async function PracticePage({
                 <RevealItem
                   as="li"
                   key={offering.name}
-                  className="flex gap-5 border-b border-rule py-7"
+                  className="group flex gap-5 border-b border-rule py-7 transition-colors duration-200 ease-brand hover:bg-canvas"
                 >
-                  <span className="type-eyebrow w-8 shrink-0 pt-1 text-ink-muted">
+                  <span className="type-eyebrow w-8 shrink-0 pt-1 text-ink-muted transition-colors duration-200 ease-brand group-hover:text-green">
                     {indexNumber(i)}
                   </span>
                   <Icon
                     name={offering.icon}
-                    className="mt-0.5 h-6 w-6 shrink-0 text-green"
+                    className="mt-0.5 h-6 w-6 shrink-0 text-green transition-transform duration-300 ease-brand group-hover:scale-110"
                   />
                   <div>
                     <h3 className="type-subhead text-body-lg">{offering.name}</h3>
@@ -179,8 +184,12 @@ export default async function PracticePage({
                   <li key={sector.slug}>
                     <Link
                       href={`/sectors/${sector.slug}`}
-                      className="group flex flex-col gap-2 border-b border-rule py-8 transition-colors duration-200 hover:bg-canvas-alt sm:flex-row sm:items-baseline sm:gap-10"
+                      className="group relative flex flex-col gap-2 border-b border-rule py-8 transition-colors duration-200 hover:bg-canvas-alt sm:flex-row sm:items-baseline sm:gap-10"
                     >
+                      <span
+                        aria-hidden="true"
+                        className="absolute top-2 bottom-2 left-0 w-0.5 origin-center scale-y-0 bg-accent transition-transform duration-300 ease-brand group-hover:scale-y-100"
+                      />
                       <span className="type-display w-48 shrink-0 text-h3">
                         {sector.name}
                       </span>
@@ -202,7 +211,7 @@ export default async function PracticePage({
         </Section>
       )}
 
-      <CtaPanel eyebrow="Engage" heading={`Start with ${practice.name.toLowerCase()}.`} />
+      <CtaPanel eyebrow="Engage" heading={`Start with ${practice.name.toLowerCase()}.`} intense />
     </>
   );
 }

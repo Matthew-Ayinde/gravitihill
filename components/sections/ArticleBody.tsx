@@ -1,3 +1,7 @@
+import { HeadlineReveal } from "@/components/motion/HeadlineReveal";
+import { HudCorners } from "@/components/motion/HudCorners";
+import { Reveal } from "@/components/motion/Reveal";
+import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 import type { Insight } from "@/lib/schemas";
 
 /**
@@ -8,7 +12,9 @@ import type { Insight } from "@/lib/schemas";
  * changes — the article page, the schema consumers and the index all stay put.
  *
  * Measure is capped at 68 characters. No drop cap: a drop cap is a magazine
- * device and this is a position paper.
+ * device and this is a position paper. Each block reveals on scroll as the
+ * reader arrives at it — a position paper being composed as you read it, not
+ * a wall of text dropped in all at once.
  */
 export function ArticleBody({ body }: { body: Insight["body"] }) {
   return (
@@ -17,44 +23,48 @@ export function ArticleBody({ body }: { body: Insight["body"] }) {
         switch (block.type) {
           case "h2":
             return (
-              <h2
+              <HeadlineReveal
                 key={i}
-                className="type-display mt-16 mb-6 text-h3 first:mt-0"
-              >
-                {block.text}
-              </h2>
+                as="h2"
+                className="mt-16 mb-6 first:mt-0"
+                lineClassName="type-display text-h3"
+                lines={[block.text]}
+              />
             );
 
           case "quote":
             return (
-              <blockquote
+              <Reveal
                 key={i}
-                className="my-12 border-t border-rule pt-8"
+                as="blockquote"
+                className="relative my-12 border-t border-rule py-8 pl-6"
               >
+                <HudCorners tone="light" size={16} />
                 <p className="type-display text-h3 text-green">{block.text}</p>
-              </blockquote>
+              </Reveal>
             );
 
           case "list":
             return (
-              <ul key={i} className="my-8 border-t border-rule">
+              <RevealGroup key={i} as="ul" className="my-8 border-t border-rule">
                 {block.items.map((item) => (
-                  <li
+                  <RevealItem
+                    as="li"
                     key={item}
                     className="border-b border-rule py-4 text-body-lg text-ink-muted"
                   >
                     {item}
-                  </li>
+                  </RevealItem>
                 ))}
-              </ul>
+              </RevealGroup>
             );
 
           case "p":
           default:
             return (
-              <p key={i} className="mt-6 text-body-lg first:mt-0">
+              <Reveal as="p" key={i} className="mt-6 text-body-lg first:mt-0">
                 {block.text}
-              </p>
+              </Reveal>
             );
         }
       })}

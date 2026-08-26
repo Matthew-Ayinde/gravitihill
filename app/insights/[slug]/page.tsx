@@ -6,6 +6,9 @@ import { ShareRail } from "@/components/sections/ShareRail";
 import { CtaPanel } from "@/components/sections/CtaPanel";
 import { Section } from "@/components/ui/Section";
 import { EditorialImage } from "@/components/ui/EditorialImage";
+import { HudCorners } from "@/components/motion/HudCorners";
+import { Reveal } from "@/components/motion/Reveal";
+import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getInsights, getInsight, getRelatedInsights } from "@/content/insights";
 import { articleJsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
@@ -74,35 +77,49 @@ export default async function InsightPage({
 
               <h1 className="type-display mt-6 text-h1">{insight.title}</h1>
 
-              <p className="measure mt-8 text-body-lg text-ink-muted">
+              <Reveal as="p" className="measure mt-8 text-body-lg text-ink-muted">
                 {insight.excerpt}
-              </p>
+              </Reveal>
             </div>
 
-            <dl className="col-span-12 self-end lg:col-span-3 lg:col-start-10">
-              <div className="flex items-baseline justify-between gap-6 border-t border-rule py-3">
+            <RevealGroup
+              as="dl"
+              className="col-span-12 self-end lg:col-span-3 lg:col-start-10"
+              stagger={0.06}
+            >
+              <RevealItem
+                as="div"
+                className="flex items-baseline justify-between gap-6 border-t border-rule py-3"
+              >
                 <dt className="type-eyebrow text-ink-muted">Published</dt>
                 <dd className="type-subhead text-body-lg">
                   <time dateTime={insight.publishedAt}>
                     {editorialDate(insight.publishedAt)}
                   </time>
                 </dd>
-              </div>
-              <div className="flex items-baseline justify-between gap-6 border-t border-rule py-3">
+              </RevealItem>
+              <RevealItem
+                as="div"
+                className="flex items-baseline justify-between gap-6 border-t border-rule py-3"
+              >
                 <dt className="type-eyebrow text-ink-muted">Reading</dt>
                 <dd className="type-subhead text-body-lg">
                   {insight.readingTime} min
                 </dd>
-              </div>
-              <div className="flex items-baseline justify-between gap-6 border-t border-rule py-3">
+              </RevealItem>
+              <RevealItem
+                as="div"
+                className="flex items-baseline justify-between gap-6 border-t border-rule py-3"
+              >
                 <dt className="type-eyebrow text-ink-muted">Author</dt>
                 <dd className="type-subhead text-body-lg">{insight.author}</dd>
-              </div>
-            </dl>
+              </RevealItem>
+            </RevealGroup>
           </div>
         </header>
 
-        <div className="shell">
+        <div className="shell relative">
+          <HudCorners tone="light" size={28} className="z-10" />
           <EditorialImage
             image={insight.coverImage}
             caption={`${insight.category} — ${editorialDate(insight.publishedAt)}`}
@@ -155,8 +172,12 @@ export default async function InsightPage({
                   <li key={item.slug}>
                     <Link
                       href={`/insights/${item.slug}`}
-                      className="group flex flex-col gap-2 border-b border-rule py-8 transition-colors duration-200 ease-brand hover:bg-canvas lg:flex-row lg:items-baseline lg:gap-10"
+                      className="group relative flex flex-col gap-2 border-b border-rule py-8 transition-colors duration-200 ease-brand hover:bg-canvas lg:flex-row lg:items-baseline lg:gap-10"
                     >
+                      <span
+                        aria-hidden="true"
+                        className="absolute top-2 bottom-2 left-0 w-0.5 origin-center scale-y-0 bg-accent transition-transform duration-300 ease-brand group-hover:scale-y-100"
+                      />
                       <span className="type-eyebrow shrink-0 text-ink-muted lg:w-32">
                         <time dateTime={item.publishedAt}>
                           {editorialDate(item.publishedAt)}
@@ -182,7 +203,7 @@ export default async function InsightPage({
         </Section>
       )}
 
-      <CtaPanel eyebrow="Engage" heading="Bring us the version of this you are living." />
+      <CtaPanel eyebrow="Engage" heading="Bring us the version of this you are living." intense />
     </>
   );
 }

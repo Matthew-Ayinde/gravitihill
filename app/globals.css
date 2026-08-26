@@ -441,6 +441,49 @@
 }
 
 /* ============================================================================
+   SECONDARY-ROUTE AMBIENT SYSTEM LAYER
+   ----------------------------------------------------------------------------
+   Added for About / Services / Sectors / Insights / Contact — the home route
+   and The Naked Board never reference any of these utilities, so neither is
+   affected by this block existing. Pairs with <Spotlight> and <ScanLine>.
+   ========================================================================== */
+
+/* Typing --spot-x/--spot-y as animatable lengths is what lets <Spotlight>'s
+   own `transition: --spot-x …` actually ease the light from one cursor
+   position to the next, rather than snapping — the browser now knows these
+   are interpolable numbers, not opaque strings. Unsupported browsers (pre
+   Safari 16.4) simply keep the old snap-to-cursor behaviour; nothing breaks. */
+@property --spot-x {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 50%;
+}
+@property --spot-y {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 50%;
+}
+
+/* A small "this is live" status dot — used ahead of a PageHero eyebrow and
+   the contact page's reply-time note. Opacity + scale only, no colour shift,
+   so it never reads as an alert. */
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+}
+
+@utility animate-pulse-dot {
+  animation: pulse-dot 1.8s ease-in-out infinite;
+}
+
+/* ============================================================================
    REDUCED MOTION: NON-NEGOTIABLE
    All transforms and reveals off. Content renders in its final state.
    ========================================================================== */

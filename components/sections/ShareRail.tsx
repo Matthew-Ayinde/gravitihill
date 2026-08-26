@@ -52,7 +52,16 @@ export function ShareRail({ url, title }: { url: string; title: string }) {
           </button>
         </li>
       </ul>
-      <p aria-live="polite" className="type-eyebrow mt-3 h-4 text-green">
+      <p
+        aria-live="polite"
+        className="type-eyebrow mt-3 flex h-4 items-center gap-2 text-green"
+      >
+        {copied && (
+          <span
+            aria-hidden="true"
+            className="h-1.5 w-1.5 shrink-0 animate-pulse-dot rounded-full bg-current"
+          />
+        )}
         {copied ? "Copied" : ""}
       </p>
     </div>

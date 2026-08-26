@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { HudCorners } from "@/components/motion/HudCorners";
+import { ScanLine } from "@/components/motion/ScanLine";
 import type { Person } from "@/lib/schemas";
 import { cn } from "@/lib/utils";
 
@@ -56,12 +58,14 @@ export function PersonPortrait({
   return (
     <div
       className={cn(
-        "flex aspect-4/5 w-full items-center justify-center",
+        "relative flex aspect-4/5 w-full items-center justify-center overflow-hidden",
         tone === "dark" ? "bg-white/6" : "bg-canvas-alt",
         className,
       )}
       aria-hidden="true"
     >
+      <ScanLine tone={tone} duration={8} className="opacity-25" />
+      <HudCorners tone={tone} size={16} />
       <span
         className={cn(
           "type-display text-h1 leading-none",

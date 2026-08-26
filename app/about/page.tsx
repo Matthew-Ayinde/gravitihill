@@ -5,8 +5,11 @@ import { PreviewRows } from "@/components/sections/PreviewRows";
 import { Section, SectionLabel, SectionLabelInline } from "@/components/ui/Section";
 import { PersonPortrait } from "@/components/ui/PersonCard";
 import { HeadlineReveal } from "@/components/motion/HeadlineReveal";
+import { HudCorners } from "@/components/motion/HudCorners";
+import { Marquee } from "@/components/motion/Marquee";
 import { Reveal } from "@/components/motion/Reveal";
 import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
+import { Spotlight } from "@/components/motion/Spotlight";
 import { Icon } from "@/components/icons";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbJsonLd, personJsonLd } from "@/lib/jsonld";
@@ -185,7 +188,7 @@ export default async function AboutPage() {
               />
             </div>
 
-            <ul className="mt-14 grid gap-10 sm:grid-cols-3">
+            {/* <ul className="mt-14 grid gap-10 sm:grid-cols-3">
               {team.map((person) => (
                 <li key={person.slug}>
                   <h3 className="type-eyebrow text-green">{person.name}</h3>
@@ -198,7 +201,7 @@ export default async function AboutPage() {
                   </ul>
                 </li>
               ))}
-            </ul>
+            </ul> */}
           </div>
         </div>
       </Section>

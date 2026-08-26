@@ -17,7 +17,7 @@ export const SEED_SECTORS: SeedSector[] = [
     proposition: "From passive consumers to raving fans.",
     thesis: [
       "Consumer brands in this market compete on distribution and price until one of them earns a reason to be chosen. That reason is built, not discovered.",
-      "We work on the whole experience — what the brand promises, what the shelf delivers, what the service recovery says when something goes wrong — because a consumer reads all three as one thing.",
+      "We work on the whole experience — what the brand promises, what the shelf delivers, what the service recovery says when something goes wrong, because a consumer reads all three as one thing.",
     ],
     approach: [
       { name: "Holistic brand experience", icon: "customer-experience", note: "Every touchpoint designed against one standard, from packaging to complaint handling." },

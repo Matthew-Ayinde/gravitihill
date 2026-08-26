@@ -5,8 +5,10 @@ import { PageHero } from "@/components/sections/PageHero";
 import { CtaPanel } from "@/components/sections/CtaPanel";
 import { Section, SectionLabel, SectionLabelInline } from "@/components/ui/Section";
 import { EditorialImage } from "@/components/ui/EditorialImage";
+import { HudCorners } from "@/components/motion/HudCorners";
 import { Reveal } from "@/components/motion/Reveal";
 import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
+import { Tilt3D } from "@/components/motion/Tilt3D";
 import { Icon } from "@/components/icons";
 import { getSectors, getSector } from "@/content/sectors";
 import { getPractices } from "@/content/services";
@@ -58,7 +60,8 @@ export default async function SectorPage({
         ]}
       />
 
-      <div className="shell">
+      <div className="shell relative">
+        <HudCorners tone="light" size={28} className="z-10" />
         <EditorialImage
           image={sector.image}
           caption={`${sector.name} — West Africa`}
@@ -106,15 +109,15 @@ export default async function SectorPage({
                 <RevealItem
                   as="li"
                   key={step.name}
-                  className="grid-12 gap-y-3 border-b border-rule py-8"
+                  className="group grid-12 gap-y-3 border-b border-rule py-8 transition-colors duration-200 ease-brand hover:bg-canvas"
                 >
                   <div className="col-span-12 flex items-baseline gap-5 lg:col-span-5">
-                    <span className="type-eyebrow text-ink-muted">
+                    <span className="type-eyebrow text-ink-muted transition-colors duration-200 ease-brand group-hover:text-green">
                       {indexNumber(i)}
                     </span>
                     <Icon
                       name={step.icon}
-                      className="h-6 w-6 translate-y-1 text-green"
+                      className="h-6 w-6 translate-y-1 text-green transition-transform duration-300 ease-brand group-hover:scale-110"
                     />
                     <h3 className="type-subhead text-h3">{step.name}</h3>
                   </div>
@@ -146,16 +149,17 @@ export default async function SectorPage({
 
             <RevealGroup
               as="ul"
-              className="mt-14 grid gap-px border border-rule bg-rule md:grid-cols-3"
+              className="perspective-scene mt-14 grid gap-px border border-rule bg-rule md:grid-cols-3"
             >
               {sector.differentiators.map((item) => (
-                <RevealItem
-                  as="li"
-                  key={item.name}
-                  className="bg-canvas p-8 md:p-10"
-                >
-                  <h3 className="type-subhead text-h3">{item.name}</h3>
-                  <p className="mt-4 text-ink-muted">{item.note}</p>
+                <RevealItem as="li" key={item.name} className="h-full">
+                  {/* Same tilt-only 3D statement used on the home DNA grid:
+                      no glare, no gradient sheen, just the card leaning off
+                      the plane toward the cursor and settling back. */}
+                  <Tilt3D className="h-full bg-canvas p-8 md:p-10">
+                    <h3 className="type-subhead text-h3">{item.name}</h3>
+                    <p className="mt-4 text-ink-muted">{item.note}</p>
+                  </Tilt3D>
                 </RevealItem>
               ))}
             </RevealGroup>
@@ -185,8 +189,12 @@ export default async function SectorPage({
                   <li key={practice.slug}>
                     <Link
                       href={`/services/${practice.slug}`}
-                      className="group flex flex-col gap-2 border-b border-rule py-8 transition-colors duration-200 hover:bg-canvas sm:flex-row sm:items-baseline sm:gap-10"
+                      className="group relative flex flex-col gap-2 border-b border-rule py-8 transition-colors duration-200 hover:bg-canvas sm:flex-row sm:items-baseline sm:gap-10"
                     >
+                      <span
+                        aria-hidden="true"
+                        className="absolute top-2 bottom-2 left-0 w-0.5 origin-center scale-y-0 bg-accent transition-transform duration-300 ease-brand group-hover:scale-y-100"
+                      />
                       <span className="type-display w-64 shrink-0 text-h3">
                         {practice.name}
                       </span>
@@ -208,7 +216,7 @@ export default async function SectorPage({
         </Section>
       )}
 
-      <CtaPanel eyebrow="Engage" heading={`Talk to us about ${sector.name}.`} />
+      <CtaPanel eyebrow="Engage" heading={`Talk to us about ${sector.name}.`} intense />
     </>
   );
 }

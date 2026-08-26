@@ -245,12 +245,15 @@ function PinnedPanel({
 
           <div className="flex flex-1">
             {/* Index: the one thing on screen the reader can always read
-                against while the background behind it keeps changing. */}
-            <div className="flex w-full shrink-0 flex-col justify-center pl-gutter pr-10 lg:w-[36%] xl:w-[30%]">
+                against while the background behind it keeps changing. Set at
+                hero scale — "large display-set numerals" per the brief — so
+                the index reads as the room's dominant shape, not a caption
+                beside the photograph. */}
+            <div className="flex w-full shrink-0 flex-col justify-center pl-gutter pr-6 lg:w-[42%] xl:w-[38%]">
               <div className="relative">
                 <m.span
                   aria-hidden="true"
-                  className="absolute -left-4 block h-px w-6 bg-accent"
+                  className="absolute -left-6 block h-px w-8 bg-accent"
                   animate={{ y: markerY }}
                   transition={{ duration: 0.5, ease: EASE_BRAND }}
                 />
@@ -262,17 +265,17 @@ function PinnedPanel({
                         href={item.href}
                         onFocus={() => setActive(i)}
                         aria-current={i === active ? "true" : undefined}
-                        className="flex items-baseline gap-6 py-3"
+                        className="flex items-end gap-4 py-2"
                       >
                         <m.span
-                          className="type-eyebrow"
-                          animate={{ opacity: i === active ? 1 : 0.28 }}
+                          className="type-display text-h3 leading-none tabular-nums"
+                          animate={{ opacity: i === active ? 0.6 : 0.2 }}
                           transition={{ duration: 0.4, ease: EASE_BRAND }}
                         >
                           {indexNumber(i)}
                         </m.span>
                         <m.span
-                          className="type-display text-h1"
+                          className="type-display text-hero leading-none"
                           animate={{ opacity: i === active ? 1 : 0.28 }}
                           transition={{ duration: 0.4, ease: EASE_BRAND }}
                         >
@@ -286,8 +289,11 @@ function PinnedPanel({
             </div>
 
             {/* Copy: proposition + approach points, bottom-anchored over
-                the background's own foot. */}
-            <div className="measure flex flex-1 flex-col justify-end px-10 pb-14 lg:pb-16">
+                the background's own foot. Capped to its own measure rather
+                than stretched across the remaining width — asymmetry, not a
+                dead-centred caption — so it reads as a second, deliberate
+                statement rather than a footnote to the index. */}
+            <div className="flex max-w-2xl flex-1 flex-col justify-end px-10 pb-16 lg:pb-24 xl:px-14">
               <AnimatePresence mode="wait" initial={false}>
                 <m.div
                   key={sector.slug}
@@ -301,15 +307,15 @@ function PinnedPanel({
                   }}
                 >
                   <MaskedLine>
-                    <p className="type-display text-h3 text-white">
+                    <p className="type-display text-h2 text-white">
                       {sector.proposition}
                     </p>
                   </MaskedLine>
 
-                  <ul className="mt-6 space-y-2.5">
+                  <ul className="mt-9 space-y-4">
                     {sector.points.map((point, i) => (
                       <MaskedLine key={i} as="li">
-                        {point}
+                        <span className="text-body-lg">{point}</span>
                       </MaskedLine>
                     ))}
                   </ul>
@@ -421,7 +427,7 @@ function StackedPanels({
                   <span className="type-eyebrow text-accent">
                     {indexNumber(i)}
                   </span>
-                  <h3 className="type-display text-h1 text-white">
+                  <h3 className="type-display text-hero leading-none text-white">
                     {sector.name}
                   </h3>
                 </div>
@@ -430,13 +436,15 @@ function StackedPanels({
                   {sector.visual}
                 </div>
 
-                <p className="type-display mt-8 text-h3 text-white">
+                <p className="type-display mt-8 text-h2 text-white">
                   {sector.proposition}
                 </p>
 
-                <ul className="mt-6 space-y-2.5">
+                <ul className="mt-7 space-y-4">
                   {sector.points.map((point, pointIndex) => (
-                    <li key={pointIndex}>{point}</li>
+                    <li key={pointIndex} className="text-body-lg">
+                      {point}
+                    </li>
                   ))}
                 </ul>
               </Link>

@@ -1,7 +1,9 @@
 "use client";
 
 import { useId, useState } from "react";
+import { m, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
+import { EASE_BRAND } from "@/lib/motion";
 import {
   BUDGET_RANGES,
   ENQUIRY_TYPES,
@@ -44,6 +46,7 @@ const EMPTY: ContactInput = {
 
 export function ContactForm() {
   const formId = useId();
+  const reduced = useReducedMotion();
   const [values, setValues] = useState<ContactInput>(EMPTY);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<Status>({ state: "idle" });
@@ -110,13 +113,29 @@ export function ContactForm() {
   }
 
   if (status.state === "success") {
+    const Panel = reduced ? "div" : m.div;
+    const entrance = reduced
+      ? {}
+      : {
+          initial: { opacity: 0, y: 14 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.5, ease: EASE_BRAND },
+        };
+
     return (
-      <div
+      <Panel
         className="border-t border-rule pt-10"
         role="status"
         aria-live="polite"
+        {...entrance}
       >
-        <p className="type-eyebrow text-green">Received</p>
+        <p className="type-eyebrow flex items-center gap-2.5 text-green">
+          <span
+            aria-hidden="true"
+            className="h-1.5 w-1.5 shrink-0 animate-pulse-dot rounded-full bg-current"
+          />
+          Received
+        </p>
         <p className="type-display mt-5 max-w-[18ch] text-h2">
           Your brief is with us.
         </p>
@@ -133,7 +152,7 @@ export function ContactForm() {
         >
           Send another
         </Button>
-      </div>
+      </Panel>
     );
   }
 
@@ -240,10 +259,16 @@ export function ContactForm() {
         <p
           aria-live="polite"
           className={cn(
-            "text-caption",
+            "flex items-center gap-2 text-caption",
             status.state === "error" ? "text-ink" : "text-ink-muted",
           )}
         >
+          {pending && (
+            <span
+              aria-hidden="true"
+              className="h-1.5 w-1.5 shrink-0 animate-pulse-dot rounded-full bg-green"
+            />
+          )}
           {status.state === "error"
             ? status.message
             : pending
@@ -291,28 +316,34 @@ function Field({
         {optional && <span className="ml-2 text-ink-muted/70">Optional</span>}
       </label>
 
-      {multiline ? (
-        <textarea
-          id={id}
-          rows={6}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={error ? errorId : undefined}
-          className={cn(CONTROL, error ? "border-green" : "border-rule")}
+      <div className="relative">
+        {multiline ? (
+          <textarea
+            id={id}
+            rows={6}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? errorId : undefined}
+            className={cn(CONTROL, "peer", error ? "border-green" : "border-rule")}
+          />
+        ) : (
+          <input
+            id={id}
+            type={type}
+            value={value}
+            autoComplete={autoComplete}
+            onChange={(e) => onChange(e.target.value)}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? errorId : undefined}
+            className={cn(CONTROL, "peer", error ? "border-green" : "border-rule")}
+          />
+        )}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute right-0 bottom-0 left-0 h-[1.5px] origin-left scale-x-0 bg-accent transition-transform duration-200 ease-brand peer-focus:scale-x-100"
         />
-      ) : (
-        <input
-          id={id}
-          type={type}
-          value={value}
-          autoComplete={autoComplete}
-          onChange={(e) => onChange(e.target.value)}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={error ? errorId : undefined}
-          className={cn(CONTROL, error ? "border-green" : "border-rule")}
-        />
-      )}
+      </div>
 
       {error && (
         <p id={errorId} className="mt-2 text-caption text-green">
@@ -350,21 +381,27 @@ function SelectField({
         {label}
         {optional && <span className="ml-2 text-ink-muted/70">Optional</span>}
       </label>
-      <select
-        id={id}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? errorId : undefined}
-        className={cn(CONTROL, error ? "border-green" : "border-rule")}
-      >
-        {placeholder && <option value="">{placeholder}</option>}
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
+      <div className="relative">
+        <select
+          id={id}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
+          className={cn(CONTROL, "peer", error ? "border-green" : "border-rule")}
+        >
+          {placeholder && <option value="">{placeholder}</option>}
+          {options.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute right-0 bottom-0 left-0 h-[1.5px] origin-left scale-x-0 bg-accent transition-transform duration-200 ease-brand peer-focus:scale-x-100"
+        />
+      </div>
       {error && (
         <p id={errorId} className="mt-2 text-caption text-green">
           {error}
