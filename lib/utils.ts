@@ -20,6 +20,16 @@ export function isoDate(iso: string): string {
   return iso.slice(0, 10);
 }
 
+/**
+ * Splits a string into words and the whitespace between them, keeping both,
+ * so a word-level animation can wrap each word in its own element while the
+ * spaces stay plain text and the line still breaks where it naturally would.
+ * Word-level only: nothing on the site animates per character.
+ */
+export function wordTokens(text: string): string[] {
+  return text.split(/(\s+)/).filter((token) => token.length > 0);
+}
+
 /** `01`, `02`, … for editorial indices. */
 export function indexNumber(i: number): string {
   return String(i + 1).padStart(2, "0");

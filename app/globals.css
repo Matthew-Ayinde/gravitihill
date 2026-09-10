@@ -164,6 +164,11 @@
      Never words — only ever two digits. */
   --text-numeral: clamp(5.5rem, 13vw, 12.5rem);
   --text-numeral--line-height: 0.8;
+  /* The /insights masthead headline: two short hand-set lines, sized to
+     carry the width of the shell on their own. Never more than a few words
+     — a line that re-wraps at this size stops being a masthead. */
+  --text-masthead: clamp(3.5rem, 12.5vw, 13rem);
+  --text-masthead--line-height: 0.92;
   --text-hero: clamp(3.25rem, 7.5vw, 7rem);
   --text-hero--line-height: 0.94;
   --text-h1: clamp(2.75rem, 5.5vw, 4.75rem);
@@ -958,6 +963,159 @@
 }
 
 /* ============================================================================
+   INSIGHTS — /insights
+   ----------------------------------------------------------------------------
+   Pairs with <PressureHeadline>, <LeadAperture>, <ArchiveStack>, <InkScrub>
+   and <RollText>. Layout that the motion depends on lives here as CSS, so it
+   is in place before hydration and survives a failed one.
+   ========================================================================== */
+
+/* ── Masthead: the line box each word rises out of ─────────────────────── */
+
+/* Clipped on both edges vertically (not just the descender side, as
+   .line-mask does): at display-xl the line-height is tighter than the glyphs,
+   and a word entering from below must not show above its own line either. */
+.press-line {
+  overflow: clip;
+  padding-block: 0.1em;
+  margin-block: -0.1em;
+}
+
+/* ── Lead: the scroll track the aperture is scrubbed through ───────────── */
+
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .lead-track {
+    height: 250vh;
+  }
+}
+
+.lead-cue {
+  transform-origin: left;
+  transition: transform 600ms var(--ease-3d);
+}
+
+@media (hover: hover) {
+  .lead-track:hover .lead-cue {
+    transform: scaleX(1.75);
+  }
+}
+
+.lead-track:focus-within .lead-cue {
+  transform: scaleX(1.75);
+}
+
+/* ── Archive: the filter rail and the stack of files ───────────────────── */
+
+.chip-rail {
+  scrollbar-width: none;
+}
+.chip-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.file + .file {
+  margin-top: 1.5rem;
+}
+
+/* Each file sticks a step lower than the one before, so every covered file
+   keeps its top edge — category and date — showing above the next. The gap
+   is the scroll distance a file is read for before the next arrives. */
+@media (min-width: 1024px) {
+  .file {
+    position: sticky;
+    top: calc(7.5rem + var(--i, 0) * 1.5rem);
+  }
+  .file + .file {
+    margin-top: 18vh;
+  }
+  .file-card {
+    height: min(34rem, calc(100svh - 11rem));
+  }
+}
+
+.file-card {
+  transition: background-color 400ms var(--ease-out-expo);
+}
+
+.file-cue {
+  transform-origin: left;
+  transition: transform 600ms var(--ease-3d);
+}
+
+/* The stretched title link is the card's only focus stop; its ring belongs
+   around the whole card, not the title's text box. */
+.file-card .file-link:focus-visible {
+  outline: none;
+}
+.file-card:has(.file-link:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.file-card:has(.file-link:focus-visible) .file-cue {
+  transform: scaleX(1.8);
+}
+
+@media (hover: hover) {
+  .file-card:hover {
+    background-color: var(--white);
+  }
+  .file-card:hover .file-cue {
+    transform: scaleX(1.8);
+  }
+}
+
+/* ── Reply: rolling routes ─────────────────────────────────────────────── */
+
+/* Heights are in em against a fixed line-height so the track is exactly two
+   lines tall and -50% is exactly one line, at every clamp() step. */
+.roll {
+  display: block;
+  overflow: hidden;
+  height: 1.2em;
+  line-height: 1.2;
+}
+.roll-track {
+  display: block;
+  transition: transform 700ms var(--ease-3d);
+}
+.roll-line {
+  display: block;
+  height: 1.2em;
+  white-space: nowrap;
+}
+.roll-alt {
+  color: var(--green);
+}
+
+.reply-rule {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 700ms var(--ease-3d);
+}
+.reply-arrow {
+  transition: transform 500ms var(--ease-3d);
+}
+
+.reply-route:focus-visible .roll-track {
+  transform: translateY(-50%);
+}
+.reply-route:focus-visible .reply-rule {
+  transform: scaleX(1);
+}
+
+@media (hover: hover) {
+  .reply-route:hover .roll-track {
+    transform: translateY(-50%);
+  }
+  .reply-route:hover .reply-rule {
+    transform: scaleX(1);
+  }
+  .reply-route:hover .reply-arrow {
+    transform: translate(3px, -3px);
+  }
+}
+
+/* ============================================================================
    SMOOTH SCROLL + ON-LOAD ENTRANCE
    ========================================================================== */
 
@@ -987,7 +1145,8 @@
 /* Pre-hydration hold for <Entrance>: set by the root layout's inline script,
    removed by MotionRoot once every entrance has taken over. If JavaScript
    never arrives, the failsafe reveals everything after 4s. */
-html[data-motion-boot] [data-load] {
+html[data-motion-boot] [data-load],
+html[data-motion-boot] [data-hold] {
   opacity: 0;
   animation: load-failsafe 0s linear 4s forwards;
 }
@@ -1043,10 +1202,21 @@ html[data-motion-boot] [data-shutter] {
      under emulated prefers-reduced-motion across every route. */
   [data-motion],
   [data-load],
+  [data-hold],
   [data-shutter] {
     opacity: 1 !important;
     transform: none !important;
     clip-path: none !important;
+  }
+
+  /* /insights: the covered-file shade never shows, and the rolling routes
+     stay on their first line — the hover jump is instant here, and an instant
+     swap to an identical green copy reads as a flicker. */
+  [data-file-dim] {
+    opacity: 0 !important;
+  }
+  .reply-route .roll-track {
+    transform: none !important;
   }
 
   /* /sectors hero: grid and rule drawn, cue parked, no hover transforms. */
