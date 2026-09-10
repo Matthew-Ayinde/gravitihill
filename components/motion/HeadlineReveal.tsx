@@ -1,65 +1,84 @@
 "use client";
 
-import { m, useReducedMotion } from "framer-motion";
-import type { ElementType, ReactNode } from "react";
-import { VIEWPORT, lineMaskVariants, staggerVariants } from "@/lib/motion";
+import { useRef, type ElementType, type ReactNode } from "react";
+import { gsap, useGSAP } from "@/lib/gsap";
+import {
+  DUR_LINE,
+  EASE_BRAND,
+  SCROLL_START,
+  STAGGER_LINES,
+  TOGGLE_ONCE,
+} from "@/lib/motion";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 
 /**
- * Line-level mask reveal: each line is clipped by overflow-hidden and its inner
- * span translates up. Lines stagger at 80ms.
+ * Line-level mask reveal: each line is clipped by overflow-hidden and its
+ * inner span translates up. Lines stagger at 80ms.
  *
- * Line-level only — never per-character. Per-character splitting is the
- * clearest tell of a generated build.
+ * Line-level only — never per-character. GSAP ships SplitText and it is
+ * tempting to point it at a headline and let it animate every glyph; that is
+ * the clearest tell of a generated build and the brief bans it. Lines are
+ * passed in as an array by the caller, so the break points are a typographic
+ * decision made by a person, not whatever SplitText happens to measure at a
+ * given viewport width — which also means they cannot re-break mid-animation
+ * on resize.
  *
  * Deliberately NOT used on above-the-fold page titles. Those are the LCP
- * element, and a masked entrance withholds the paint that the whole
- * performance budget depends on. Above the fold the headline is simply there
- * when you arrive; the page composes itself from the second section down.
+ * element, and a masked entrance withholds the paint the performance budget
+ * depends on. Above the fold the headline is simply there when you arrive;
+ * the page composes itself from the second section down.
  */
 export function HeadlineReveal({
   lines,
-  as = "h2",
+  as: Tag = "h2",
+  id,
   className,
   lineClassName,
 }: {
   lines: ReactNode[];
   as?: ElementType;
+  id?: string;
   className?: string;
   lineClassName?: string;
 }) {
   const reduced = useReducedMotion();
-  const Tag = as;
+  const ref = useRef<HTMLElement>(null);
 
-  if (reduced) {
-    return (
-      <Tag className={className}>
-        {lines.map((line, i) => (
-          <span key={i} className={lineClassName ?? "block"}>
-            {line}
-          </span>
-        ))}
-      </Tag>
-    );
-  }
+  useGSAP(
+    () => {
+      if (reduced || !ref.current) return;
 
-  const MotionTag = m[as as keyof typeof m] as typeof m.h2;
+      const inners = gsap.utils.toArray<HTMLElement>("[data-line-inner]", ref.current);
+      if (inners.length === 0) return;
+
+      gsap.fromTo(
+        inners,
+        { yPercent: 110 },
+        {
+          yPercent: 0,
+          duration: DUR_LINE,
+          ease: EASE_BRAND,
+          stagger: STAGGER_LINES,
+          scrollTrigger: {
+            trigger: ref.current,
+            start: SCROLL_START,
+            toggleActions: TOGGLE_ONCE,
+          },
+        },
+      );
+    },
+    { dependencies: [reduced, lines.length], scope: ref },
+  );
 
   return (
-    <MotionTag
-      data-motion
-      className={className}
-      initial="hidden"
-      whileInView="visible"
-      viewport={VIEWPORT}
-      variants={staggerVariants(0.08)}
-    >
+    <Tag ref={ref} id={id} data-motion className={className}>
       {lines.map((line, i) => (
         <span key={i} className={`line-mask ${lineClassName ?? ""}`}>
-          <m.span data-motion className="block" variants={lineMaskVariants}>
+          <span data-line-inner className="block">
             {line}
-          </m.span>
+          </span>
         </span>
       ))}
-    </MotionTag>
+    </Tag>
   );
 }

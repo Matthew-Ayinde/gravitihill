@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { Img } from "@/lib/schemas";

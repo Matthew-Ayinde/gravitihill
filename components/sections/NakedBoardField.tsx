@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { m, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
+import { gsap, useGSAP } from "@/lib/gsap";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { AnimatedGrid } from "@/components/motion/AnimatedGrid";
 import { GrainOverlay } from "@/components/motion/GrainOverlay";
 import { cn } from "@/lib/utils";
@@ -45,12 +46,8 @@ export function NakedBoardField({
 }) {
   const reduced = useReducedMotion();
   const ref = useRef<HTMLElement>(null);
+  const glow = useRef<HTMLDivElement>(null);
   const [enabled, setEnabled] = useState(false);
-
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const springX = useSpring(x, { stiffness: 55, damping: 22, mass: 0.6 });
-  const springY = useSpring(y, { stiffness: 55, damping: 22, mass: 0.6 });
 
   useEffect(() => {
     const query = window.matchMedia("(pointer: fine)");
@@ -62,31 +59,46 @@ export function NakedBoardField({
 
   const live = enabled && !reduced;
 
+  useGSAP(
+    () => {
+      const section = ref.current;
+      const node = glow.current;
+      if (!live || !section || !node) return;
+
+      // Heavier and slower than a magnetic CTA: this is a light source
+      // drifting behind the content, and it should lag the cursor enough to
+      // read as atmosphere rather than as something being dragged.
+      const follow = { duration: 1.1, ease: "power2" } as const;
+      const moveX = gsap.quickTo(node, "left", follow);
+      const moveY = gsap.quickTo(node, "top", follow);
+
+      const onMove = (event: PointerEvent) => {
+        const rect = section.getBoundingClientRect();
+        moveX(event.clientX - rect.left);
+        moveY(event.clientY - rect.top);
+      };
+
+      section.addEventListener("pointermove", onMove);
+      return () => section.removeEventListener("pointermove", onMove);
+    },
+    { dependencies: [live], scope: ref },
+  );
+
   return (
     <section
       ref={ref}
       id={id}
       aria-labelledby={labelledBy}
       className={cn("relative overflow-hidden bg-ridge py-section text-white", className)}
-      onPointerMove={
-        live
-          ? (event) => {
-              const rect = ref.current?.getBoundingClientRect();
-              if (!rect) return;
-              x.set(event.clientX - rect.left);
-              y.set(event.clientY - rect.top);
-            }
-          : undefined
-      }
     >
       <AnimatedGrid className="opacity-[0.06]" duration={24} />
 
       {live && (
-        <m.div
+        <div
+          ref={glow}
           data-motion
           aria-hidden="true"
-          className="pointer-events-none absolute z-0 h-112 w-112 rounded-full bg-accent opacity-[0.08] blur-3xl"
-          style={{ left: springX, top: springY, x: "-50%", y: "-50%" }}
+          className="pointer-events-none absolute z-0 h-112 w-112 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent opacity-[0.08] blur-3xl"
         />
       )}
 

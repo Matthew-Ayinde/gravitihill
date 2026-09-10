@@ -3,9 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { m, useReducedMotion } from "framer-motion";
+import { gsap, useGSAP } from "@/lib/gsap";
+import { EASE_BRAND } from "@/lib/motion";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { Lockup } from "@/components/ui/Lockup";
 import { ButtonLink } from "@/components/ui/Button";
+import { Entrance } from "@/components/motion/Entrance";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { NAV } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -79,8 +82,12 @@ export function SiteHeader({
       )}
       onMouseLeave={() => setServicesOpen(false)}
     >
-      <div className="shell flex h-24 items-center justify-between">
-        <Lockup variant={light ? "white" : "black"} width={124} priority />
+      {/* The header persists across routes, so its entrance plays once per
+          hard load — as the splash doors part on "/", immediately elsewhere. */}
+      <Entrance className="shell flex h-24 items-center justify-between">
+        <div data-load className="flex">
+          <Lockup variant={light ? "white" : "black"} width={124} priority />
+        </div>
 
         {/* ── Desktop navigation ─────────────────────────────────────────── */}
         <nav aria-label="Primary" className="hidden lg:block">
@@ -89,6 +96,7 @@ export function SiteHeader({
               item.children ? (
                 <li
                   key={item.href}
+                  data-load
                   onMouseEnter={() => setServicesOpen(true)}
                 >
                   <Link
@@ -107,7 +115,7 @@ export function SiteHeader({
                   </Link>
                 </li>
               ) : (
-                <li key={item.href}>
+                <li key={item.href} data-load>
                   <Link
                     href={item.href}
                     aria-current={isActive(item.href) ? "page" : undefined}
@@ -123,7 +131,7 @@ export function SiteHeader({
                 </li>
               ),
             )}
-            <li>
+            <li data-load>
               <Magnetic strength={0.3}>
                 <ButtonLink
                   href="/contact"
@@ -140,6 +148,7 @@ export function SiteHeader({
         {/* ── Mobile trigger: two lines, one morph ───────────────────────── */}
         <button
           type="button"
+          data-load
           className="relative h-10 w-10 lg:hidden"
           aria-expanded={mobileOpen}
           aria-controls="mobile-nav"
@@ -161,7 +170,7 @@ export function SiteHeader({
             )}
           />
         </button>
-      </div>
+      </Entrance>
 
       {/* ── Services panel ───────────────────────────────────────────────── */}
       <div
@@ -211,9 +220,9 @@ export function SiteHeader({
           className="fixed inset-0 top-24 z-40 overflow-y-auto bg-canvas lg:hidden"
         >
           <nav aria-label="Primary mobile" className="shell py-10">
-            <ul>
+            <MobileNavList reduced={reduced}>
               {NAV.map((item, i) => (
-                <MobileRow key={item.href} index={i} reduced={!!reduced}>
+                <li key={item.href}>
                   <Link
                     href={item.href}
                     aria-current={isActive(item.href) ? "page" : undefined}
@@ -238,9 +247,9 @@ export function SiteHeader({
                       ))}
                     </ul>
                   )}
-                </MobileRow>
+                </li>
               ))}
-            </ul>
+            </MobileNavList>
             <div className="mt-10 border-t border-rule pt-10">
               <ButtonLink href="/contact" className="w-full">
                 Start a conversation
@@ -276,29 +285,34 @@ function NavLabel({
   );
 }
 
-/** Staggered reveal for the overlay rows. Skipped entirely under reduced motion. */
-function MobileRow({
+/**
+ * Staggered reveal for the overlay rows.
+ *
+ * One tween over the whole list rather than a delay computed per row: the
+ * overlay mounts and unmounts as a unit, so a single stagger driven from the
+ * <ul> is both cheaper and impossible to desynchronise. Skipped entirely
+ * under reduced motion.
+ */
+function MobileNavList({
   children,
-  index,
   reduced,
 }: {
   children: React.ReactNode;
-  index: number;
   reduced: boolean;
 }) {
-  if (reduced) return <li>{children}</li>;
-  return (
-    <m.li
-      data-motion
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        duration: 0.4,
-        delay: index * 0.06,
-        ease: [0.22, 1, 0.36, 1],
-      }}
-    >
-      {children}
-    </m.li>
+  const ref = useRef<HTMLUListElement>(null);
+
+  useGSAP(
+    () => {
+      if (reduced || !ref.current) return;
+      gsap.fromTo(
+        gsap.utils.toArray<HTMLElement>("li", ref.current),
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.4, stagger: 0.06, ease: EASE_BRAND },
+      );
+    },
+    { dependencies: [reduced], scope: ref },
   );
+
+  return <ul ref={ref}>{children}</ul>;
 }

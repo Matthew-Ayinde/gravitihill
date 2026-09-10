@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { AnimatePresence, m, useReducedMotion } from "framer-motion";
+import { useRef, useState } from "react";
+import { gsap, useGSAP } from "@/lib/gsap";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { PreviewRows, type PreviewRowItem } from "@/components/sections/PreviewRows";
 import { Spotlight } from "@/components/motion/Spotlight";
 import { EASE_BRAND } from "@/lib/motion";
@@ -31,6 +32,8 @@ export function InsightsIndex({
 }) {
   const [active, setActive] = useState<string | null>(null);
   const reduced = useReducedMotion();
+  const root = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const visible = active
     ? items.filter((item) => item.category === active)
@@ -38,8 +41,27 @@ export function InsightsIndex({
 
   const list = <PreviewRows items={visible} />;
 
+  // Fade the new set in on a category change.
+  //
+  // Enter-only, not the enter/exit pair AnimatePresence used to run: an exit
+  // animation would mean holding the outgoing rows in the DOM while the
+  // incoming ones are already there, doubling the list for a third of a
+  // second. The `visible` array has already changed by the time this runs, so
+  // the tween is applied to the list that is actually on screen.
+  useGSAP(
+    () => {
+      if (reduced || !listRef.current) return;
+      gsap.fromTo(
+        listRef.current,
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.32, ease: EASE_BRAND },
+      );
+    },
+    { dependencies: [active, reduced], scope: root },
+  );
+
   return (
-    <div className="relative">
+    <div ref={root} className="relative">
       <Spotlight tone="light" size={640} />
 
       <div
@@ -68,21 +90,7 @@ export function InsightsIndex({
       </div>
 
       <div className="mt-2">
-        {reduced ? (
-          list
-        ) : (
-          <AnimatePresence mode="wait" initial={false}>
-            <m.div
-              key={active ?? "all"}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.32, ease: EASE_BRAND }}
-            >
-              {list}
-            </m.div>
-          </AnimatePresence>
-        )}
+        <div ref={listRef}>{list}</div>
       </div>
 
       <p className="sr-only" aria-live="polite">

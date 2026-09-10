@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { m } from "framer-motion";
+import { useRef, useState } from "react";
+import { gsap, useGSAP } from "@/lib/gsap";
 import { HudCorners } from "@/components/motion/HudCorners";
 import { ScanLine } from "@/components/motion/ScanLine";
 import { Spotlight } from "@/components/motion/Spotlight";
@@ -75,9 +75,45 @@ function DesktopStage({ items }: { items: PracticeStageItem[] }) {
   const [active, setActive] = useState(0);
   const total = items.length;
   const activeItem = items[active];
+  const stage = useRef<HTMLDivElement>(null);
+  const progress = useRef<HTMLDivElement>(null);
+
+  // Cover crossfade + progress rule, driven off the hovered row.
+  //
+  // Every cover stays mounted and is tweened by index rather than swapped:
+  // a mount/unmount per hover would re-trigger next/image's decode on each
+  // pass, which is exactly the kind of hidden cost that turns a smooth hover
+  // into a stutter on a slower machine.
+  useGSAP(
+    () => {
+      if (!stage.current) return;
+
+      const covers = gsap.utils.toArray<HTMLElement>("[data-cover]", stage.current);
+      covers.forEach((cover, i) => {
+        gsap.to(cover, {
+          opacity: i === active ? 1 : 0,
+          scale: i === active ? 1 : 1.04,
+          duration: 0.7,
+          ease: EASE_BRAND,
+        });
+      });
+
+      if (progress.current) {
+        gsap.to(progress.current, {
+          scaleX: (active + 1) / total,
+          duration: 0.5,
+          ease: EASE_BRAND,
+        });
+      }
+    },
+    { dependencies: [active, total], scope: stage },
+  );
 
   return (
-    <div className="relative hidden motion-safe:lg:grid lg:grid-cols-12 lg:gap-x-12">
+    <div
+      ref={stage}
+      className="relative hidden motion-safe:lg:grid lg:grid-cols-12 lg:gap-x-12"
+    >
       <div className="relative lg:col-span-7">
         <Spotlight tone="light" size={560} />
         <ul className="border-t border-rule">
@@ -178,16 +214,12 @@ function DesktopStage({ items }: { items: PracticeStageItem[] }) {
             className="relative aspect-4/5 w-full overflow-hidden bg-canvas-alt"
           >
             {items.map((item, i) => (
-              <m.div
+              <div
                 key={item.slug}
+                data-cover
                 data-motion
                 className="absolute inset-0"
-                initial={false}
-                animate={{
-                  opacity: i === active ? 1 : 0,
-                  scale: i === active ? 1 : 1.04,
-                }}
-                transition={{ duration: 0.7, ease: EASE_BRAND }}
+                style={{ opacity: i === 0 ? 1 : 0 }}
               >
                 {item.cover ? (
                   <>
@@ -217,7 +249,7 @@ function DesktopStage({ items }: { items: PracticeStageItem[] }) {
                     </span>
                   </div>
                 )}
-              </m.div>
+              </div>
             ))}
             <HudCorners tone="light" size={28} />
             <ScanLine tone="light" duration={9} className="opacity-60" />
@@ -233,11 +265,11 @@ function DesktopStage({ items }: { items: PracticeStageItem[] }) {
           </div>
 
           <div className="mt-3 h-px w-full bg-rule">
-            <m.div
+            <div
+              ref={progress}
               data-motion
               className="h-px origin-left bg-accent"
-              animate={{ scaleX: (active + 1) / total }}
-              transition={{ duration: 0.5, ease: EASE_BRAND }}
+              style={{ transform: `scaleX(${1 / total})` }}
             />
           </div>
         </div>

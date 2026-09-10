@@ -11,6 +11,7 @@ import { Section, SectionLabel, SectionLabelInline } from "@/components/ui/Secti
 import { EditorialImage } from "@/components/ui/EditorialImage";
 import { ButtonLink } from "@/components/ui/Button";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { Entrance } from "@/components/motion/Entrance";
 import { TypedHeadline } from "@/components/motion/TypedHeadline";
 import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 import { Magnetic } from "@/components/motion/Magnetic";
@@ -76,7 +77,11 @@ export default async function Home() {
           no reflow, no CLS. The full text is in the server HTML for crawlers
           and screen readers; reduced motion and no-JS resolve to plain text
           through CSS alone. See TypedHeadline for the LCP trade-off. */}
-      <section
+      {/* The headline types itself on; <Entrance> brings in the facts and
+          the purpose line around it, both released as the splash doors part. */}
+      <Entrance
+        as="section"
+        delay={0.35}
         className={cn(
           "perspective-scene relative overflow-hidden pt-36 pb-16 lg:flex lg:min-h-screen lg:flex-col lg:justify-between lg:pt-48 lg:pb-20 2xl:pt-56 2xl:pb-24",
           hasHeroMedia && "text-white",
@@ -126,6 +131,7 @@ export default async function Home() {
             {about.facts.map((fact) => (
               <div
                 key={fact.label}
+                data-load
                 className={cn(
                   "border-t py-2.5",
                   hasHeroMedia ? "border-rule-dark" : "border-rule",
@@ -147,6 +153,7 @@ export default async function Home() {
 
         <div className="shell mt-16 lg:mt-0">
           <div
+            data-load
             className={cn(
               "grid-12 gap-y-8 border-t pt-9",
               hasHeroMedia ? "border-rule-dark" : "border-rule",
@@ -171,7 +178,7 @@ export default async function Home() {
           </div>
         </div>
 
-      </section>
+      </Entrance>
 
       {/* ══ Ambient ribbon — the practices and sectors, restated as texture.
           Decorative and aria-hidden: both lists are fully navigable in the

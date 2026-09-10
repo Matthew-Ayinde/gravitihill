@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
  * without a single headshot, which is exactly what the brief requires.
  */
 
-function initials(name: string): string {
+export function initials(name: string): string {
   return name
     .replace(/^Dr\.?\s+/i, "")
     .split(/[\s-]+/)

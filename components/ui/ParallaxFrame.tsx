@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { m, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { useRef, type ReactNode } from "react";
+import { gsap, useGSAP } from "@/lib/gsap";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 
 /**
  * The image-parallax layer used inside every <EditorialImage>.
@@ -10,42 +11,49 @@ import { m, useReducedMotion, useScroll, useTransform } from "framer-motion";
  * on every route — service covers, sector visuals, insight art, leadership
  * frames — without each page having to opt in individually.
  *
- * The image is rendered slightly oversized and drifts within its frame as
- * the frame crosses the viewport; the fixed overscan means the drift never
- * exposes an edge. The overlay tint in EditorialImage sits *outside* this
- * component, as a sibling, so it stays put while the photograph moves
- * underneath it.
+ * The image is rendered slightly oversized (scale 1.15) and drifts within its
+ * frame as the frame crosses the viewport; the fixed overscan means the drift
+ * never exposes an edge.
  *
- * `useScroll`'s progress depends on the element's measured position, which
- * doesn't exist during SSR or the first client paint. The DOM shape here is
- * identical whether or not the transform is live — only the `style` value
- * changes, gated on `mounted` — so the pre-mount client render matches the
- * server render exactly and React never has to reconcile a hydration
- * mismatch. The transform simply switches on a frame after mount.
+ * The overlay tint in EditorialImage sits *outside* this component, as a
+ * sibling, so it stays put while the photograph moves underneath it.
+ *
+ * The mounted-flag hydration dance the framer-motion version needed is gone:
+ * server and client render identical markup, and GSAP only ever touches the
+ * element after mount, inside useGSAP.
  */
 export function ParallaxFrame({ children }: { children: ReactNode }) {
   const reduced = useReducedMotion();
-  const [mounted, setMounted] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"],
-  });
-  const y = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
+  const inner = useRef<HTMLDivElement>(null);
 
-  useEffect(() => setMounted(true), []);
+  useGSAP(
+    () => {
+      if (reduced || !ref.current || !inner.current) return;
 
-  const live = mounted && !reduced;
+      gsap.fromTo(
+        inner.current,
+        { yPercent: -8 },
+        {
+          yPercent: 8,
+          ease: "none",
+          scrollTrigger: {
+            trigger: ref.current,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true,
+          },
+        },
+      );
+    },
+    { dependencies: [reduced], scope: ref },
+  );
 
   return (
     <div ref={ref} className="absolute inset-0 overflow-hidden">
-      <m.div
-        data-motion
-        className="absolute inset-0 scale-[1.15]"
-        style={live ? { y } : undefined}
-      >
+      <div ref={inner} data-motion className="absolute inset-0 scale-[1.15]">
         {children}
-      </m.div>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { m, useReducedMotion } from "framer-motion";
+import { useRef, useState } from "react";
+import { gsap, useGSAP } from "@/lib/gsap";
+import { EASE_BRAND } from "@/lib/motion";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { cn, indexNumber } from "@/lib/utils";
 
 /**
@@ -36,9 +38,39 @@ function Row({
   reduced: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
+  const ref = useRef<HTMLLIElement>(null);
+  const sweep = useRef<HTMLSpanElement>(null);
+
+  // The sweep parks off-canvas on mount and animates only on a real hover.
+  // The resting offset is set by GSAP rather than a Tailwind translate class
+  // on purpose: Tailwind v4 writes the standalone `translate` property while
+  // GSAP writes `transform`, so a class-set offset would stack on top of the
+  // tween's instead of being replaced by it — the band would start a full
+  // extra width to the left and never line up.
+  const first = useRef(true);
+
+  useGSAP(
+    () => {
+      if (reduced || !sweep.current) return;
+
+      if (first.current) {
+        first.current = false;
+        gsap.set(sweep.current, { xPercent: -140 });
+        return;
+      }
+
+      gsap.to(sweep.current, {
+        xPercent: hovered ? 620 : -140,
+        duration: 0.85,
+        ease: EASE_BRAND,
+      });
+    },
+    { dependencies: [hovered, reduced], scope: ref },
+  );
 
   return (
     <li
+      ref={ref}
       className="group relative flex gap-6 overflow-hidden border-b border-rule py-7"
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}
@@ -46,13 +78,11 @@ function Row({
       onBlur={() => setHovered(false)}
     >
       {!reduced && (
-        <m.span
+        <span
+          ref={sweep}
           data-motion
           aria-hidden="true"
           className="pointer-events-none absolute inset-y-0 left-0 w-28 bg-green/[0.05]"
-          initial={{ x: "-140%" }}
-          animate={{ x: hovered ? "620%" : "-140%" }}
-          transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
         />
       )}
 

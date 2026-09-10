@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useInView, useReducedMotion } from "framer-motion";
+import { useInView } from "@/lib/use-in-view";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { cn } from "@/lib/utils";
 
 /**
@@ -33,7 +34,14 @@ export function CountUp({
   const [display, setDisplay] = useState(reduced ? value : 0);
 
   useEffect(() => {
-    if (reduced || !inView) return;
+    // The reduced-motion hook resolves after first paint, so this has to
+    // settle the final number rather than just decline to animate — otherwise
+    // a reduced-motion reader is left looking at a permanent zero.
+    if (reduced) {
+      setDisplay(value);
+      return;
+    }
+    if (!inView) return;
 
     let raf = 0;
     let start = 0;

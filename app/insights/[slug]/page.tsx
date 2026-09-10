@@ -6,9 +6,8 @@ import { ShareRail } from "@/components/sections/ShareRail";
 import { CtaPanel } from "@/components/sections/CtaPanel";
 import { Section } from "@/components/ui/Section";
 import { EditorialImage } from "@/components/ui/EditorialImage";
+import { Entrance } from "@/components/motion/Entrance";
 import { HudCorners } from "@/components/motion/HudCorners";
-import { Reveal } from "@/components/motion/Reveal";
-import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getInsights, getInsight, getRelatedInsights } from "@/content/insights";
 import { articleJsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
@@ -62,10 +61,10 @@ export default async function InsightPage({
 
       <article>
         {/* ── Article head ────────────────────────────────────────────── */}
-        <header className="pt-36 pb-14 lg:pt-44 2xl:pt-56">
+        <Entrance as="header" delay={0.15} className="pt-36 pb-14 lg:pt-44 2xl:pt-56">
           <div className="shell grid-12 gap-y-8">
             <div className="col-span-12 lg:col-span-9">
-              <p className="type-eyebrow text-green">
+              <p data-load className="type-eyebrow text-green">
                 <Link href="/insights" className="link-draw">
                   Insights
                 </Link>
@@ -75,20 +74,18 @@ export default async function InsightPage({
                 <span className="text-ink-muted">{insight.category}</span>
               </p>
 
-              <h1 className="type-display mt-6 text-h1">{insight.title}</h1>
+              <h1 data-load="mask" className="type-display mt-6 text-h1">
+                {insight.title}
+              </h1>
 
-              <Reveal as="p" className="measure mt-8 text-body-lg text-ink-muted">
+              <p data-load className="measure mt-8 text-body-lg text-ink-muted">
                 {insight.excerpt}
-              </Reveal>
+              </p>
             </div>
 
-            <RevealGroup
-              as="dl"
-              className="col-span-12 self-end lg:col-span-3 lg:col-start-10"
-              stagger={0.06}
-            >
-              <RevealItem
-                as="div"
+            <dl className="col-span-12 self-end lg:col-span-3 lg:col-start-10">
+              <div
+                data-load
                 className="flex items-baseline justify-between gap-6 border-t border-rule py-3"
               >
                 <dt className="type-eyebrow text-ink-muted">Published</dt>
@@ -97,26 +94,26 @@ export default async function InsightPage({
                     {editorialDate(insight.publishedAt)}
                   </time>
                 </dd>
-              </RevealItem>
-              <RevealItem
-                as="div"
+              </div>
+              <div
+                data-load
                 className="flex items-baseline justify-between gap-6 border-t border-rule py-3"
               >
                 <dt className="type-eyebrow text-ink-muted">Reading</dt>
                 <dd className="type-subhead text-body-lg">
                   {insight.readingTime} min
                 </dd>
-              </RevealItem>
-              <RevealItem
-                as="div"
+              </div>
+              <div
+                data-load
                 className="flex items-baseline justify-between gap-6 border-t border-rule py-3"
               >
                 <dt className="type-eyebrow text-ink-muted">Author</dt>
                 <dd className="type-subhead text-body-lg">{insight.author}</dd>
-              </RevealItem>
-            </RevealGroup>
+              </div>
+            </dl>
           </div>
-        </header>
+        </Entrance>
 
         <div className="shell relative">
           <HudCorners tone="light" size={28} className="z-10" />

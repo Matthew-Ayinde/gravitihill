@@ -61,6 +61,27 @@
      text threshold, so it never sits as text on a light surface. On --ridge
      it measures 6.05:1 and passes normal text. --gold-ink #8A6317 exists
      specifically for light surfaces: 5.3:1 on --canvas, safe at any size. */
+  /* A softened black, for extruded display type only.
+     --ink #0B0B0B is right for body copy, where a letterform is a thin
+     stroke on a bright ground. At display scale with sixteen depth layers
+     behind it, that same black becomes a heavy solid mass and the word gets
+     harder to read, not more emphatic. This sits a step up — still
+     unmistakably black at a glance, but with tonal room for the extrusion's
+     side walls and the face's key light to be visible against it.
+     Measured 14.6:1 on --canvas, so it clears AAA at any size. Never used
+     for body text: --ink remains the reading black. */
+  --ink-display: #262926;
+
+  /* The /about studio's walls.
+     The reference frame's warmth is a lighting choice, not a rebrand: a
+     photographic cyclorama lit with tungsten-leaning light reads cream, not
+     the cool paper-white of --canvas. These two are scoped to that room —
+     one for the open studio, one a step deeper for the panel that follows —
+     so /about can be warm without shifting the colour of the whole site.
+     --canvas remains the page ground everywhere else. */
+  --studio-warm: #f7f5f1;
+  --studio-warm-deep: #efece6;
+
   --blue: #1b4f8c;
   --blue-light: #4f86c6;
   --gold: #c89b3c;
@@ -106,6 +127,9 @@
   --color-canvas-alt: var(--canvas-alt);
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
+  --color-ink-display: var(--ink-display);
+  --color-studio-warm: var(--studio-warm);
+  --color-studio-warm-deep: var(--studio-warm-deep);
   --color-green: var(--green);
   --color-ridge: var(--ridge);
   --color-accent: var(--accent);
@@ -124,6 +148,22 @@
   --font-body: var(--font-body);
 
   /* Fluid type scale. Components reference these, never raw clamp() values. */
+  /* One tier above hero, for the extruded statements on /about. Only ever a
+     handful of words — it is a sculpture, not a paragraph. */
+  /* Sized so the longest hand-broken line on /about ("Founded 2022,") holds
+     on one line inside a 7-column measure. The line breaks in an extruded
+     statement are a composition, not a consequence — if the type outgrows
+     its column and re-wraps, a three-line statement silently becomes four
+     and the shape of the argument changes. */
+  --text-display-xl: clamp(3.25rem, 8.4vw, 7.75rem);
+  /* Looser than the tier below it, which is backwards for a display size and
+     deliberate: extruded lines need room for their own depth to fall into,
+     or line one's side wall lands on line two's face. */
+  --text-display-xl--line-height: 1;
+  /* Index numerals set as objects inside an image frame (/about leadership).
+     Never words — only ever two digits. */
+  --text-numeral: clamp(5.5rem, 13vw, 12.5rem);
+  --text-numeral--line-height: 0.8;
   --text-hero: clamp(3.25rem, 7.5vw, 7rem);
   --text-hero--line-height: 0.94;
   --text-h1: clamp(2.75rem, 5.5vw, 4.75rem);
@@ -333,6 +373,12 @@
 
   html {
     -webkit-text-size-adjust: 100%;
+  }
+
+  /* Native smooth scrolling only where Lenis is not running. With Lenis
+     active the browser would re-ease every position Lenis writes each frame,
+     which turns inertia scrolling laggy and stuttery. */
+  html:not(.lenis) {
     scroll-behavior: smooth;
   }
 
@@ -441,6 +487,94 @@
 }
 
 /* ============================================================================
+   EXTRUDED TYPE — /about's studio
+   ----------------------------------------------------------------------------
+   Depth is built from stacked copies of a line, each pushed further back in Z
+   and stepped darker. The heading itself stays one real <h1>: the copies are
+   created on the client (see <ExtrudedHeading>), so the served HTML carries
+   the sentence exactly once and a crawler never meets sixteen duplicates.
+
+   --extrude-depth is registered rather than declared so it can be animated.
+   An unregistered custom property is a string to the animation system and
+   would jump from 0 to its final value in one frame; @property gives it a
+   type, which is what makes the extrusion able to *grow*. It is declared
+   unitless and multiplied by 1px below so GSAP tweens a plain number, the
+   most reliable thing to interpolate across browsers.
+   ========================================================================== */
+
+@property --extrude-depth {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+/* Each layer steps away from the light *and* back in Z.
+
+   The X/Y offset is the load-bearing part. translateZ alone looks like
+   nothing here: under a near head-on camera, pushing a layer back in Z only
+   scales it very slightly toward the vanishing point, so sixteen layers
+   produce a 2% concentric shrink rather than a solid side wall. Real
+   extrusion reads because it runs *away from the light source* — up-left key
+   light, so the body of the letter falls down-right.
+
+   The Z term still earns its place: it is what makes the extrusion respond
+   correctly when the block rotates under the studio's pointer lean and
+   scroll, instead of sliding around as a flat drop shadow would.
+
+   Offsets are in em so the extrusion stays proportional to the type at every
+   clamp() step — a fixed px depth that looks right at 152px looks like a
+   smudge at 56px. */
+.extrude-layer {
+  transform: translate3d(
+    calc(var(--extrude-depth) * var(--layer) * 0.0034em),
+    calc(var(--extrude-depth) * var(--layer) * 0.0052em),
+    calc(var(--extrude-depth) * var(--layer) * -0.022em)
+  );
+}
+
+/* The face material.
+
+   A solid fill makes a letterform read as a sticker; a real object lit from
+   above is brightest where it faces the key light and falls away toward its
+   base. This is a short vertical falloff across the face only — the top
+   catches the light, the middle sits at the true brand colour, and the last
+   stretch turns very slightly toward the tone's own shade.
+
+   This is the one gradient-on-type on the site, and it is deliberate: it is
+   shading a modelled surface, not tinting a headline for decoration, which
+   is what the ban was written against. It stays subtle enough that the
+   letter still reads as --green or --ink, never as a two-colour word.
+
+   Forced-colors mode throws the whole thing away and returns a solid fill —
+   background-clip: text with a transparent colour is invisible to a user
+   running a high-contrast theme, which would silently delete the page's
+   headline for exactly the readers least able to afford it. */
+.extrude-face {
+  /* 145deg runs upper-left → lower-right: the same key light the extrusion
+     steps away from. A straight vertical
+     falloff would light the face from a different direction than the rest of
+     the object is lit from, which the eye reads as wrong long before it can
+     say why. */
+  background-image: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--face-color), white var(--face-sheen)) 0%,
+    var(--face-color) 52%,
+    color-mix(in oklab, var(--face-color), var(--face-shade) 16%) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@media (forced-colors: active) {
+  .extrude-face {
+    background-image: none;
+    color: var(--face-color);
+    forced-color-adjust: auto;
+  }
+}
+
+/* ============================================================================
    SECONDARY-ROUTE AMBIENT SYSTEM LAYER
    ----------------------------------------------------------------------------
    Added for About / Services / Sectors / Insights / Contact — the home route
@@ -484,6 +618,399 @@
 }
 
 /* ============================================================================
+   LEADERSHIP INDEX — /about §04
+   ----------------------------------------------------------------------------
+   All of the section's hover work is here rather than in JS: state lives in
+   :hover, :focus-within and one data attribute that <LeaderRow> sets for
+   touch devices and open profiles. Hover rules are gated on (hover: hover)
+   so a tap on a phone never leaves a portrait stuck half-open.
+   ========================================================================== */
+
+/* ── The rows ──────────────────────────────────────────────────────────── */
+
+/* The portrait opens from the edge nearest the text, as if the record is
+   drawing it out: a left-hand frame opens from its right edge, and vice
+   versa. */
+.lead-portrait {
+  transition: clip-path 1000ms var(--ease-out-expo);
+}
+.lead-row[data-side="left"] .lead-portrait {
+  clip-path: inset(0 0 0 100%);
+}
+.lead-row[data-side="right"] .lead-portrait {
+  clip-path: inset(0 100% 0 0);
+}
+
+.lead-portrait-img {
+  transform: scale(1.18);
+  transition: transform 1600ms var(--ease-out-expo);
+}
+.lead-portrait-img[data-photo] {
+  filter: saturate(0.75);
+}
+
+/* At rest the numeral is a line drawing; once the portrait is in, it is
+   solid white laid over it. */
+.lead-numeral {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--green);
+  transition:
+    color 600ms var(--ease-out-expo),
+    -webkit-text-stroke-color 600ms var(--ease-out-expo);
+}
+
+.lead-edge {
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 1000ms var(--ease-out-expo);
+}
+
+.lead-name {
+  transition: color 400ms var(--ease-out-expo);
+}
+
+.lead-row[data-revealed="true"] .lead-portrait,
+.lead-row:focus-within .lead-portrait {
+  clip-path: inset(0);
+}
+.lead-row[data-revealed="true"] .lead-portrait-img,
+.lead-row:focus-within .lead-portrait-img {
+  transform: scale(1);
+}
+.lead-row[data-revealed="true"] .lead-numeral,
+.lead-row:focus-within .lead-numeral {
+  color: rgb(255 255 255 / 0.82);
+  -webkit-text-stroke-color: transparent;
+}
+.lead-row[data-revealed="true"] .lead-edge,
+.lead-row:focus-within .lead-edge {
+  transform: scaleY(1);
+}
+.lead-row[data-revealed="true"] .lead-name,
+.lead-row:focus-within .lead-name {
+  color: var(--green);
+}
+
+@media (hover: hover) {
+  .lead-row:hover .lead-portrait {
+    clip-path: inset(0);
+  }
+  .lead-row:hover .lead-portrait-img {
+    transform: scale(1);
+  }
+  .lead-row:hover .lead-numeral {
+    color: rgb(255 255 255 / 0.82);
+    -webkit-text-stroke-color: transparent;
+  }
+  .lead-row:hover .lead-edge {
+    transform: scaleY(1);
+  }
+  .lead-row:hover .lead-name {
+    color: var(--green);
+  }
+}
+
+/* ── The profile disclosure ────────────────────────────────────────────── */
+
+.lead-details {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 600ms var(--ease-out-expo);
+}
+.lead-details[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+
+.lead-arrow {
+  transition: transform 300ms var(--ease-out-expo);
+}
+[aria-expanded="true"] .lead-arrow {
+  transform: rotate(90deg);
+}
+
+/* Reduced motion: every portrait is already in, numerals already solid. */
+@media (prefers-reduced-motion: reduce) {
+  .lead-row .lead-portrait {
+    clip-path: none;
+  }
+  .lead-portrait-img {
+    transform: none;
+  }
+  .lead-numeral {
+    color: rgb(255 255 255 / 0.82);
+    -webkit-text-stroke-color: transparent;
+  }
+  .lead-edge {
+    transform: none;
+  }
+}
+
+/* ============================================================================
+   SECTORS HERO — /sectors
+   ----------------------------------------------------------------------------
+   Pairs with <SectorsHero> (markup) and <SectorsHeroScene> (load, scroll and
+   pointer motion). The shutters' hover expansion lives here as CSS state, not
+   JS: it works before hydration and costs nothing per frame. Expansion is
+   gated on (hover: hover) so a tap on a touch screen never leaves a panel
+   stuck half-open; keyboard focus opens a panel at any width.
+   ========================================================================== */
+
+/* ── The drawn grid ────────────────────────────────────────────────────── */
+
+/* A mask, not a colour gradient: the lines are fully drawn behind the
+   headline and fall away before they reach the photographs. */
+.hero-grid {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 40%, transparent 85%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 40%, transparent 85%);
+}
+
+.hero-col {
+  transition: background-color 600ms var(--ease-out-expo);
+}
+
+.hero-col::before,
+.hero-col:last-child::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background-color: rgb(11 11 11 / 0.06);
+  transform-origin: top;
+  animation: hero-grid-draw 1400ms var(--ease-3d) both;
+  animation-delay: calc(var(--i) * 45ms);
+  transition: background-color 600ms var(--ease-out-expo);
+}
+
+.hero-col:last-child::after {
+  left: auto;
+  right: 0;
+}
+
+.hero-col[data-active] {
+  background-color: rgb(32 102 22 / 0.035);
+}
+.hero-col[data-active]::before,
+.hero-col[data-active]::after,
+.hero-col[data-active] + .hero-col::before {
+  background-color: rgb(32 102 22 / 0.24);
+}
+
+@keyframes hero-grid-draw {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.hero-rule {
+  transform-origin: left;
+  animation: hero-rule-draw 1200ms var(--ease-3d) 450ms both;
+}
+
+@keyframes hero-rule-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* A short segment travelling down a hairline track. */
+.scroll-cue {
+  animation: scroll-cue 2400ms var(--ease-out-expo) infinite;
+}
+
+@keyframes scroll-cue {
+  0% {
+    transform: translateY(-100%);
+  }
+  60%,
+  100% {
+    transform: translateY(200%);
+  }
+}
+
+/* ── The shutters ──────────────────────────────────────────────────────── */
+
+/* The phone rail scrolls by swipe; its scrollbar is noise under photographs. */
+.shutters {
+  scrollbar-width: none;
+}
+.shutters::-webkit-scrollbar {
+  display: none;
+}
+
+.shutter-img {
+  transform: scale(1.06);
+  filter: saturate(0.8);
+  transition:
+    transform 1400ms var(--ease-3d),
+    filter 900ms var(--ease-out-expo);
+}
+
+.shutter-dim {
+  opacity: 0;
+  transition: opacity 700ms var(--ease-out-expo);
+}
+
+.shutter-rule {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 800ms var(--ease-3d);
+}
+
+.shutter-arrow {
+  transition:
+    transform 500ms var(--ease-3d),
+    background-color 300ms var(--ease-out-expo),
+    border-color 300ms var(--ease-out-expo),
+    color 300ms var(--ease-out-expo);
+}
+
+/* Open by default — phones and touch tablets always show the proposition. */
+.shutter-detail {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+.shutter-detail > div {
+  overflow: hidden;
+}
+
+.shutter:focus-within .shutter-img {
+  transform: scale(1);
+  filter: saturate(1);
+}
+.shutter:focus-within .shutter-rule {
+  transform: scaleX(1);
+}
+.shutter:focus-within .shutter-arrow {
+  transform: rotate(-45deg);
+  background-color: var(--white);
+  border-color: var(--white);
+  color: var(--green);
+}
+
+@media (hover: hover) {
+  .shutter:hover .shutter-img {
+    transform: scale(1);
+    filter: saturate(1);
+  }
+  .shutter:hover .shutter-rule {
+    transform: scaleX(1);
+  }
+  .shutter:hover .shutter-arrow {
+    transform: rotate(-45deg);
+    background-color: var(--white);
+    border-color: var(--white);
+    color: var(--green);
+  }
+}
+
+@media (min-width: 1024px) {
+  .shutter {
+    flex: 1 1 0%;
+    transition: flex-grow 900ms var(--ease-3d);
+  }
+
+  .shutters:focus-within .shutter {
+    flex-grow: 0.85;
+  }
+  .shutters .shutter:focus-within {
+    flex-grow: 1.6;
+  }
+}
+
+@media (min-width: 1024px) and (hover: hover) {
+  .shutters:hover .shutter {
+    flex-grow: 0.85;
+  }
+  .shutters .shutter:hover {
+    flex-grow: 1.6;
+  }
+  .shutters:hover .shutter:not(:hover) .shutter-dim {
+    opacity: 0.45;
+  }
+
+  /* Closed at rest; opens once its panel has started to widen. The inner
+     block has a fixed width so the proposition never re-wraps while the
+     panel's width is still animating. */
+  .shutter-detail {
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition:
+      grid-template-rows 700ms var(--ease-3d),
+      opacity 400ms var(--ease-out-expo);
+  }
+  .shutter-detail-inner {
+    width: min(30rem, 36vw);
+  }
+  .shutter:hover .shutter-detail,
+  .shutter:focus-within .shutter-detail {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    transition-delay: 150ms;
+  }
+}
+
+/* ============================================================================
+   SMOOTH SCROLL + ON-LOAD ENTRANCE
+   ========================================================================== */
+
+/* Lenis's own stylesheet (lenis/dist/lenis.css), inlined. Its
+   `html.lenis { height: auto }` rule is left out on purpose: <html> here is
+   h-full so the body's min-h-full keeps short pages' footers at the bottom,
+   and the window, not the body, is already the scroller. */
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+.lenis [data-lenis-prevent],
+.lenis [data-lenis-prevent-wheel],
+.lenis [data-lenis-prevent-touch],
+.lenis [data-lenis-prevent-vertical],
+.lenis [data-lenis-prevent-horizontal] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+.lenis.lenis-autoToggle {
+  transition-property: overflow;
+  transition-duration: 1ms;
+  transition-behavior: allow-discrete;
+}
+
+/* Pre-hydration hold for <Entrance>: set by the root layout's inline script,
+   removed by MotionRoot once every entrance has taken over. If JavaScript
+   never arrives, the failsafe reveals everything after 4s. */
+html[data-motion-boot] [data-load] {
+  opacity: 0;
+  animation: load-failsafe 0s linear 4s forwards;
+}
+
+@keyframes load-failsafe {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Same hold for the /sectors shutters, which open by clip rather than fade. */
+html[data-motion-boot] [data-shutter] {
+  clip-path: inset(100% 0 0 0);
+  animation: shutter-failsafe 0s linear 4s forwards;
+}
+
+@keyframes shutter-failsafe {
+  to {
+    clip-path: inset(0);
+  }
+}
+
+/* ============================================================================
    REDUCED MOTION: NON-NEGOTIABLE
    All transforms and reveals off. Content renders in its final state.
    ========================================================================== */
@@ -514,10 +1041,24 @@
      A stylesheet !important beats a non-important inline style, so this forces
      the final state regardless of what the JS decided. Verified with Chrome
      under emulated prefers-reduced-motion across every route. */
-  [data-motion] {
+  [data-motion],
+  [data-load],
+  [data-shutter] {
     opacity: 1 !important;
     transform: none !important;
     clip-path: none !important;
+  }
+
+  /* /sectors hero: grid and rule drawn, cue parked, no hover transforms. */
+  .hero-col::before,
+  .hero-col::after,
+  .hero-rule,
+  .scroll-cue {
+    animation: none !important;
+  }
+  .shutters .shutter-img,
+  .shutters .shutter-arrow {
+    transform: none !important;
   }
 
   /* The typed headline resolves to plain text: every character visible, no

@@ -1,9 +1,10 @@
 "use client";
 
-import { useId, useState } from "react";
-import { m, useReducedMotion } from "framer-motion";
+import { useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { gsap, useGSAP } from "@/lib/gsap";
 import { EASE_BRAND } from "@/lib/motion";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 import {
   BUDGET_RANGES,
   ENQUIRY_TYPES,
@@ -113,47 +114,7 @@ export function ContactForm() {
   }
 
   if (status.state === "success") {
-    const Panel = reduced ? "div" : m.div;
-    const entrance = reduced
-      ? {}
-      : {
-          initial: { opacity: 0, y: 14 },
-          animate: { opacity: 1, y: 0 },
-          transition: { duration: 0.5, ease: EASE_BRAND },
-        };
-
-    return (
-      <Panel
-        className="border-t border-rule pt-10"
-        role="status"
-        aria-live="polite"
-        {...entrance}
-      >
-        <p className="type-eyebrow flex items-center gap-2.5 text-green">
-          <span
-            aria-hidden="true"
-            className="h-1.5 w-1.5 shrink-0 animate-pulse-dot rounded-full bg-current"
-          />
-          Received
-        </p>
-        <p className="type-display mt-5 max-w-[18ch] text-h2">
-          Your brief is with us.
-        </p>
-        <p className="measure mt-6 text-body-lg text-ink-muted">
-          An acknowledgement is on its way to your inbox. A practice lead will
-          reply directly — usually within one working day. If it is urgent,
-          WhatsApp is faster.
-        </p>
-        <Button
-          type="button"
-          variant="secondary"
-          className="mt-8"
-          onClick={() => setStatus({ state: "idle" })}
-        >
-          Send another
-        </Button>
-      </Panel>
-    );
+    return <SuccessPanel reduced={reduced} onReset={() => setStatus({ state: "idle" })} />;
   }
 
   const pending = status.state === "pending";
@@ -277,6 +238,60 @@ export function ContactForm() {
         </p>
       </div>
     </form>
+  );
+}
+
+/**
+ * The post-submit state. Its own component so it can own a ref and a useGSAP
+ * of its own — the form returns early on success, and a hook cannot live
+ * behind an early return.
+ *
+ * role="status" + aria-live means a screen reader announces this on arrival;
+ * the entrance animation is decoration on top of an announcement that
+ * happens either way.
+ */
+function SuccessPanel({
+  reduced,
+  onReset,
+}: {
+  reduced: boolean;
+  onReset: () => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      if (reduced || !ref.current) return;
+      gsap.fromTo(
+        ref.current,
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.5, ease: EASE_BRAND },
+      );
+    },
+    { dependencies: [reduced], scope: ref },
+  );
+
+  return (
+    <div ref={ref} className="border-t border-rule pt-10" role="status" aria-live="polite">
+      <p className="type-eyebrow flex items-center gap-2.5 text-green">
+        <span
+          aria-hidden="true"
+          className="h-1.5 w-1.5 shrink-0 animate-pulse-dot rounded-full bg-current"
+        />
+        Received
+      </p>
+      <p className="type-display mt-5 max-w-[18ch] text-h2">
+        Your brief is with us.
+      </p>
+      <p className="measure mt-6 text-body-lg text-ink-muted">
+        An acknowledgement is on its way to your inbox. A practice lead will
+        reply directly — usually within one working day. If it is urgent,
+        WhatsApp is faster.
+      </p>
+      <Button type="button" variant="secondary" className="mt-8" onClick={onReset}>
+        Send another
+      </Button>
+    </div>
   );
 }
 

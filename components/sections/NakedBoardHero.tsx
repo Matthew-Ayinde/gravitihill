@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Entrance } from "@/components/motion/Entrance";
 import { Marquee } from "@/components/motion/Marquee";
 import { NakedBoardField } from "@/components/sections/NakedBoardField";
 import { cn } from "@/lib/utils";
@@ -10,9 +11,10 @@ import { cn } from "@/lib/utils";
  * (grid, grain, cursor glow — see NakedBoardField) and a status pulse the
  * shared hero has no concept of.
  *
- * The h1 itself stays plain, static text — no entrance, no mask reveal.
- * It's this page's LCP element, same rule the shared PageHero and every
- * headline above the fold on the site already follows.
+ * Composes itself on load through <Entrance>, in the same order as the
+ * shared PageHero: eyebrow, the h1 wiping up, index, lede, then the ticker.
+ * The Entrance wrapper is `display: contents`, so NakedBoardField lays its
+ * children out exactly as before.
  */
 export function NakedBoardHero({
   eyebrow,
@@ -29,33 +31,39 @@ export function NakedBoardHero({
 }) {
   return (
     <NakedBoardField grain className="pt-36 pb-0 lg:pt-44 2xl:pt-56">
-      <div className="shell grid-12 gap-y-10 pb-16 lg:pb-20 2xl:pb-24">
-        <div className="col-span-12 lg:col-span-8">
-          <p className="type-eyebrow flex items-center gap-3 text-accent">
-            <StatusPulse />
-            {eyebrow}
-          </p>
-          <h1 className="type-display mt-6 text-h1 text-white">{title}</h1>
+      <Entrance className="contents" delay={0.15}>
+        <div className="shell grid-12 gap-y-10 pb-16 lg:pb-20 2xl:pb-24">
+          <div className="col-span-12 lg:col-span-8">
+            <p data-load className="type-eyebrow flex items-center gap-3 text-accent">
+              <StatusPulse />
+              {eyebrow}
+            </p>
+            <h1 data-load="mask" className="type-display mt-6 text-h1 text-white">
+              {title}
+            </h1>
+          </div>
+
+          <dl data-load className="col-span-12 self-end lg:col-span-3 lg:col-start-10">
+            {index.map((item) => (
+              <IndexRow key={item.label} label={item.label} value={item.value} />
+            ))}
+          </dl>
+
+          <div className="col-span-12 lg:col-span-7">
+            <p data-load className="measure text-body-lg text-white/75">
+              {lede}
+            </p>
+          </div>
         </div>
 
-        <dl className="col-span-12 self-end lg:col-span-3 lg:col-start-10">
-          {index.map((item) => (
-            <IndexRow key={item.label} label={item.label} value={item.value} />
-          ))}
-        </dl>
-
-        <div className="col-span-12 lg:col-span-7">
-          <p className="measure text-body-lg text-white/75">{lede}</p>
+        <div data-load className="shell relative border-t border-rule-dark py-6">
+          <Marquee
+            items={ticker}
+            itemClassName="type-eyebrow text-white/35"
+            speed={30}
+          />
         </div>
-      </div>
-
-      <div className="shell relative border-t border-rule-dark py-6">
-        <Marquee
-          items={ticker}
-          itemClassName="type-eyebrow text-white/35"
-          speed={30}
-        />
-      </div>
+      </Entrance>
     </NakedBoardField>
   );
 }

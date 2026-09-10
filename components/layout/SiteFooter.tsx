@@ -139,7 +139,7 @@ export async function SiteFooter() {
         />
       </div>
 
-      <div className="border-t border-rule-dark">
+      <div className="">
         <div className="shell flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="type-eyebrow text-white/45">
             © {year} {SITE.legalName}. Lagos, Nigeria.

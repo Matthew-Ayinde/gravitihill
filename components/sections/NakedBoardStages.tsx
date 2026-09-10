@@ -1,14 +1,9 @@
 "use client";
 
 import { useRef } from "react";
-import {
-  m,
-  useInView,
-  useReducedMotion,
-  useScroll,
-  useSpring,
-  useTransform,
-} from "framer-motion";
+import { gsap, useGSAP } from "@/lib/gsap";
+import { useInView } from "@/lib/use-in-view";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { Tilt3D } from "@/components/motion/Tilt3D";
 import { Icon } from "@/components/icons";
 import type { NakedBoard } from "@/lib/schemas";
@@ -30,20 +25,62 @@ import { cn, indexNumber } from "@/lib/utils";
  */
 export function NakedBoardStages({ stages }: { stages: NakedBoard["stages"] }) {
   const reduced = useReducedMotion();
+  const root = useRef<HTMLOListElement>(null);
   const railRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: railRef,
-    offset: ["start center", "end center"],
-  });
-  const fill = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 26,
-    restDelta: 0.001,
-  });
-  const dotTop = useTransform(fill, (v) => `${Math.min(Math.max(v, 0), 1) * 100}%`);
+  const fillRef = useRef<HTMLDivElement>(null);
+  const dotRef = useRef<HTMLDivElement>(null);
+
+  // The rail fill and its leading node, both scrubbed off the same trigger.
+  //
+  // scrub: 0.6 rather than `true` — this is the one scroll-linked element on
+  // the site that deliberately lags. The pre-port version used a spring for
+  // the same reason: the node should feel like it is catching up to the
+  // reader, which is what makes it read as an instrument tracking progress
+  // rather than a bar welded to the scrollbar.
+  useGSAP(
+    () => {
+      if (reduced || !railRef.current) return;
+
+      const timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: railRef.current,
+          start: "top center",
+          end: "bottom center",
+          scrub: 0.6,
+        },
+      });
+
+      // Two tweens on one trigger, both at position 0, because the two
+      // elements animate different properties: the fill scales, the node
+      // travels. One combined tween would write `top` onto the fill as well
+      // and detach it from its own `inset-0` box.
+      if (fillRef.current) {
+        timeline.fromTo(
+          fillRef.current,
+          { scaleY: 0 },
+          { scaleY: 1, ease: "none", duration: 1 },
+          0,
+        );
+      }
+      if (dotRef.current) {
+        timeline.fromTo(
+          dotRef.current,
+          { top: "0%" },
+          { top: "100%", ease: "none", duration: 1 },
+          0,
+        );
+      }
+
+      return () => {
+        timeline.scrollTrigger?.kill();
+        timeline.kill();
+      };
+    },
+    { dependencies: [reduced], scope: root },
+  );
 
   return (
-    <ol className="perspective-scene relative mt-16">
+    <ol ref={root} className="perspective-scene relative mt-16">
       <div
         ref={railRef}
         aria-hidden="true"
@@ -51,15 +88,16 @@ export function NakedBoardStages({ stages }: { stages: NakedBoard["stages"] }) {
       >
         {!reduced && (
           <>
-            <m.div
+            <div
+              ref={fillRef}
               data-motion
               className="absolute inset-0 origin-top bg-accent"
-              style={{ scaleY: fill }}
+              style={{ transform: "scaleY(0)" }}
             />
-            <m.div
+            <div
+              ref={dotRef}
               data-motion
-              className="absolute left-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent"
-              style={{ top: dotTop }}
+              className="absolute top-0 left-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent"
             />
           </>
         )}

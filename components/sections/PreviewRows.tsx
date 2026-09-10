@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
-import { m, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { gsap, useGSAP } from "@/lib/gsap";
+import { EASE_BRAND, TRAIL_FOLLOW } from "@/lib/motion";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { cn } from "@/lib/utils";
 
 /**
@@ -48,11 +50,8 @@ export function PreviewRows({
   const reduced = useReducedMotion();
   const [pointerFine, setPointerFine] = useState(false);
   const [active, setActive] = useState<string | null>(null);
-
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const springX = useSpring(x, { stiffness: 120, damping: 24 });
-  const springY = useSpring(y, { stiffness: 120, damping: 24 });
+  const root = useRef<HTMLDivElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const query = window.matchMedia("(pointer: fine) and (min-width: 1024px)");
@@ -67,17 +66,55 @@ export function PreviewRows({
 
   const dark = tone === "dark";
 
+  // Position tracking. Separate from the show/hide tween below so cursor
+  // movement never restarts the fade — the panel keeps trailing the cursor
+  // whether it is visible or not, which is what makes it appear *already in
+  // motion* the moment it fades in rather than flying in from a stale spot.
+  useGSAP(
+    () => {
+      const node = panel.current;
+      const container = root.current;
+      if (!previewEnabled || !node || !container) return;
+
+      const moveX = gsap.quickTo(node, "x", TRAIL_FOLLOW);
+      const moveY = gsap.quickTo(node, "y", TRAIL_FOLLOW);
+
+      const onMove = (event: PointerEvent) => {
+        moveX(event.clientX);
+        moveY(event.clientY);
+      };
+
+      container.addEventListener("pointermove", onMove);
+      return () => container.removeEventListener("pointermove", onMove);
+    },
+    { dependencies: [previewEnabled], scope: root },
+  );
+
+  // Show/hide, keyed on which row is hovered.
+  useGSAP(
+    () => {
+      const node = panel.current;
+      if (!previewEnabled || !node) return;
+
+      const visible = Boolean(activeItem?.preview);
+      gsap.to(node, {
+        opacity: visible ? 1 : 0,
+        rotateX: visible ? 0 : -8,
+        // transformPerspective, not a CSS `perspective` on the element: CSS
+        // perspective applies to an element's *children*, so it would do
+        // nothing for this panel's own rotateX.
+        transformPerspective: 800,
+        duration: 0.3,
+        ease: EASE_BRAND,
+      });
+    },
+    { dependencies: [previewEnabled, activeItem?.id], scope: root },
+  );
+
   return (
     <div
+      ref={root}
       className={cn("relative", className)}
-      onPointerMove={
-        previewEnabled
-          ? (event) => {
-              x.set(event.clientX);
-              y.set(event.clientY);
-            }
-          : undefined
-      }
       onPointerLeave={previewEnabled ? () => setActive(null) : undefined}
     >
       <ul>
@@ -168,31 +205,22 @@ export function PreviewRows({
       </ul>
 
       {previewEnabled && (
-        <m.div
+        <div
+          ref={panel}
           aria-hidden="true"
-          className="pointer-events-none fixed top-0 left-0 z-40 w-[22rem]"
-          style={{
-            x: springX,
-            y: springY,
-            translateX: "-50%",
-            translateY: "-50%",
-            transformPerspective: 800,
-          }}
-          initial={false}
-          // A per-element perspective (via the transformPerspective motion
-          // value) rather than an ancestor `perspective-scene` class: this
-          // panel is `fixed`, and a transformed ancestor would hijack the
-          // containing block every other fixed element on the page relies
-          // on. The panel tilts into place on its own axis, unrelated to
-          // anything around it.
-          animate={{
-            opacity: activeItem?.preview ? 1 : 0,
-            rotateX: activeItem?.preview ? 0 : -8,
-          }}
-          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          // A per-element perspective rather than an ancestor
+          // `perspective-scene` class: this panel is `fixed`, and a
+          // transformed ancestor would hijack the containing block every
+          // other fixed element on the page relies on. The panel tilts on its
+          // own axis, unrelated to anything around it.
+          //
+          // The -50% centring offsets are CSS translate, not part of the GSAP
+          // transform, so the quickTo above owns x/y outright and never has
+          // to carry the centring in its own values.
+          className="pointer-events-none fixed top-0 left-0 z-40 w-[22rem] -translate-x-1/2 -translate-y-1/2 opacity-0"
         >
           {activeItem?.preview}
-        </m.div>
+        </div>
       )}
     </div>
   );

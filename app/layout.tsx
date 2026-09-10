@@ -46,6 +46,14 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
+/**
+ * Runs during HTML parsing, before first paint: marks the document so CSS
+ * holds every on-load entrance element hidden until <Entrance> takes over at
+ * hydration. Without it, server HTML paints, vanishes, then animates back in.
+ * Skipped under reduced motion, where there is no entrance to hold for.
+ */
+const MOTION_BOOT = `(function(){try{if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.setAttribute("data-motion-boot","")}catch(e){}})()`;
+
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   // /admin is a tool, not a marketing surface. Middleware flags every
   // request under it with `x-is-admin` so this single root layout can skip
@@ -64,7 +72,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const [orgJsonLd, homeHero] = await Promise.all([organizationJsonLd(), getHomeHeroMedia()]);
 
   return (
-    <html lang="en" className={`${archivo.variable} h-full`}>
+    // suppressHydrationWarning: MOTION_BOOT adds an attribute before React
+    // hydrates. It covers <html>'s own attributes only, not its children.
+    <html lang="en" className={`${archivo.variable} h-full`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: MOTION_BOOT }} />
+      </head>
       <body className="flex min-h-full flex-col">
         {/* Organization + ProfessionalService, emitted once for every route. */}
         <JsonLd data={orgJsonLd} />

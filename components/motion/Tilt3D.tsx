@@ -1,18 +1,23 @@
 "use client";
 
 import { useEffect, useRef, useState, type ElementType, type ReactNode } from "react";
-import { m, useMotionValue, useReducedMotion, useSpring, useTransform } from "framer-motion";
+import { gsap, useGSAP } from "@/lib/gsap";
+import { EASE_BRAND } from "@/lib/motion";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { cn } from "@/lib/utils";
 
 /**
  * Pointer-tracked 3D tilt. The card leans away from the cursor within a
- * `perspective-scene` ancestor, spring-damped so it settles rather than
- * snaps, and returns flat on pointer leave.
+ * `perspective-scene` ancestor, damped so it settles rather than snaps, and
+ * returns flat on pointer leave.
  *
- * No glare/sheen overlay and no shadow — both read as decoration bolted
- * onto the tilt rather than a consequence of it, and §2.3/§0.2 rule out
- * shadows on cards outright. The only visual effect is the tilt (plus the
- * hover scale) itself.
+ * No glare/sheen overlay and no shadow — both read as decoration bolted onto
+ * the tilt rather than a consequence of it. The only visual effect is the
+ * tilt (plus the hover scale) itself.
+ *
+ * Three quickTo instances (rotateX, rotateY, scale) are built once and
+ * re-targeted per pointer event — see <Magnetic> for why that matters at 60
+ * events a second.
  *
  * Fine-pointer desktop only. Touch and reduced motion render the child
  * completely flat, with no listeners attached.
@@ -20,7 +25,7 @@ import { cn } from "@/lib/utils";
 export function Tilt3D({
   children,
   className,
-  as = "div",
+  as: Tag = "div",
   max = 7,
   scale = 1.02,
   ...rest
@@ -35,16 +40,8 @@ export function Tilt3D({
   [key: string]: unknown;
 }) {
   const reduced = useReducedMotion();
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLElement>(null);
   const [enabled, setEnabled] = useState(false);
-
-  const px = useMotionValue(0.5);
-  const py = useMotionValue(0.5);
-  const springX = useSpring(px, { stiffness: 200, damping: 20 });
-  const springY = useSpring(py, { stiffness: 200, damping: 20 });
-
-  const rotateX = useTransform(springY, [0, 1], [max, -max]);
-  const rotateY = useTransform(springX, [0, 1], [-max, max]);
 
   useEffect(() => {
     const query = window.matchMedia("(pointer: fine)");
@@ -54,9 +51,44 @@ export function Tilt3D({
     return () => query.removeEventListener("change", update);
   }, []);
 
-  const Tag = as;
+  const live = enabled && !reduced;
 
-  if (reduced || !enabled) {
+  useGSAP(
+    () => {
+      const node = ref.current;
+      if (!live || !node) return;
+
+      const settle = { duration: 0.4, ease: EASE_BRAND };
+      const rotateX = gsap.quickTo(node, "rotateX", settle);
+      const rotateY = gsap.quickTo(node, "rotateY", settle);
+      const scaleTo = gsap.quickTo(node, "scale", settle);
+
+      const onMove = (event: PointerEvent) => {
+        const rect = node.getBoundingClientRect();
+        const px = (event.clientX - rect.left) / rect.width;
+        const py = (event.clientY - rect.top) / rect.height;
+        // py 0 (top) → +max, py 1 (bottom) → -max: the card leans away.
+        rotateX(gsap.utils.interpolate(max, -max, py));
+        rotateY(gsap.utils.interpolate(-max, max, px));
+        scaleTo(scale);
+      };
+      const onLeave = () => {
+        rotateX(0);
+        rotateY(0);
+        scaleTo(1);
+      };
+
+      node.addEventListener("pointermove", onMove);
+      node.addEventListener("pointerleave", onLeave);
+      return () => {
+        node.removeEventListener("pointermove", onMove);
+        node.removeEventListener("pointerleave", onLeave);
+      };
+    },
+    { dependencies: [live, max, scale], scope: ref },
+  );
+
+  if (!live) {
     return (
       <Tag className={className} {...rest}>
         {children}
@@ -64,29 +96,9 @@ export function Tilt3D({
     );
   }
 
-  const MotionTag = m[as as keyof typeof m] as typeof m.div;
-
   return (
-    <MotionTag
-      ref={ref}
-      data-motion
-      className={cn("preserve-3d", className)}
-      style={{ rotateX, rotateY }}
-      whileHover={{ scale }}
-      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      onPointerMove={(event) => {
-        const rect = ref.current?.getBoundingClientRect();
-        if (!rect) return;
-        px.set((event.clientX - rect.left) / rect.width);
-        py.set((event.clientY - rect.top) / rect.height);
-      }}
-      onPointerLeave={() => {
-        px.set(0.5);
-        py.set(0.5);
-      }}
-      {...rest}
-    >
+    <Tag ref={ref} data-motion className={cn("preserve-3d", className)} {...rest}>
       {children}
-    </MotionTag>
+    </Tag>
   );
 }

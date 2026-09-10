@@ -2,14 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import {
-  AnimatePresence,
-  m,
-  useMotionValueEvent,
-  useScroll,
-  useTransform,
-  type MotionValue,
-} from "framer-motion";
+import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { EASE_BRAND } from "@/lib/motion";
 import { indexNumber } from "@/lib/utils";
 
@@ -30,35 +23,35 @@ import { indexNumber } from "@/lib/utils";
  * against whatever the photograph is doing underneath.
  *
  * ── Morphing, not cutting ─────────────────────────────────────────────────
- * All three backgrounds stay mounted, stacked in the same box, and each
- * one's opacity and scale is a pure `useTransform` curve over its own third
- * of scroll progress (`edgeCurve`). One dissolves down while the next
- * dissolves up and settles from a slight zoom — a continuous cross-fade that
- * scrubs exactly with the scrollbar (scroll a pixel, the blend moves a
- * pixel; stop, it stops; reverse, it reverses), rather than a hard cut
- * driven by React state at each third.
+ * All three backgrounds stay mounted, stacked in the same box, and the whole
+ * crossfade is one GSAP timeline scrubbed by a single ScrollTrigger. One
+ * layer dissolves down while the next dissolves up and settles from a slight
+ * zoom — a continuous cross-fade that tracks the scrollbar exactly (scroll a
+ * pixel, the blend moves a pixel; stop, it stops; reverse, it reverses),
+ * rather than a hard cut at each third.
  *
  * The "scroll smoothly" requirement is already handled site-wide: MotionRoot
- * mounts Lenis, which eases the real scroll position (not a virtualised
- * transform) on every route. `scrollYProgress` here already rides that eased
- * curve, so the backgrounds read it raw — stacking a second spring on top of
- * an already-smoothed value would just add a layer of lag between the
- * reader's scroll and what they see, trading connectedness for no real gain.
+ * mounts Lenis, and SmoothScroll drives it from gsap.ticker with
+ * ScrollTrigger.update bound to Lenis's own scroll event. The timeline below
+ * therefore rides an already-eased scroll position — `scrub: true`, not a
+ * numeric scrub, because adding a second smoothing pass on top of that would
+ * only put lag between the reader's input and the pixels.
  *
  * Mechanics
  * ---------
- * · `useScroll` with offset ['start start', 'end end'] over a 340vh container
- *   gives `scrollYProgress` — already Lenis-eased — which every layer below
- *   reads directly as `progress`.
- * · Each background's opacity/scale comes from `useTransform` over its own
- *   third of `progress`, via `edgeCurve` — no AnimatePresence, no direction
- *   state, no React re-render on scroll.
+ * · One ScrollTrigger over a 340vh container ("top top" → "bottom bottom")
+ *   scrubs one timeline. Each layer's fade/scale is placed on that timeline
+ *   at its own third, so there is no per-frame JS: GSAP interpolates.
  * · The active index (for the numeral list, aria-current and the copy swap)
- *   is still discrete: derived from the same `progress`, mirrored into React
- *   state only when the integer changes.
- * · Pinning is `position: sticky` on the inner viewport-height wrapper. No
- *   scroll-jacking library, no wheel handlers — the reader keeps native
- *   scroll behaviour and a truthful scrollbar throughout.
+ *   is discrete: read from the same trigger's `progress` in onUpdate and
+ *   mirrored into React state only when the integer actually changes, so
+ *   scrolling does not re-render the tree on every frame.
+ * · Pinning is `position: sticky` on the inner viewport-height wrapper —
+ *   deliberately *not* ScrollTrigger's own `pin`. Sticky is a browser
+ *   behaviour that costs nothing and cannot desynchronise from the scroll
+ *   position; ScrollTrigger's pin re-parents the element into a wrapper and
+ *   has to be re-measured on every refresh, which is a whole class of bug
+ *   (and jump-on-refresh) this panel simply never has.
  *
  * Why this takes rendered nodes rather than the content module
  * -----------------------------------------------------------
@@ -124,33 +117,6 @@ export function SectorsPanel({
   );
 }
 
-/* ══ A local curve builder ══════════════════════════════════════════════════
- * Every scroll-driven layer below shares the same shape: hold at `rest`,
- * ease in from `enter` over the first 30% of its own local range if it isn't
- * the first item, ease out to `exit` over the last 30% if it isn't the last.
- * Kept generic over item count rather than hardcoded to three sectors. */
-function edgeCurve(
-  hasIn: boolean,
-  hasOut: boolean,
-  enter: number,
-  rest: number,
-  exit: number,
-): [number[], number[]] {
-  const points: number[] = [0];
-  const values: number[] = [hasIn ? enter : rest];
-  if (hasIn) {
-    points.push(0.3);
-    values.push(rest);
-  }
-  if (hasOut) {
-    points.push(0.7);
-    values.push(rest);
-  }
-  points.push(1);
-  values.push(hasOut ? exit : rest);
-  return [points, values];
-}
-
 /* ══ Desktop: the pinned panel ════════════════════════════════════════════ */
 
 function PinnedPanel({
@@ -162,37 +128,127 @@ function PinnedPanel({
 }) {
   const container = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const markerRef = useRef<HTMLSpanElement>(null);
+  const copyRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
-  const [markerY, setMarkerY] = useState(0);
 
-  // Already Lenis-eased — see the file header. Every scroll-driven layer
-  // below reads this one value.
-  const { scrollYProgress: progress } = useScroll({
-    target: container,
-    offset: ["start start", "end end"],
-  });
+  const total = items.length;
 
-  const activeIndex = useTransform(progress, (value) =>
-    Math.min(items.length - 1, Math.max(0, Math.floor(value * items.length))),
+  // ── The scrubbed crossfade ───────────────────────────────────────────
+  useGSAP(
+    () => {
+      if (!container.current) return;
+
+      const layers = gsap.utils.toArray<HTMLElement>(
+        "[data-sector-layer]",
+        container.current,
+      );
+      if (layers.length === 0) return;
+
+      // Rest state: the first layer is the one on screen when the panel is
+      // entered; the rest wait at zero.
+      layers.forEach((layer, i) => {
+        gsap.set(layer, { opacity: i === 0 ? 1 : 0, scale: i === 0 ? 1 : 1.08 });
+      });
+
+      const timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: container.current,
+          start: "top top",
+          end: "bottom bottom",
+          scrub: true,
+          onUpdate: (self) => {
+            const next = Math.min(
+              total - 1,
+              Math.max(0, Math.floor(self.progress * total)),
+            );
+            setActive((current) => (current === next ? current : next));
+          },
+        },
+      });
+
+      // Each layer owns one third of the timeline, fading in over the first
+      // 30% of its own third and out over the last 30% — the first has no
+      // entrance and the last no exit, so the panel opens and closes on a
+      // settled frame rather than a half-dissolved one.
+      const segment = 1 / total;
+      layers.forEach((layer, i) => {
+        const start = i * segment;
+        const end = start + segment;
+
+        if (i > 0) {
+          timeline.fromTo(
+            layer,
+            { opacity: 0, scale: 1.08 },
+            { opacity: 1, scale: 1, ease: "none", duration: segment * 0.3 },
+            start,
+          );
+        }
+        if (i < total - 1) {
+          timeline.to(
+            layer,
+            { opacity: 0, scale: 0.94, ease: "none", duration: segment * 0.3 },
+            end - segment * 0.3,
+          );
+        }
+      });
+
+      // The progress rule along the bottom edge, on the same scrub.
+      timeline.fromTo(
+        "[data-sector-progress]",
+        { scaleX: 0 },
+        { scaleX: 1, ease: "none", duration: 1 },
+        0,
+      );
+
+      return () => {
+        timeline.scrollTrigger?.kill();
+        timeline.kill();
+      };
+    },
+    { dependencies: [total], scope: container },
   );
 
-  useMotionValueEvent(activeIndex, "change", (value) => {
-    setActive((current) => (current === value ? current : value));
-  });
+  // ── The accent marker slides to the active row ───────────────────────
+  // Offsets are measured rather than assumed: the index type is fluid, so a
+  // hardcoded row height would drift at every width between 1024 and 1920px.
+  useGSAP(
+    () => {
+      const move = () => {
+        const row = listRef.current?.children[active] as HTMLElement | undefined;
+        if (!row || !markerRef.current) return;
+        gsap.to(markerRef.current, {
+          y: row.offsetTop + row.offsetHeight / 2,
+          duration: 0.5,
+          ease: EASE_BRAND,
+        });
+      };
 
-  // The accent marker slides to the active row. Offsets are measured rather
-  // than assumed: the index type is fluid, so a hardcoded row height would
-  // drift at every width between 1024px and 1920px.
-  useEffect(() => {
-    const measure = () => {
-      const row = listRef.current?.children[active] as HTMLElement | undefined;
-      if (!row) return;
-      setMarkerY(row.offsetTop + row.offsetHeight / 2);
-    };
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [active]);
+      move();
+      window.addEventListener("resize", move);
+      return () => window.removeEventListener("resize", move);
+    },
+    { dependencies: [active], scope: container },
+  );
+
+  // ── The copy swap ────────────────────────────────────────────────────
+  // Enter-only. The outgoing copy is replaced by React the moment `active`
+  // changes; animating it out first would mean holding two propositions in
+  // the same box, which at this type size is unreadable rather than elegant.
+  useGSAP(
+    () => {
+      if (!copyRef.current) return;
+      const lines = gsap.utils.toArray<HTMLElement>("[data-line-inner]", copyRef.current);
+      if (lines.length === 0) return;
+
+      gsap.fromTo(
+        lines,
+        { yPercent: 110 },
+        { yPercent: 0, duration: 0.6, stagger: 0.06, ease: EASE_BRAND },
+      );
+    },
+    { dependencies: [active], scope: container },
+  );
 
   const sector = items[active];
 
@@ -208,14 +264,10 @@ function PinnedPanel({
             header. This is the one full-bleed surface everything else in
             the panel sits on top of. */}
         <div className="perspective-scene absolute inset-0">
-          {items.map((item, i) => (
-            <SectorVisualLayer
-              key={item.slug}
-              item={item}
-              index={i}
-              total={items.length}
-              progress={progress}
-            />
+          {items.map((item) => (
+            <div key={item.slug} data-sector-layer className="absolute inset-0">
+              {item.visual}
+            </div>
           ))}
         </div>
 
@@ -251,11 +303,10 @@ function PinnedPanel({
                 beside the photograph. */}
             <div className="flex w-full shrink-0 flex-col justify-center pl-gutter pr-6 lg:w-[42%] xl:w-[38%]">
               <div className="relative">
-                <m.span
+                <span
+                  ref={markerRef}
                   aria-hidden="true"
                   className="absolute -left-6 block h-px w-8 bg-accent"
-                  animate={{ y: markerY }}
-                  transition={{ duration: 0.5, ease: EASE_BRAND }}
                 />
 
                 <ul ref={listRef}>
@@ -267,20 +318,22 @@ function PinnedPanel({
                         aria-current={i === active ? "true" : undefined}
                         className="flex items-end gap-4 py-2"
                       >
-                        <m.span
-                          className="type-display text-h3 leading-none tabular-nums"
-                          animate={{ opacity: i === active ? 0.6 : 0.2 }}
-                          transition={{ duration: 0.4, ease: EASE_BRAND }}
+                        {/* Opacity is a CSS transition, not a tween: it is a
+                            two-state change driven by React state, and a
+                            transition costs nothing to set up where a tween
+                            per row per scroll-third would. */}
+                        <span
+                          className="type-display text-h3 leading-none tabular-nums transition-opacity duration-400 ease-brand"
+                          style={{ opacity: i === active ? 0.6 : 0.2 }}
                         >
                           {indexNumber(i)}
-                        </m.span>
-                        <m.span
-                          className="type-display text-hero leading-none"
-                          animate={{ opacity: i === active ? 1 : 0.28 }}
-                          transition={{ duration: 0.4, ease: EASE_BRAND }}
+                        </span>
+                        <span
+                          className="type-display text-hero leading-none transition-opacity duration-400 ease-brand"
+                          style={{ opacity: i === active ? 1 : 0.28 }}
                         >
                           {item.name}
-                        </m.span>
+                        </span>
                       </Link>
                     </li>
                   ))}
@@ -294,42 +347,31 @@ function PinnedPanel({
                 dead-centred caption — so it reads as a second, deliberate
                 statement rather than a footnote to the index. */}
             <div className="flex max-w-2xl flex-1 flex-col justify-end px-10 pb-16 lg:pb-24 xl:px-14">
-              <AnimatePresence mode="wait" initial={false}>
-                <m.div
-                  key={sector.slug}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  variants={{
-                    hidden: {},
-                    visible: { transition: { staggerChildren: 0.06 } },
-                    exit: { opacity: 0, transition: { duration: 0.18 } },
-                  }}
-                >
-                  <MaskedLine>
-                    <p className="type-display text-h2 text-white">
-                      {sector.proposition}
-                    </p>
-                  </MaskedLine>
+              <div ref={copyRef} key={sector.slug}>
+                <MaskedLine>
+                  <p className="type-display text-h2 text-white">
+                    {sector.proposition}
+                  </p>
+                </MaskedLine>
 
-                  <ul className="mt-9 space-y-4">
-                    {sector.points.map((point, i) => (
-                      <MaskedLine key={i} as="li">
-                        <span className="text-body-lg">{point}</span>
-                      </MaskedLine>
-                    ))}
-                  </ul>
-                </m.div>
-              </AnimatePresence>
+                <ul className="mt-9 space-y-4">
+                  {sector.points.map((point, i) => (
+                    <MaskedLine key={i} as="li">
+                      <span className="text-body-lg">{point}</span>
+                    </MaskedLine>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
         </div>
 
         {/* ── Progress rule ───────────────────────────────────────────── */}
         <div className="absolute inset-x-0 bottom-0 z-10 h-px bg-rule-dark">
-          <m.div
+          <div
+            data-sector-progress
             className="h-px origin-left bg-accent"
-            style={{ scaleX: progress }}
+            style={{ transform: "scaleX(0)" }}
           />
         </div>
       </div>
@@ -338,63 +380,25 @@ function PinnedPanel({
 }
 
 /**
- * One sector's background, permanently mounted and blended purely by scroll
- * progress. `local` re-maps the shared `progress` value onto this item's own
- * third of the range as 0→1, and `edgeCurve` turns that into a dissolve-and-
- * settle: it eases in from a slight zoom at the start (skipped for the first
- * item) and dissolves out to a slight zoom at the end (skipped for the
- * last) — a Ken-Burns-style morph rather than a rotation or a hard cut.
+ * One clipped line whose inner span translates up. Line-level, never
+ * per-character.
+ *
+ * Holds no animation of its own — the panel's copy-swap effect queries these
+ * inner spans and staggers them as a single tween, so a line is just markup
+ * plus a marker attribute.
  */
-function SectorVisualLayer({
-  item,
-  index,
-  total,
-  progress,
-}: {
-  item: SectorPanelItem;
-  index: number;
-  total: number;
-  progress: MotionValue<number>;
-}) {
-  const segment = 1 / total;
-  const start = index * segment;
-  const end = start + segment;
-  const local = useTransform(progress, [start, end], [0, 1]);
-
-  const hasIn = index > 0;
-  const hasOut = index < total - 1;
-
-  const opacity = useTransform(local, ...edgeCurve(hasIn, hasOut, 0, 1, 0));
-  const scale = useTransform(local, ...edgeCurve(hasIn, hasOut, 1.08, 1, 0.94));
-
-  return (
-    <m.div style={{ opacity, scale }} className="absolute inset-0">
-      {item.visual}
-    </m.div>
-  );
-}
-
-/** One clipped line whose inner span translates up. Line-level, never per-character. */
 function MaskedLine({
   children,
-  as = "div",
+  as: Tag = "div",
 }: {
   children: ReactNode;
   as?: "div" | "li";
 }) {
-  const Tag = as === "li" ? m.li : m.div;
   return (
     <Tag className="line-mask">
-      <m.span
-        data-motion
-        className="block"
-        variants={{
-          hidden: { y: "110%" },
-          visible: { y: "0%", transition: { duration: 0.6, ease: EASE_BRAND } },
-        }}
-      >
+      <span data-line-inner data-motion className="block">
         {children}
-      </m.span>
+      </span>
     </Tag>
   );
 }

@@ -2,13 +2,8 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import {
-  m,
-  useMotionValue,
-  useReducedMotion,
-  useSpring,
-  useTransform,
-} from "framer-motion";
+import { gsap, useGSAP } from "@/lib/gsap";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { Parallax } from "@/components/motion/Parallax";
 import { EASE_BRAND } from "@/lib/motion";
 import type { Img } from "@/lib/schemas";
@@ -68,14 +63,8 @@ export function ImageCluster({
 }) {
   const reduced = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
+  const plane = useRef<HTMLDivElement>(null);
   const [tiltEnabled, setTiltEnabled] = useState(false);
-
-  const px = useMotionValue(0.5);
-  const py = useMotionValue(0.5);
-  const springX = useSpring(px, { stiffness: 200, damping: 20 });
-  const springY = useSpring(py, { stiffness: 200, damping: 20 });
-  const rotateX = useTransform(springY, [0, 1], [3, -3]);
-  const rotateY = useTransform(springX, [0, 1], [-3, 3]);
 
   useEffect(() => {
     const query = window.matchMedia("(pointer: fine)");
@@ -87,33 +76,46 @@ export function ImageCluster({
 
   const live = tiltEnabled && !reduced;
 
+  useGSAP(
+    () => {
+      const container = ref.current;
+      const node = plane.current;
+      if (!live || !container || !node) return;
+
+      const settle = { duration: 0.5, ease: "power3" } as const;
+      const rotateX = gsap.quickTo(node, "rotateX", settle);
+      const rotateY = gsap.quickTo(node, "rotateY", settle);
+
+      const onMove = (event: PointerEvent) => {
+        const rect = container.getBoundingClientRect();
+        const px = (event.clientX - rect.left) / rect.width;
+        const py = (event.clientY - rect.top) / rect.height;
+        // Capped at 3°: enough to read as a plane catching the light, not
+        // enough to read as a toy.
+        rotateX(gsap.utils.interpolate(3, -3, py));
+        rotateY(gsap.utils.interpolate(-3, 3, px));
+      };
+      const onLeave = () => {
+        rotateX(0);
+        rotateY(0);
+      };
+
+      container.addEventListener("pointermove", onMove);
+      container.addEventListener("pointerleave", onLeave);
+      return () => {
+        container.removeEventListener("pointermove", onMove);
+        container.removeEventListener("pointerleave", onLeave);
+      };
+    },
+    { dependencies: [live], scope: ref },
+  );
+
   return (
-    <div
-      ref={ref}
-      className={cn("perspective-scene relative", className)}
-      onPointerMove={
-        live
-          ? (event) => {
-              const rect = ref.current?.getBoundingClientRect();
-              if (!rect) return;
-              px.set((event.clientX - rect.left) / rect.width);
-              py.set((event.clientY - rect.top) / rect.height);
-            }
-          : undefined
-      }
-      onPointerLeave={
-        live
-          ? () => {
-              px.set(0.5);
-              py.set(0.5);
-            }
-          : undefined
-      }
-    >
-      <m.div
+    <div ref={ref} className={cn("perspective-scene relative", className)}>
+      <div
+        ref={plane}
         data-motion
         className="preserve-3d grid aspect-4/5 grid-cols-12 grid-rows-12"
-        style={live ? { rotateX, rotateY } : undefined}
       >
         {items.slice(0, 3).map((item, i) => (
           <div key={i} className={POSITION[i]}>
@@ -128,7 +130,7 @@ export function ImageCluster({
             />
           </div>
         ))}
-      </m.div>
+      </div>
     </div>
   );
 }
@@ -175,19 +177,34 @@ function Tile({
     </>
   );
 
-  if (reduced || !animateEntrance) {
-    return <div className="relative h-full w-full overflow-hidden">{body}</div>;
-  }
+  const ref = useRef<HTMLDivElement>(null);
+  const animate = animateEntrance && !reduced;
+
+  useGSAP(
+    () => {
+      if (!animate || !ref.current) return;
+
+      // A clip-path wipe rather than a height or a mask: it is composited,
+      // so the tile's own layout never changes and the parallax running
+      // inside it is untouched by the entrance happening around it.
+      gsap.fromTo(
+        ref.current,
+        { clipPath: "inset(100% 0% 0% 0%)", opacity: 0 },
+        {
+          clipPath: "inset(0% 0% 0% 0%)",
+          opacity: 1,
+          duration: 0.9,
+          delay,
+          ease: EASE_BRAND,
+        },
+      );
+    },
+    { dependencies: [animate, delay], scope: ref },
+  );
 
   return (
-    <m.div
-      data-motion
-      className="relative h-full w-full overflow-hidden"
-      initial={{ clipPath: "inset(100% 0% 0% 0%)", opacity: 0 }}
-      animate={{ clipPath: "inset(0% 0% 0% 0%)", opacity: 1 }}
-      transition={{ duration: 0.9, ease: EASE_BRAND, delay }}
-    >
+    <div ref={ref} data-motion className="relative h-full w-full overflow-hidden">
       {body}
-    </m.div>
+    </div>
   );
 }
