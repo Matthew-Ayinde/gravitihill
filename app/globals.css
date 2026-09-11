@@ -1213,6 +1213,96 @@
 }
 
 /* ============================================================================
+   WHO WE ARE — home §01
+   ----------------------------------------------------------------------------
+   Pairs with <AboutPrecis> (markup) and <PrecisMotion> (motion). The slat
+   geometry lives here so the photograph is whole at first paint, before and
+   without hydration.
+   ========================================================================== */
+
+/* Frames stack; only the active one (and, mid-weave, the outgoing one) is
+   painted. */
+.slat-frame {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+}
+.slat-frame[data-active] {
+  visibility: visible;
+}
+
+/* Each slat is the whole photograph clipped to one horizontal band. The
+   half-pixel overlap stops sub-pixel rounding from opening seams between
+   bands once they are assembled. */
+.slat {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(
+    calc(var(--s) * 100% / var(--n) - 0.5px) 0
+      calc((var(--n) - 1 - var(--s)) * 100% / var(--n) - 0.5px) 0
+  );
+}
+
+/* A drawn rule under the quote's last words. --u is scrubbed 0→1 by
+   PrecisMotion; its default of 1 is the finished state for no-JS and
+   reduced motion. A solid colour on a background layer, not gradient type.
+   --accent is legitimate: the rule is non-text. */
+.precis-underline {
+  background-image: linear-gradient(var(--accent), var(--accent));
+  background-repeat: no-repeat;
+  background-position: 0 94%;
+  background-size: calc(var(--u, 1) * 100%) 0.09em;
+}
+
+.precis-step {
+  display: inline-grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--rule);
+  color: var(--ink);
+  transition:
+    background-color 300ms var(--ease-out-expo),
+    border-color 300ms var(--ease-out-expo),
+    color 300ms var(--ease-out-expo);
+}
+.precis-step > span {
+  transition: transform 500ms var(--ease-3d);
+}
+@media (hover: hover) {
+  .precis-step:hover {
+    background-color: var(--ink);
+    border-color: var(--ink);
+    color: var(--canvas);
+  }
+  [data-slat-prev]:hover > span {
+    transform: translateX(-3px);
+  }
+  [data-slat-next]:hover > span {
+    transform: translateX(3px);
+  }
+}
+
+.precis-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+.precis-cta-arrow {
+  display: inline-block;
+  transition: transform 500ms var(--ease-3d);
+}
+.precis-cta:hover .link-draw::after,
+.precis-cta:focus-visible .link-draw::after {
+  transform: scaleX(1);
+}
+@media (hover: hover) {
+  .precis-cta:hover .precis-cta-arrow {
+    transform: translateX(6px);
+  }
+}
+
+/* ============================================================================
    THE BENCH — home §02
    ----------------------------------------------------------------------------
    Pairs with <BenchField> (writes --sx, --sy and each quadrant's --lit) and

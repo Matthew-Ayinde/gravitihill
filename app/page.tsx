@@ -25,7 +25,6 @@ import { getInsights } from "@/content/insights";
 import { getNakedBoard } from "@/content/naked-board";
 import { getPractices } from "@/content/services";
 import { getSectors } from "@/content/sectors";
-import { CUMULATIVE_YEARS } from "@/content/team";
 import { getHomeHeroMedia } from "@/lib/home-hero";
 import { webSiteJsonLd } from "@/lib/jsonld";
 import { SITE } from "@/lib/site";
@@ -193,9 +192,9 @@ export default async function Home() {
       </div>
 
       {/* ══ 2. About précis ═══════════════════════════════════════════════
-          See AboutPrecis for why this section runs bigger than a standard
-          body section and is the first to carry a photograph. ═══════════ */}
-      <AboutPrecis about={about} cumulativeYears={CUMULATIVE_YEARS} />
+          An editorial spread; the first section to carry photography. See
+          AboutPrecis and PrecisMotion. ════════════════════════════════════ */}
+      <AboutPrecis about={about} />
 
       {/* ══ 3. Practices ══════════════════════════════════════════════════
           One field shared by all four practices. See PracticeBench. */}
