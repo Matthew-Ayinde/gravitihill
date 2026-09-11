@@ -1116,6 +1116,343 @@
 }
 
 /* ============================================================================
+   ARTICLE — /insights/[slug]
+   ----------------------------------------------------------------------------
+   Pairs with <FocusTitle>, <Develop>, <ProseMotion>, <ReadingRail>,
+   <ReadingBar>, <ShareActions> and <BloomCard>.
+   ========================================================================== */
+
+/* ── Head: the way back ────────────────────────────────────────────────── */
+
+.back-arrow {
+  display: inline-block;
+  transition: transform 500ms var(--ease-3d);
+}
+@media (hover: hover) {
+  .back-link:hover .back-arrow {
+    transform: translateX(-4px);
+  }
+}
+.back-link:focus-visible .back-arrow {
+  transform: translateX(-4px);
+}
+
+/* ── Reading guide ─────────────────────────────────────────────────────── */
+
+/* `--read` (0–1) is written by the guide as the reader scrolls. The ring is
+   drawn with pathLength=100, so the offset is simply the unread share. */
+.reading-ring-fill {
+  stroke-dasharray: 100;
+  stroke-dashoffset: calc(100 * (1 - var(--read, 0)));
+}
+
+.reading-ring-dot {
+  transform: scale(0);
+  transition: transform 600ms var(--ease-3d);
+}
+[data-done] .reading-ring-dot {
+  transform: scale(1);
+}
+
+/* A changed count remounts (keyed on the number), so it slides in fresh. */
+.reading-count {
+  animation: count-in 520ms var(--ease-3d) both;
+}
+@keyframes count-in {
+  from {
+    opacity: 0;
+    transform: translateY(45%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── End of piece: copy link ───────────────────────────────────────────── */
+
+.share-copy {
+  display: block;
+  overflow: hidden;
+  height: 1.2em;
+  line-height: 1.2;
+}
+.share-copy-track {
+  display: block;
+  transition: transform 600ms var(--ease-3d);
+}
+.share-copy-line {
+  display: block;
+  height: 1.2em;
+  white-space: nowrap;
+}
+.share-copy[data-copied] .share-copy-track {
+  transform: translateY(-50%);
+}
+
+/* ── Up next ───────────────────────────────────────────────────────────── */
+
+.next-cue {
+  transform-origin: left;
+  transition: transform 700ms var(--ease-3d);
+}
+.next-card .next-link:focus-visible {
+  outline: none;
+}
+.next-card:has(.next-link:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.next-card:has(.next-link:focus-visible) .next-cue {
+  transform: scaleX(1.8);
+}
+@media (hover: hover) {
+  .next-card:hover .next-cue {
+    transform: scaleX(1.8);
+  }
+}
+
+/* ============================================================================
+   THE BENCH — home §02
+   ----------------------------------------------------------------------------
+   Pairs with <BenchField> (writes --sx, --sy and each quadrant's --lit) and
+   <PracticeBench> (markup). Everything visible is a pure function of those
+   three variables, so the server's initial values (first practice open) paint
+   correctly before hydration.
+
+   The field is a size container. Every inner block is sized in cq units
+   against the field's *largest* quadrant rather than the quadrant it sits in,
+   so text never re-wraps while the split moves: a quadrant only reveals or
+   clips a layout that is already final. Quadrants have explicit geometry and
+   `contain: strict`, which keeps the per-frame layout work to four boxes.
+   ========================================================================== */
+
+.bench {
+  --sx: 0.66;
+  --sy: 0.7;
+  position: relative;
+  container-type: size;
+  /* The whole field fits under the sticky header, so the reader never has
+     to scroll to see the quadrant they are opening. */
+  height: clamp(38rem, calc(100svh - 8rem), 52rem);
+}
+
+.bench-cell {
+  --lit: 0;
+  position: absolute;
+  overflow: hidden;
+  contain: strict;
+  background-color: color-mix(
+    in oklab,
+    var(--canvas-alt) calc(var(--lit) * 100%),
+    var(--canvas)
+  );
+}
+.bench-cell[data-q="0"] {
+  left: 0;
+  top: 0;
+  width: calc(var(--sx) * 100%);
+  height: calc(var(--sy) * 100%);
+}
+.bench-cell[data-q="1"] {
+  left: calc(var(--sx) * 100%);
+  right: 0;
+  top: 0;
+  height: calc(var(--sy) * 100%);
+}
+.bench-cell[data-q="2"] {
+  left: 0;
+  top: calc(var(--sy) * 100%);
+  bottom: 0;
+  width: calc(var(--sx) * 100%);
+}
+.bench-cell[data-q="3"] {
+  left: calc(var(--sx) * 100%);
+  right: 0;
+  top: calc(var(--sy) * 100%);
+  bottom: 0;
+}
+
+/* Sized to the largest quadrant the split allows (66% × 70%). */
+.bench-inner {
+  position: absolute;
+  inset: 0 auto auto 0;
+  display: flex;
+  flex-direction: column;
+  width: 66cqw;
+  height: 70cqh;
+  padding: clamp(1.5rem, 2.6cqw, 2.5rem);
+}
+
+/* The whole quadrant is the link's hit area; the ring goes on the quadrant. */
+.bench-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.bench-link:focus-visible {
+  outline: none;
+}
+.bench-cell:has(.bench-link:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: -6px;
+}
+
+/* Sized to fit the smallest quadrant, then scaled up as it opens. Scale is
+   a transform, so its box keeps the rest size: the reserved height below is
+   what stops the scaled name from landing on the proposition. */
+.bench-name {
+  display: block;
+  width: max-content;
+  font-size: clamp(1.875rem, 4.1cqw, 3.4rem);
+  line-height: 1.04;
+  white-space: nowrap;
+  transform-origin: left top;
+  transform: scale(calc(1 + var(--lit) * 0.24));
+  color: color-mix(in oklab, var(--green) calc(var(--lit) * 100%), var(--ink));
+}
+.bench-link {
+  display: block;
+  height: calc(clamp(1.875rem, 4.1cqw, 3.4rem) * 1.04 * 1.24);
+}
+
+.bench-prop,
+.bench-services,
+.bench-cue {
+  pointer-events: none;
+}
+
+.bench-prop {
+  opacity: clamp(0, calc(var(--lit) * 2.4 - 1), 1);
+  transform: translateY(calc((1 - var(--lit)) * 0.75rem));
+}
+
+.bench-services {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 2rem;
+  row-gap: 0.7rem;
+  max-width: 50rem;
+  font-size: clamp(0.8125rem, 1.25cqw, 1rem);
+  line-height: 1.4;
+}
+
+/* Each service opens on its own slice of --lit, so the list comes in item
+   by item as a quadrant grows and goes back out as it shrinks. Tied to the
+   split rather than to a timeline, so it reverses with the pointer. */
+.bench-service {
+  --p: clamp(0, calc((var(--lit) - 0.3 - var(--i, 0) * 0.03) * 3.5), 1);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  opacity: var(--p);
+  transform: translateY(calc((1 - var(--p)) * 0.7rem));
+}
+
+.bench-cue {
+  opacity: clamp(0, calc(var(--lit) * 3 - 2), 1);
+}
+.bench-cue-arrow {
+  display: inline-block;
+  transition: transform 500ms var(--ease-3d);
+}
+@media (hover: hover) {
+  .bench-cell:hover .bench-cue-arrow {
+    transform: translateX(6px);
+  }
+}
+
+/* Short fields have no room for the proposition; the services matter more. */
+@container (max-height: 46rem) {
+  .bench-prop {
+    display: none;
+  }
+}
+
+/* The two rules and their junction. Each rule grows outward from the
+   junction on entrance, which is why its transform-origin tracks the split. */
+.bench-rule-x,
+.bench-rule-y,
+.bench-node {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+.bench-rule-x {
+  left: 0;
+  right: 0;
+  top: calc(var(--sy) * 100%);
+  height: 1px;
+  background-color: var(--rule);
+  transform-origin: calc(var(--sx) * 100%) 50%;
+}
+.bench-rule-y {
+  top: 0;
+  bottom: 0;
+  left: calc(var(--sx) * 100%);
+  width: 1px;
+  background-color: var(--rule);
+  transform-origin: 50% calc(var(--sy) * 100%);
+}
+.bench-node {
+  left: calc(var(--sx) * 100%);
+  top: calc(var(--sy) * 100%);
+  width: 0.5rem;
+  height: 0.5rem;
+  margin: -0.25rem 0 0 -0.25rem;
+  background-color: var(--accent);
+}
+
+/* ── The stack: under 1024px, and reduced motion at any width ──────────── */
+
+.bench-stack {
+  interpolate-size: allow-keywords;
+}
+.bench-stack details::details-content {
+  block-size: 0;
+  overflow: clip;
+  transition:
+    block-size 650ms var(--ease-3d),
+    content-visibility 650ms allow-discrete;
+}
+.bench-stack details[open]::details-content {
+  block-size: auto;
+}
+
+.bench-stack-name {
+  transition: color 400ms var(--ease-out-expo);
+}
+.bench-stack details[open] .bench-stack-name {
+  color: var(--green);
+}
+
+/* Plus to minus: the vertical bar folds flat. */
+.bench-toggle {
+  position: relative;
+  display: block;
+  width: 0.875rem;
+  height: 0.875rem;
+}
+.bench-toggle::before,
+.bench-toggle::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1.5px;
+  margin-top: -0.75px;
+  background-color: currentColor;
+  transition: transform 500ms var(--ease-3d);
+}
+.bench-toggle::after {
+  transform: rotate(90deg);
+}
+.bench-stack details[open] .bench-toggle::after {
+  transform: rotate(0deg);
+}
+
+/* ============================================================================
    SMOOTH SCROLL + ON-LOAD ENTRANCE
    ========================================================================== */
 
@@ -1217,6 +1554,12 @@ html[data-motion-boot] [data-shutter] {
   }
   .reply-route .roll-track {
     transform: none !important;
+  }
+
+  /* /insights/[slug]: the minutes count swaps without sliding. The ring and
+     part rules still track position — they are indicators, not motion. */
+  .reading-count {
+    animation: none !important;
   }
 
   /* /sectors hero: grid and rule drawn, cue parked, no hover transforms. */

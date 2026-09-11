@@ -1,19 +1,18 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
+import { ArticleHead } from "@/components/sections/ArticleHead";
 import { ArticleBody } from "@/components/sections/ArticleBody";
-import { ShareRail } from "@/components/sections/ShareRail";
-import { CtaPanel } from "@/components/sections/CtaPanel";
-import { Section } from "@/components/ui/Section";
-import { EditorialImage } from "@/components/ui/EditorialImage";
-import { Entrance } from "@/components/motion/Entrance";
-import { HudCorners } from "@/components/motion/HudCorners";
+import { NextPiece } from "@/components/sections/NextPiece";
+import { ReadingBar, ReadingRail } from "@/components/sections/ReadingGuide";
+import { Develop } from "@/components/motion/Develop";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getInsights, getInsight, getRelatedInsights } from "@/content/insights";
+import { toParts } from "@/lib/article";
 import { articleJsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 import { pageMetadata } from "@/lib/seo";
+import { getSiteSettings } from "@/lib/settings";
 import { SITE } from "@/lib/site";
-import { editorialDate } from "@/lib/utils";
 
 export async function generateStaticParams() {
   const insights = await getInsights();
@@ -37,15 +36,35 @@ export async function generateMetadata({
   });
 }
 
-export default async function InsightPage({
-  params,
-}: PageProps<"/insights/[slug]">) {
+const BODY_ID = "article-body";
+
+/**
+ * A single piece, composed for reading:
+ *
+ *   head      the title focuses in; date, length and author beside the excerpt
+ *   cover     the photograph develops from monochrome as the reader reaches it
+ *   body      the text, with a reading guide beside it (a sticky bar on phones)
+ *   next      one piece to read next, its photograph blooming from the cursor
+ *
+ * The measure stays at 68 characters and body copy stays in full ink: every
+ * motion on this page settles once and gets out of the way of the reading.
+ */
+export default async function InsightPage({ params }: PageProps<"/insights/[slug]">) {
   const { slug } = await params;
-  const insight = await getInsight(slug);
+  const [insight, insights, settings] = await Promise.all([
+    getInsight(slug),
+    getInsights(),
+    getSiteSettings(),
+  ]);
   if (!insight) notFound();
 
-  const url = `${SITE.url}/insights/${insight.slug}`;
   const related = await getRelatedInsights(insight.slug);
+  // Issue numbers match the index: newest piece, highest number.
+  const issue = insights.length - insights.findIndex((item) => item.slug === insight.slug);
+  const parts = toParts(insight.body);
+  const outline = parts.map(({ id, label }) => ({ id, label }));
+  const url = `${SITE.url}/insights/${insight.slug}`;
+  const cover = insight.coverImage;
 
   return (
     <>
@@ -59,148 +78,57 @@ export default async function InsightPage({
         ]}
       />
 
-      <article>
-        {/* ── Article head ────────────────────────────────────────────── */}
-        <Entrance as="header" delay={0.15} className="pt-36 pb-14 lg:pt-44 2xl:pt-56">
-          <div className="shell grid-12 gap-y-8">
-            <div className="col-span-12 lg:col-span-9">
-              <p data-load className="type-eyebrow text-green">
-                <Link href="/insights" className="link-draw">
-                  Insights
-                </Link>
-                <span aria-hidden="true" className="mx-3 text-ink-muted">
-                  /
-                </span>
-                <span className="text-ink-muted">{insight.category}</span>
-              </p>
+      <article aria-labelledby="article-title">
+        <ArticleHead insight={insight} issue={issue} />
 
-              <h1 data-load="mask" className="type-display mt-6 text-h1">
-                {insight.title}
-              </h1>
-
-              <p data-load className="measure mt-8 text-body-lg text-ink-muted">
-                {insight.excerpt}
-              </p>
+        {cover && (
+          <Develop className="shell">
+            <div className="relative aspect-3/2 overflow-hidden rounded-sm bg-canvas-alt">
+              <div data-develop-media data-motion className="absolute inset-0">
+                <Image
+                  src={cover.src}
+                  alt={cover.alt}
+                  fill
+                  loading="eager"
+                  fetchPriority="high"
+                  sizes="(min-width: 1440px) 1296px, 100vw"
+                  className="object-cover"
+                  {...(cover.blurDataURL
+                    ? { placeholder: "blur" as const, blurDataURL: cover.blurDataURL }
+                    : {})}
+                />
+              </div>
+              <div aria-hidden="true" className="absolute inset-0 bg-ridge/8" />
             </div>
+          </Develop>
+        )}
 
-            <dl className="col-span-12 self-end lg:col-span-3 lg:col-start-10">
-              <div
-                data-load
-                className="flex items-baseline justify-between gap-6 border-t border-rule py-3"
-              >
-                <dt className="type-eyebrow text-ink-muted">Published</dt>
-                <dd className="type-subhead text-body-lg">
-                  <time dateTime={insight.publishedAt}>
-                    {editorialDate(insight.publishedAt)}
-                  </time>
-                </dd>
-              </div>
-              <div
-                data-load
-                className="flex items-baseline justify-between gap-6 border-t border-rule py-3"
-              >
-                <dt className="type-eyebrow text-ink-muted">Reading</dt>
-                <dd className="type-subhead text-body-lg">
-                  {insight.readingTime} min
-                </dd>
-              </div>
-              <div
-                data-load
-                className="flex items-baseline justify-between gap-6 border-t border-rule py-3"
-              >
-                <dt className="type-eyebrow text-ink-muted">Author</dt>
-                <dd className="type-subhead text-body-lg">{insight.author}</dd>
-              </div>
-            </dl>
-          </div>
-        </Entrance>
-
-        <div className="shell relative">
-          <HudCorners tone="light" size={28} className="z-10" />
-          <EditorialImage
-            image={insight.coverImage}
-            caption={`${insight.category} — ${editorialDate(insight.publishedAt)}`}
-            sizes="(min-width: 1440px) 1320px, 100vw"
-            priority
-          />
-        </div>
-
-        {/* ── Body ────────────────────────────────────────────────────── */}
-        <Section>
+        <div className="py-section">
           <div className="shell grid-12 gap-y-10">
-            <div className="col-span-12 lg:col-span-2">
-              <ShareRail url={url} title={insight.title} />
-            </div>
+            <aside className="hidden lg:col-span-3 lg:block">
+              <ReadingRail bodyId={BODY_ID} minutes={insight.readingTime} parts={outline} />
+            </aside>
 
-            <div className="col-span-12 lg:col-span-8 lg:col-start-4">
+            <div id={BODY_ID} className="col-span-12 lg:col-span-8 lg:col-start-5">
               {insight.placeholderBody && (
-                <p className="type-eyebrow mb-12 border border-rule bg-canvas-alt px-5 py-4 text-ink-muted">
-                  Placeholder body — this article is seeded scaffolding and is
-                  awaiting editorial copy.
+                <p className="type-eyebrow mb-14 border-l-2 border-green py-1 pl-4 text-ink-muted">
+                  Placeholder body — this article is seeded scaffolding and is awaiting
+                  editorial copy.
                 </p>
               )}
-              <ArticleBody body={insight.body} />
+
+              <ArticleBody parts={parts} title={insight.title} url={url} email={settings.email} />
+
+              {/* A direct child of the body column, so it can stick for the
+                  column's whole height. */}
+              <ReadingBar bodyId={BODY_ID} minutes={insight.readingTime} parts={outline} />
+
             </div>
           </div>
-        </Section>
+        </div>
       </article>
 
-      {/* ── Related ───────────────────────────────────────────────────── */}
-      {related.length > 0 && (
-        <Section tone="alt" labelledBy="related-heading">
-          <div className="shell grid-12 gap-y-8">
-            <div className="col-span-12 lg:col-span-3">
-              <p className="type-eyebrow text-ink-muted">
-                <span className="text-green">02</span>
-                <span aria-hidden="true" className="mx-2">
-                  —
-                </span>
-                Related
-              </p>
-            </div>
-
-            <div className="col-span-12 lg:col-span-9">
-              <h2 id="related-heading" className="type-display max-w-[16ch] text-h2">
-                Read next.
-              </h2>
-
-              <ul className="mt-12 border-t border-rule">
-                {related.map((item) => (
-                  <li key={item.slug}>
-                    <Link
-                      href={`/insights/${item.slug}`}
-                      className="group relative flex flex-col gap-2 border-b border-rule py-8 transition-colors duration-200 ease-brand hover:bg-canvas lg:flex-row lg:items-baseline lg:gap-10"
-                    >
-                      <span
-                        aria-hidden="true"
-                        className="absolute top-2 bottom-2 left-0 w-0.5 origin-center scale-y-0 bg-accent transition-transform duration-300 ease-brand group-hover:scale-y-100"
-                      />
-                      <span className="type-eyebrow shrink-0 text-ink-muted lg:w-32">
-                        <time dateTime={item.publishedAt}>
-                          {editorialDate(item.publishedAt)}
-                        </time>
-                      </span>
-                      <span className="flex-1">
-                        <span className="type-subhead block text-h3">
-                          {item.title}
-                        </span>
-                        <span className="measure mt-2 block text-ink-muted">
-                          {item.excerpt}
-                        </span>
-                      </span>
-                      <span className="type-eyebrow shrink-0 text-ink-muted lg:text-right">
-                        {item.category}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </Section>
-      )}
-
-      <CtaPanel eyebrow="Engage" heading="Bring us the version of this you are living." intense />
+      {related[0] && <NextPiece next={related[0]} also={related[1]} />}
     </>
   );
 }

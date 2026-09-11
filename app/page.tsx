@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AboutPrecis } from "@/components/sections/AboutPrecis";
-import { PracticeList } from "@/components/sections/PracticeList";
+import { PracticeBench } from "@/components/sections/PracticeBench";
 import { SectorsSection } from "@/components/sections/SectorsSection";
 import { SocialWall } from "@/components/sections/SocialWall";
 import { CtaPanel } from "@/components/sections/CtaPanel";
@@ -197,25 +197,9 @@ export default async function Home() {
           body section and is the first to carry a photograph. ═══════════ */}
       <AboutPrecis about={about} cumulativeYears={CUMULATIVE_YEARS} />
 
-      {/* ══ 3. Practices ══════════════════════════════════════════════════ */}
-      <Section labelledBy="practices-heading">
-        <div className="shell grid-12 gap-y-10">
-          <div className="col-span-12 lg:col-span-3">
-            <SectionLabel index="02">Practice</SectionLabel>
-            <SectionLabelInline index="02">Practice</SectionLabelInline>
-          </div>
-
-          <div className="col-span-12 lg:col-span-9">
-            <h2 id="practices-heading" className="type-display max-w-[16ch] text-h2">
-              Four practices, staffed from one bench.
-            </h2>
-            <div className="mt-14">
-              <PracticeList />
-            </div>
-          </div>
-        </div>
-      </Section>
-
+      {/* ══ 3. Practices ══════════════════════════════════════════════════
+          One field shared by all four practices. See PracticeBench. */}
+      <PracticeBench index="02" />
 
       {/* ══ 4. THE SIGNATURE ══════════════════════════════════════════════ */}
       <SectorsSection index="03" />
