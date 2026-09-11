@@ -225,7 +225,7 @@ export function PrecisMotion({
               {
                 "--u": 1,
                 ease: "none",
-                scrollTrigger: { trigger: underline, start: "top 88%", end: "top 52%", scrub: true },
+                scrollTrigger: { trigger: underline, start: "top 90%", end: "top 64%", scrub: true },
               },
             );
           }
