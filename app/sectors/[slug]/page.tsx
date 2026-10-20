@@ -41,8 +41,7 @@ export default async function SectorPage({
   const sector = await getSector(slug);
   if (!sector) notFound();
 
-  const [sectors, allPractices] = await Promise.all([getSectors(), getPractices()]);
-  const position = sectors.findIndex((s) => s.slug === sector.slug);
+  const allPractices = await getPractices();
   const practices = allPractices.filter((practice) =>
     practice.relatedSectors.includes(sector.slug),
   );
@@ -50,42 +49,57 @@ export default async function SectorPage({
   return (
     <>
       <PageHero
-        eyebrow={`Sectors / ${sector.name}`}
+        eyebrow={`Perspectives / ${sector.name}`}
         title={sector.proposition}
-        lede={sector.thesis[0]}
-        index={[
-          { label: "Sector", value: indexNumber(position) },
-          { label: "Approach", value: String(sector.approach.length) },
-          { label: "Practices", value: String(practices.length) },
-        ]}
+        lede={sector.image ? undefined : sector.thesis[0]}
       />
 
       <div className="shell relative">
         <HudCorners tone="light" size={28} className="z-10" />
-        <EditorialImage
-          image={sector.image}
-          caption={`${sector.name} — West Africa`}
-          sizes="(min-width: 1440px) 1320px, 100vw"
-          priority
-        />
+        <div className="relative">
+          <EditorialImage
+            image={sector.image}
+            sizes="(min-width: 1440px) 1320px, 100vw"
+            priority
+          />
+          {/* With a photograph present, the opening statement is carried by
+              the image: a --ridge band across its base from md up, stacked
+              beneath it on small screens where a 3:2 frame is too shallow. */}
+          {sector.image && (
+            <div className="bg-ridge px-6 py-8 text-white md:absolute md:inset-x-0 md:bottom-0 md:bg-ridge/85 md:px-10 md:py-10">
+              <p className="measure text-body-lg">{sector.thesis[0]}</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── Thesis ──────────────────────────────────────────────────────── */}
-      {sector.thesis.length > 1 && (
+      {(sector.position?.length || sector.thesis.length > 1) && (
         <Section>
           <div className="shell grid-12 gap-y-8">
             <div className="col-span-12 lg:col-span-3">
-              <SectionLabel index="01">The position</SectionLabel>
-              <SectionLabelInline index="01">The position</SectionLabelInline>
+              <SectionLabel index="01">Our point of view</SectionLabel>
+              <SectionLabelInline index="01">Our point of view</SectionLabelInline>
             </div>
             <div className="col-span-12 lg:col-span-8 lg:col-start-5">
-              <div className="measure space-y-6">
-                {sector.thesis.slice(1).map((paragraph, i) => (
-                  <Reveal as="p" key={i} className="type-subhead text-h3">
-                    {paragraph}
-                  </Reveal>
-                ))}
-              </div>
+              {sector.position?.length ? (
+                <div className="measure space-y-10">
+                  {sector.position.map((point) => (
+                    <Reveal key={point.name}>
+                      <h2 className="type-subhead text-h3">{point.name}</h2>
+                      <p className="mt-3 text-body-lg text-ink-muted">{point.note}</p>
+                    </Reveal>
+                  ))}
+                </div>
+              ) : (
+                <div className="measure space-y-6">
+                  {sector.thesis.slice(1).map((paragraph, i) => (
+                    <Reveal as="p" key={i} className="type-subhead text-h3">
+                      {paragraph}
+                    </Reveal>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </Section>
@@ -101,7 +115,7 @@ export default async function SectorPage({
 
           <div className="col-span-12 lg:col-span-9">
             <h2 id="approach-heading" className="type-display max-w-[16ch] text-h2">
-              How the work is run.
+              {sector.approachHeading ?? "How we deliver it."}
             </h2>
 
             <RevealGroup as="ol" className="mt-14 border-t border-rule">
@@ -144,31 +158,45 @@ export default async function SectorPage({
               id="difference-heading"
               className="type-display max-w-[18ch] text-h2"
             >
-              What makes us different here.
+              {sector.differenceHeading ?? "What makes us different here."}
             </h2>
 
-            <RevealGroup
-              as="ul"
-              className="perspective-scene mt-14 grid gap-px border border-rule bg-rule md:grid-cols-3"
-            >
-              {sector.differentiators.map((item) => (
-                <RevealItem as="li" key={item.name} className="h-full">
-                  {/* Same tilt-only 3D statement used on the home DNA grid:
-                      no glare, no gradient sheen, just the card leaning off
-                      the plane toward the cursor and settling back. */}
-                  <Tilt3D className="h-full bg-canvas p-8 md:p-10">
-                    <h3 className="type-subhead text-h3">{item.name}</h3>
-                    <p className="mt-4 text-ink-muted">{item.note}</p>
-                  </Tilt3D>
-                </RevealItem>
-              ))}
-            </RevealGroup>
+            {sector.differencePoints?.length ? (
+              <RevealGroup as="ul" className="mt-14 border-t border-rule">
+                {sector.differencePoints.map((point) => (
+                  <RevealItem
+                    as="li"
+                    key={point}
+                    className="border-b border-rule py-6"
+                  >
+                    <p className="measure text-body-lg">{point}</p>
+                  </RevealItem>
+                ))}
+              </RevealGroup>
+            ) : (
+              <RevealGroup
+                as="ul"
+                className="perspective-scene mt-14 grid gap-px border border-rule bg-rule md:grid-cols-3"
+              >
+                {sector.differentiators.map((item) => (
+                  <RevealItem as="li" key={item.name} className="h-full">
+                    {/* Same tilt-only 3D statement used on the home DNA grid:
+                        no glare, no gradient sheen, just the card leaning off
+                        the plane toward the cursor and settling back. */}
+                    <Tilt3D className="h-full bg-canvas p-8 md:p-10">
+                      <h3 className="type-subhead text-h3">{item.name}</h3>
+                      <p className="mt-4 text-ink-muted">{item.note}</p>
+                    </Tilt3D>
+                  </RevealItem>
+                ))}
+              </RevealGroup>
+            )}
           </div>
         </div>
       </Section>
 
       {/* ── Practices that run here ─────────────────────────────────────── */}
-      {practices.length > 0 && (
+      {practices.length > 0 && !sector.hidePractices && (
         <Section tone="alt" labelledBy="practices-heading">
           <div className="shell grid-12 gap-y-8">
             <div className="col-span-12 lg:col-span-3">
@@ -181,7 +209,8 @@ export default async function SectorPage({
                 id="practices-heading"
                 className="type-display max-w-[18ch] text-h2"
               >
-                What we bring to {sector.name.toLowerCase()} work.
+                {sector.practicesHeading ??
+                  `What we bring to ${sector.name.toLowerCase()} work.`}
               </h2>
 
               <ul className="mt-14 border-t border-rule">
@@ -199,7 +228,9 @@ export default async function SectorPage({
                         {practice.name}
                       </span>
                       <span className="measure flex-1 text-ink-muted">
-                        {practice.proposition}
+                        {sector.practiceNotes?.find(
+                          (n) => n.name === practice.slug,
+                        )?.note ?? practice.proposition}
                       </span>
                       <span
                         aria-hidden="true"
@@ -216,7 +247,13 @@ export default async function SectorPage({
         </Section>
       )}
 
-      <CtaPanel eyebrow="Engage" heading={`Talk to us about ${sector.name}.`} intense />
+      <CtaPanel
+        eyebrow="Engage"
+        heading={sector.ctaHeading ?? `Talk to us about ${sector.name}.`}
+        lede={sector.ctaBody}
+        routesLabel={sector.ctaLabel}
+        intense
+      />
     </>
   );
 }

@@ -27,7 +27,7 @@ export function InsightsArchive({
   }));
 
   return (
-    <section aria-labelledby="archive-heading" className="bg-canvas-alt py-section">
+    <section id="archive" aria-labelledby="archive-heading" className="scroll-mt-24 bg-canvas-alt py-section">
       <div className="shell">
         <ArchiveStack
           entries={stack}

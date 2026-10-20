@@ -380,12 +380,12 @@
     -webkit-text-size-adjust: 100%;
   }
 
-  /* Native smooth scrolling only where Lenis is not running. With Lenis
-     active the browser would re-ease every position Lenis writes each frame,
-     which turns inertia scrolling laggy and stuttery. */
-  html:not(.lenis) {
-    scroll-behavior: smooth;
-  }
+  /* No CSS `scroll-behavior: smooth` on <html>, even where Lenis is not
+     running. ScrollTrigger samples it once, before Lenis has added its class,
+     and from then on re-writes it inline after every refresh — which makes
+     the router's jump to a cross-route #hash a smooth scroll that the
+     route-change refresh (MotionRoot) cancels at the top of the page. Lenis
+     glides anchors itself; reduced motion wants them instant anyway. */
 
   body {
     background-color: var(--canvas);
@@ -654,16 +654,6 @@
   filter: saturate(0.75);
 }
 
-/* At rest the numeral is a line drawing; once the portrait is in, it is
-   solid white laid over it. */
-.lead-numeral {
-  color: transparent;
-  -webkit-text-stroke: 1.5px var(--green);
-  transition:
-    color 600ms var(--ease-out-expo),
-    -webkit-text-stroke-color 600ms var(--ease-out-expo);
-}
-
 .lead-edge {
   transform: scaleY(0);
   transform-origin: top;
@@ -682,11 +672,6 @@
 .lead-row:focus-within .lead-portrait-img {
   transform: scale(1);
 }
-.lead-row[data-revealed="true"] .lead-numeral,
-.lead-row:focus-within .lead-numeral {
-  color: rgb(255 255 255 / 0.82);
-  -webkit-text-stroke-color: transparent;
-}
 .lead-row[data-revealed="true"] .lead-edge,
 .lead-row:focus-within .lead-edge {
   transform: scaleY(1);
@@ -702,10 +687,6 @@
   }
   .lead-row:hover .lead-portrait-img {
     transform: scale(1);
-  }
-  .lead-row:hover .lead-numeral {
-    color: rgb(255 255 255 / 0.82);
-    -webkit-text-stroke-color: transparent;
   }
   .lead-row:hover .lead-edge {
     transform: scaleY(1);
@@ -733,17 +714,13 @@
   transform: rotate(90deg);
 }
 
-/* Reduced motion: every portrait is already in, numerals already solid. */
+/* Reduced motion: every portrait is already in. */
 @media (prefers-reduced-motion: reduce) {
   .lead-row .lead-portrait {
     clip-path: none;
   }
   .lead-portrait-img {
     transform: none;
-  }
-  .lead-numeral {
-    color: rgb(255 255 255 / 0.82);
-    -webkit-text-stroke-color: transparent;
   }
   .lead-edge {
     transform: none;
@@ -1594,6 +1571,13 @@ html[data-motion-boot] [data-shutter] {
   to {
     clip-path: inset(0);
   }
+}
+
+/* The home splash plays once per tab. On a reload in a tab that has already
+   seen it, the server HTML still carries the closed gate until SplashScreen
+   hydrates and drops it — this keeps it from flashing in the meantime. */
+html[data-splash-seen] [data-splash-root] {
+  display: none;
 }
 
 /* ============================================================================

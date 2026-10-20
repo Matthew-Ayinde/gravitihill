@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { TextField, TextAreaField, FieldGroup } from "@/components/admin/Field";
+import { TextField, TextAreaField, FieldGroup, CheckboxField } from "@/components/admin/Field";
 import { RepeatableStrings } from "@/components/admin/RepeatableStrings";
 import { RepeatableIconRows } from "@/components/admin/RepeatableIconRows";
 import { RepeatableNoteRows } from "@/components/admin/RepeatableNoteRows";
@@ -50,22 +50,41 @@ export function SectorForm({ sector, order }: { sector?: Sector; order: number }
         defaultValue={sector?.proposition}
       />
 
-      <FieldGroup legend="The position">
+      <FieldGroup legend="Thesis">
         <RepeatableStrings name="thesis" label="Thesis" initial={sector?.thesis ?? [""]} />
       </FieldGroup>
 
-      <FieldGroup legend="Strategic approach (exactly 3)">
+      <FieldGroup legend="Our point of view (headed points; leave empty to use thesis 2+)">
+        <RepeatableNoteRows field="position" label="Points" initial={sector?.position ?? []} />
+      </FieldGroup>
+
+      <FieldGroup legend="Strategic approach (2 or 3)">
         <RepeatableIconRows
           field="approach"
           label="Approach"
           noteLabel="Note"
           initial={sector?.approach ?? []}
-          minRows={3}
+          minRows={2}
         />
       </FieldGroup>
 
       <FieldGroup legend="What makes us different">
         <RepeatableNoteRows field="differentiators" label="Differentiators" initial={sector?.differentiators ?? []} />
+      </FieldGroup>
+
+      <FieldGroup legend="Page overrides (optional; leave empty for the shared defaults)">
+        <div className="space-y-6">
+          <RepeatableStrings name="panelPoints" label="Sectors panel bullets (default: approach names)" initial={sector?.panelPoints ?? []} />
+          <TextField label="Approach heading" name="approachHeading" hint="Default: How we deliver it." defaultValue={sector?.approachHeading} />
+          <TextField label="Difference heading" name="differenceHeading" hint="Default: What makes us different here." defaultValue={sector?.differenceHeading} />
+          <RepeatableStrings name="differencePoints" label="Difference points (replace the cards when set)" initial={sector?.differencePoints ?? []} />
+          <TextField label="Practices heading" name="practicesHeading" hint="Default: What we bring to … work." defaultValue={sector?.practicesHeading} />
+          <CheckboxField label="Hide practices section" name="hidePractices" defaultChecked={sector?.hidePractices} />
+          <RepeatableNoteRows field="practiceNotes" label="Practice lines (name = practice slug, e.g. business-advisory)" initial={sector?.practiceNotes ?? []} />
+          <TextField label="Closing heading" name="ctaHeading" hint="Default: Talk to us about …" defaultValue={sector?.ctaHeading} />
+          <TextAreaField label="Closing paragraph" name="ctaBody" rows={2} defaultValue={sector?.ctaBody} />
+          <TextField label="Closing label" name="ctaLabel" hint="Shown above the contact routes" defaultValue={sector?.ctaLabel} />
+        </div>
       </FieldGroup>
 
       <FieldGroup legend="Image">

@@ -7,7 +7,7 @@ export const alt = "About Graviti Hill — founded in Lagos, 2022";
 export default async function Image() {
   return ogImage({
     eyebrow: "About",
-    title: "Re-definers of Brand Building.",
+    title: "Re-definers of Brand and Business Performance.",
     footnote: "Founded 2022 · Lagos",
   });
 }

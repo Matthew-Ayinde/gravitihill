@@ -9,7 +9,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata: Metadata = pageMetadata({
   title: "Insights",
   description:
-    "Written positions on market expansion, brand building, business advisory and leadership in Nigeria and West Africa.",
+    "Written positions on capacity development, brand building, business advisory and leadership in Nigeria and West Africa.",
   path: "/insights",
 });
 

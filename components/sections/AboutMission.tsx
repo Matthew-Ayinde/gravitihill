@@ -23,15 +23,14 @@ import { Entrance } from "@/components/motion/Entrance";
  */
 export function AboutMission() {
   return (
-    <Studio hill labelledBy="about-mission">
+    <Studio hill id="mission" labelledBy="about-mission">
       <Entrance className="shell grid-12 items-start gap-y-14" delay={0.15}>
         {/* Left margin: the section's index, as editorial furniture. */}
         <div className="col-span-12 lg:col-span-2">
           <p data-load className="type-eyebrow flex items-center gap-4 text-ink-muted">
             <span className="text-green">01.</span>
-            <span className="whitespace-nowrap">Our mission</span>
-            <span aria-hidden="true" className="h-px w-10 bg-rule lg:w-6" />
-          </p>
+            <span className="whitespace-nowrap">The gap we are <br /> built to close</span>
+           </p>
         </div>
 
         {/* The statement. */}
@@ -39,50 +38,28 @@ export function AboutMission() {
           <h1
             data-load="mask"
             id="about-mission"
-            className="type-display text-display-xl"
+            className="type-display text-hero"
           >
-            <span className="block text-ink-display">Founded 2022,</span>
-            <span className="block text-green">on a specific</span>
-            <span className="block text-green">frustration.</span>
+            <span className="block text-ink-display">Building businesses,</span>
+            <span className="block text-green">beyond their current limit</span>
           </h1>
         </div>
 
         {/* Right column: tight, quiet, deliberately narrow. */}
         <div className="col-span-12 lg:col-span-3">
-          <p data-load className="type-eyebrow text-green">
-            Graviti Hill
-            <span aria-hidden="true" className="mx-2">
-              ·
-            </span>
-            The gap we are built to close
-          </p>
-
           {/* Deliberately does not state the §02 headline. The two sections
               share a subject; repeating the sentence would spend the payoff
               early and read as a page that forgot what it had said. */}
           <p data-load className="measure-tight mt-6 text-ink-muted">
-            Creative thinking and commercial impact were being run as
-            separate conversations, by separate people, usually in separate
-            buildings. The strategy deck said one thing, the operating model
-            permitted another, and the brand promised a third.
+            We challenge inherited assumptions and redesign what no longer serves a business’s future. Translating growth ambitions into the strategy, operating models and commercial capabilities needed to compete and scale.
           </p>
 
           <p data-load className="measure-tight mt-5 text-ink-muted">
-            Graviti Hill was built in Lagos in 2022 to close that gap — to
-            put the thinking and the commercial consequence of it on the
-            same table, in front of the same people.
+           Through clear accountability, management routines and a culture of learning, we make these changes part of our everyday work. This embeds the discipline to adapt faster, perform consistently and sustain growth.
+
           </p>
 
-          <p data-load className="type-eyebrow mt-10 flex items-center gap-4 text-ink-muted">
-            <span
-              aria-hidden="true"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-rule"
-            >
-              →
-            </span>
-            <span aria-hidden="true" className="h-px w-8 bg-rule" />
-            Strategy / Brand / Growth
-          </p>
+         
         </div>
       </Entrance>
     </Studio>

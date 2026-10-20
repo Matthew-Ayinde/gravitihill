@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { EASE_3D, EASE_BRAND } from "@/lib/motion";
 import { cn, wordTokens } from "@/lib/utils";
+import { whenInView } from "@/lib/when-in-view";
 
 export type HeadlineSegment = { text: string; className?: string };
 
@@ -27,6 +28,10 @@ export type HeadlineSegment = { text: string; className?: string };
  *   ≥1024px, motion allowed   entrance on both axes + pointer field
  *   <1024px, motion allowed   words rise out of their lines, no axis work
  *   reduced motion            the finished headline at first paint
+ *
+ * The entrance waits until the headline is on screen: from a deep link
+ * (/insights#archive) the page opens below it, and a time-based entrance
+ * would otherwise finish unseen.
  *
  * The visible words are aria-hidden; one sr-only copy carries the sentence,
  * so assistive tech reads it once and whole rather than word by word.
@@ -86,7 +91,8 @@ export function PressureHeadline({
           gsap.set(words, { yPercent: 120 });
           if (wide) paint();
 
-          const timeline = gsap.timeline({ delay: 0.2 });
+          const timeline = gsap.timeline({ delay: 0.2, paused: true });
+          const stopWatching = whenInView(root, () => timeline.play());
           timeline.to(words, { yPercent: 0, duration: 1.1, stagger: 0.07, ease: EASE_BRAND }, 0);
 
           if (wide) {
@@ -105,6 +111,7 @@ export function PressureHeadline({
           }
 
           return () => {
+            stopWatching();
             detach?.();
             words.forEach((word) => {
               word.style.fontVariationSettings = "";

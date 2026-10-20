@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import type { Practice } from "@/lib/schemas";
 import { listPractices } from "@/lib/repositories/practices";
+import { GENERAL_ENQUIRY } from "@/lib/contact-schema";
 
 /**
  * THE FOUR PRACTICES.
@@ -26,4 +27,10 @@ export async function getPractices(): Promise<Practice[]> {
 export async function getPractice(slug: string): Promise<Practice | undefined> {
   const practices = await getPractices();
   return practices.find((p) => p.slug === slug);
+}
+
+/** Options for the contact form's enquiry-type select: each practice, then "General". */
+export async function getEnquiryTypes(): Promise<string[]> {
+  const practices = await getPractices();
+  return [...practices.map((p) => p.name), GENERAL_ENQUIRY];
 }

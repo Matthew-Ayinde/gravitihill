@@ -118,9 +118,8 @@ export function AboutPrecis({ about }: { about: About }) {
               <EditorialImage caption="Lagos, Nigeria." ratio="4:5" className="w-full" />
             )}
 
-            <figcaption className="mt-4 flex items-center justify-between gap-6 border-t border-rule pt-4">
-              <span className="type-eyebrow text-ink-muted">Lagos, Nigeria.</span>
-
+            <figcaption className="mt-4 flex items-center justify-between gap-6 pt-4">
+           
               {images.length > 1 ? (
                 <span className="flex items-center gap-3">
                   <button type="button" data-slat-prev aria-label="Previous photograph" className="precis-step">

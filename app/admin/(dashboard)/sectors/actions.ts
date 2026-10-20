@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { sectorSchema } from "@/lib/schemas";
 import { upsertSector, deleteSector, listSectors } from "@/lib/repositories/sectors";
 import { requireSession } from "@/lib/auth";
-import { getAllTrimmed, getImg, str, zipIconRows, zipNoteRows } from "@/lib/admin/form";
+import { getAllTrimmed, getImg, optionalStr, str, zipIconRows, zipNoteRows } from "@/lib/admin/form";
 import type { ActionState } from "@/components/admin/StatusBanner";
 
 export async function saveSectorAction(
@@ -15,14 +15,29 @@ export async function saveSectorAction(
 ): Promise<ActionState> {
   await requireSession();
 
+  const position = zipNoteRows(formData, "position");
+  const differencePoints = getAllTrimmed(formData, "differencePoints");
+  const practiceNotes = zipNoteRows(formData, "practiceNotes");
+  const panelPoints = getAllTrimmed(formData, "panelPoints");
   const parsed = sectorSchema.safeParse({
     slug: str(formData, "slug"),
     name: str(formData, "name"),
     proposition: str(formData, "proposition"),
     thesis: getAllTrimmed(formData, "thesis"),
+    position: position.length > 0 ? position : undefined,
     approach: zipIconRows(formData, "approach"),
     differentiators: zipNoteRows(formData, "differentiators"),
     image: getImg(formData, "image"),
+    approachHeading: optionalStr(formData, "approachHeading"),
+    differenceHeading: optionalStr(formData, "differenceHeading"),
+    differencePoints: differencePoints.length > 0 ? differencePoints : undefined,
+    practicesHeading: optionalStr(formData, "practicesHeading"),
+    practiceNotes: practiceNotes.length > 0 ? practiceNotes : undefined,
+    hidePractices: formData.get("hidePractices") === "on" || undefined,
+    panelPoints: panelPoints.length > 0 ? panelPoints : undefined,
+    ctaHeading: optionalStr(formData, "ctaHeading"),
+    ctaBody: optionalStr(formData, "ctaBody"),
+    ctaLabel: optionalStr(formData, "ctaLabel"),
   });
 
   if (!parsed.success) {

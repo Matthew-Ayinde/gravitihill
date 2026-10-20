@@ -19,13 +19,13 @@ import * as z from "zod/mini";
  * Anything a client component imports → zod/mini, here.
  */
 
-export const ENQUIRY_TYPES = [
-  "Brand Development",
-  "Business Advisory",
-  "Executive Coaching",
-  "Market Expansion",
-  "General",
-] as const;
+/**
+ * Enquiry types are the live practice names plus this catch-all, built
+ * server-side by `getEnquiryTypes` (content/services.ts) and passed to the
+ * form as a prop. The schema only checks that one was chosen; the route
+ * handler checks it against the live list.
+ */
+export const GENERAL_ENQUIRY = "General";
 
 export const BUDGET_RANGES = [
   "Under ₦5m",
@@ -35,7 +35,6 @@ export const BUDGET_RANGES = [
   "Not yet defined",
 ] as const;
 
-export const enquiryTypeSchema = z.enum(ENQUIRY_TYPES);
 export const budgetRangeSchema = z.enum(BUDGET_RANGES);
 
 /**
@@ -49,7 +48,7 @@ export const contactSchema = z.object({
   role: z.string().check(z.minLength(2, "Enter your role")),
   email: z.email("Enter a work email so we can reply"),
   phone: z.optional(z.string()),
-  enquiryType: enquiryTypeSchema,
+  enquiryType: z.string().check(z.minLength(1, "Choose an enquiry type")),
   budget: z.optional(z.union([budgetRangeSchema, z.literal("")])),
   message: z
     .string()

@@ -7,6 +7,6 @@ export const alt = "Graviti Hill services — four practices, one bench";
 export default async function Image() {
   return ogImage({
     eyebrow: "Services",
-    title: "Four practices, staffed from one bench.",
+    title: "Business growth demands more than one discipline.",
   });
 }

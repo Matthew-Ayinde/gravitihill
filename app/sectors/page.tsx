@@ -32,7 +32,7 @@ export default async function SectorsPage() {
     <>
       <SectorsHero
         sectors={sectors}
-        lede="We do not run one playbook across every category. What wins in consumer does not transfer to a B2B pipeline, and neither transfers to a technology business explaining a new category to its own market."
+        lede="Different customer needs and buying behaviours demand an integrated approach. We connect strategy, brand and service delivery with technology to deepen customer understanding, improve experiences and drive growth."
       />
 
       <SectorApproach sectors={sectors} />

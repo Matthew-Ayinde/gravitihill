@@ -56,16 +56,13 @@ export async function PracticeBench({ index = "02" }: { index?: string }) {
             id="practices-heading"
             className="type-display text-h1 lg:col-span-6"
             lines={[
-              "Four practices,",
+              "Business growth",
               <span key="line-2">
-                staffed from <span className="accent-word">one bench.</span>
+               demands more than one <span className="accent-word">discipline.</span>
               </span>,
             ]}
           />
-          <p className="measure-tight text-body-lg text-ink-muted lg:col-span-3 lg:pb-2">
-            {distinct} services, one team. The practice is how you engage us.
-            The people doing the work are the same.
-          </p>
+      
         </div>
       </div>
 
@@ -83,11 +80,7 @@ export async function PracticeBench({ index = "02" }: { index?: string }) {
             >
               <div className="bench-inner">
                 <div data-bench-head data-motion>
-                  <p className="type-eyebrow flex items-center gap-3 text-ink-muted">
-                    <span className="text-green">{indexNumber(p)}</span>
-                    <span aria-hidden="true" className="h-px w-6 bg-rule" />
-                    {practice.offerings.length} services
-                  </p>
+                
                   <h3 className="mt-4">
                     <Link href={`/services/${practice.slug}`} className="bench-link">
                       <span className="bench-name type-display">{practice.name}</span>

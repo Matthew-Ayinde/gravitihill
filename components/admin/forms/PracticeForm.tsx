@@ -84,7 +84,7 @@ export function PracticeForm({
 
         <TextField
           className="mt-8"
-          label="Platform link (Executive Coaching only)"
+          label="Platform link (The Naked Board practice only)"
           name="platformHref"
           hint="e.g. /the-naked-board"
           defaultValue={practice?.platformHref}

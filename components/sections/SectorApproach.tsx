@@ -41,9 +41,9 @@ export function SectorApproach({ sectors }: { sectors: Sector[] }) {
             id="approach-heading"
             className="type-display col-span-12 text-h1 lg:col-span-7 lg:col-start-6"
           >
-            <span className="block">One standard.</span>
+            <span className="block">Built around</span>
             <span className="block">
-              Run <span className="accent-word">three ways.</span>
+              The <span className="accent-word">Consumer.</span>
             </span>
           </h2>
         </div>

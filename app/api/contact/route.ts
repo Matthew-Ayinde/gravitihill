@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { contactSchema, normaliseContactInput } from "@/lib/contact-schema";
+import { getEnquiryTypes } from "@/content/services";
 import { mailConfigured, sendContactEmails } from "@/lib/mail";
 import { rateLimit } from "@/lib/rate-limit";
 import { recordSubmission } from "@/lib/repositories/contact-submissions";
@@ -38,7 +39,10 @@ export async function POST(request: Request) {
   }
 
   const parsed = contactSchema.safeParse(payload);
-  if (!parsed.success) {
+  if (
+    !parsed.success ||
+    !(await getEnquiryTypes()).includes(parsed.data.enquiryType)
+  ) {
     return NextResponse.json(
       { message: "Some fields need attention. Check the form and send again." },
       { status: 400 },

@@ -23,12 +23,19 @@ export async function SectorsSection({ index = "04" }: { index?: string }) {
     href: `/sectors/${sector.slug}`,
     proposition: sector.proposition,
     visual: <SectorVisual sector={sector} position={i} />,
-    points: sector.approach.map((step) => (
-      <span key={step.name} className="flex items-center gap-4">
-        <Icon name={step.icon} className="h-6 w-6 shrink-0 text-white" />
-        <span className="text-white/75">{step.name}</span>
-      </span>
-    )),
+    // Panel bullets override the approach names when a sector sets them;
+    // icons stay paired with the approach step at the same position.
+    points: (sector.panelPoints ?? sector.approach.map((step) => step.name)).map(
+      (name, j) => (
+        <span key={name} className="flex items-center gap-4">
+          <Icon
+            name={sector.approach[j]?.icon ?? "strategy"}
+            className="h-6 w-6 shrink-0 text-white"
+          />
+          <span className="text-white/75">{name}</span>
+        </span>
+      ),
+    ),
   }));
 
   return <SectorsPanel items={items} index={index} />;

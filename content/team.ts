@@ -29,4 +29,4 @@ export async function getTeam(): Promise<Person[]> {
  * that figures like this are not to be invented or casually revised; update
  * it here deliberately if the leadership roster changes materially.
  */
-export const CUMULATIVE_YEARS = "55+";
+export const CUMULATIVE_YEARS = "76+";

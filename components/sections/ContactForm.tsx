@@ -7,7 +7,7 @@ import { EASE_BRAND } from "@/lib/motion";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 import {
   BUDGET_RANGES,
-  ENQUIRY_TYPES,
+  GENERAL_ENQUIRY,
   contactSchema,
   normaliseContactInput,
   type ContactInput,
@@ -39,13 +39,18 @@ const EMPTY: ContactInput = {
   role: "",
   email: "",
   phone: "",
-  enquiryType: "General",
+  enquiryType: GENERAL_ENQUIRY,
   budget: "",
   message: "",
   website: "",
 };
 
-export function ContactForm() {
+export function ContactForm({
+  enquiryTypes,
+}: {
+  /** Live practice names plus "General" — see `getEnquiryTypes`. */
+  enquiryTypes: string[];
+}) {
   const formId = useId();
   const reduced = useReducedMotion();
   const [values, setValues] = useState<ContactInput>(EMPTY);
@@ -184,10 +189,8 @@ export function ContactForm() {
           label="Enquiry type"
           value={values.enquiryType}
           error={errors.enquiryType}
-          options={ENQUIRY_TYPES}
-          onChange={(v) =>
-            field("enquiryType", v as ContactInput["enquiryType"])
-          }
+          options={enquiryTypes}
+          onChange={(v) => field("enquiryType", v)}
         />
         <SelectField
           id={`${formId}-budget`}
@@ -234,7 +237,7 @@ export function ContactForm() {
             ? status.message
             : pending
               ? "Sending your brief…"
-              : "We reply within one working day."}
+              : ""}
         </p>
       </div>
     </form>

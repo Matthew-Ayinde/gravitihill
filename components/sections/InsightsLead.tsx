@@ -22,7 +22,7 @@ export function InsightsLead({ insight, issue }: { insight: Insight; issue: numb
   const image = insight.coverImage;
 
   return (
-    <LeadAperture labelledBy="lead-heading" className="lead-track bg-canvas">
+    <LeadAperture id="lead" labelledBy="lead-heading" className="lead-track bg-canvas">
       <div
         data-aperture-stage
         className="relative h-[88svh] min-h-136 overflow-hidden text-white lg:sticky lg:top-0 lg:h-svh"

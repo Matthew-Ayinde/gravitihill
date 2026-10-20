@@ -1,7 +1,6 @@
 import Image from "next/image";
 import skyline from "@/public/images/practice-business-advisory.jpg";
 import { HeadlineReveal } from "@/components/motion/HeadlineReveal";
-import { Parallax } from "@/components/motion/Parallax";
 import { Reveal } from "@/components/motion/Reveal";
 import { LeaderRow } from "@/components/sections/LeaderRow";
 import { initials } from "@/components/ui/PersonCard";
@@ -14,9 +13,9 @@ import { cn, indexNumber } from "@/lib/utils";
  *
  * Three beats, one section:
  *   1. The claim — headline left, supporting copy and figures right.
- *   2. The records — split rows that alternate sides. At rest the frame holds
- *      only an outlined numeral; the portrait wipes in on hover (on scroll,
- *      on touch) from the edge nearest the text.
+ *   2. The records — split rows that alternate sides. At rest the frame is
+ *      empty; the portrait wipes in on hover (on scroll, on touch) from the
+ *      edge nearest the text.
  *   3. A closing line, set against Victoria Island.
  *
  * Photography is optional on every record. Without a `photo`, each portrait
@@ -30,8 +29,9 @@ import { cn, indexNumber } from "@/lib/utils";
 export function LeadershipIndex({ team }: { team: Person[] }) {
   return (
     <section
+      id="leadership"
       aria-labelledby="leadership-heading"
-      className="bg-studio-warm text-ink"
+      className="scroll-mt-24 bg-studio-warm text-ink"
     >
       {/* ── 1. The claim ─────────────────────────────────────────────────── */}
       <div className="shell grid-12 gap-y-10 pt-section pb-16 lg:items-end lg:pb-24">
@@ -49,10 +49,10 @@ export function LeadershipIndex({ team }: { team: Person[] }) {
             id="leadership-heading"
             className="type-display mt-10 text-h2 text-ink-display sm:text-h1"
             lines={[
-              "Fifty-five years",
-              "of it. None of it",
+              "A multidisciplinary",
+          
               <span key="last" className="accent-word">
-                theoretical.
+                leadership team
               </span>,
             ]}
           />
@@ -61,17 +61,12 @@ export function LeadershipIndex({ team }: { team: Person[] }) {
         {/* Supporting copy and figures sit opposite the headline, aligned to
             its last line, so the claim fills the width without centring. */}
         <div className="col-span-12 lg:col-span-5 lg:col-start-8">
-          <Reveal delay={0.1}>
-            <p className="type-eyebrow text-green">
-              Experience that compounds.
-            </p>
-          </Reveal>
+         
 
           <Reveal delay={0.16}>
             <p className="measure-tight mt-6 text-ink-muted">
-              The people who lead the work have run agencies, consultancies and
-              group strategy functions. Nothing we advise is being tried for
-              the first time on your business.
+            Our leadership team brings experience across management consulting, corporate strategy, marketing communications, brand development and organisational transformation.
+
             </p>
           </Reveal>
 
@@ -85,12 +80,7 @@ export function LeadershipIndex({ team }: { team: Person[] }) {
                   {CUMULATIVE_YEARS}
                 </dd>
               </div>
-              <div className="flex flex-col-reverse gap-2">
-                <dt className="type-eyebrow text-ink-muted">Leaders</dt>
-                <dd className="type-display text-h2 leading-none text-ink-display">
-                  {indexNumber(team.length - 1)}
-                </dd>
-              </div>
+             
             </dl>
           </Reveal>
         </div>
@@ -111,7 +101,7 @@ export function LeadershipIndex({ team }: { team: Person[] }) {
               <LeaderRow
                 id={person.slug}
                 side={side}
-                media={<RowMedia person={person} index={i} side={side} />}
+                media={<RowMedia person={person} side={side} />}
                 summary={<RowSummary person={person} />}
                 details={
                   hasDetails ? (
@@ -161,19 +151,7 @@ export function LeadershipIndex({ team }: { team: Person[] }) {
             />
           </div>
 
-          <div className="col-span-12 lg:col-span-3 lg:col-start-10">
-            <Reveal delay={0.15}>
-              <p className="type-eyebrow space-y-2 text-ink">
-                <span className="block">People.</span>
-                <span className="block">Perspective.</span>
-                <span className="block">Lasting impact.</span>
-              </p>
-              <span
-                aria-hidden="true"
-                className="mt-6 block h-px w-16 bg-ink-muted"
-              />
-            </Reveal>
-          </div>
+       
         </div>
       </div>
     </section>
@@ -237,16 +215,14 @@ function Portrait({
 
 function RowMedia({
   person,
-  index,
   side,
 }: {
   person: Person;
-  index: number;
   side: "left" | "right";
 }) {
   return (
     <>
-      {/* At rest: an empty frame and a numeral. */}
+      {/* At rest: an empty frame. */}
       <div aria-hidden="true" className="absolute inset-0 bg-studio-warm-deep" />
 
       {/* The portrait, clipped shut until the row asks for it. */}
@@ -254,7 +230,7 @@ function RowMedia({
         <Portrait
           person={person}
           alt={person.photo?.alt ?? ""}
-          sizes="(min-width: 1024px) 50vw, 100vw"
+          sizes="(min-width: 1024px) 42vw, 100vw"
           className="lead-portrait-img"
         />
         <div aria-hidden="true" className="absolute inset-0 bg-ridge/14" />
@@ -268,20 +244,6 @@ function RowMedia({
           side === "left" ? "right-0" : "left-0",
         )}
       />
-
-      <div
-        aria-hidden="true"
-        className={cn(
-          "pointer-events-none absolute bottom-6 lg:bottom-10",
-          side === "left" ? "left-6 lg:left-10" : "right-6 lg:right-10",
-        )}
-      >
-        <Parallax range={0.12} direction="up">
-          <span className="lead-numeral type-display block text-numeral">
-            {indexNumber(index)}
-          </span>
-        </Parallax>
-      </div>
     </>
   );
 }
@@ -296,11 +258,7 @@ function RowSummary({ person }: { person: Person }) {
           beside a credential breaks at its hyphen. */}
       <Reveal className="flex items-baseline justify-between gap-8">
         <p className="type-eyebrow text-ink-muted">{person.role}</p>
-        {credential && (
-          <p className="type-eyebrow hidden max-w-64 text-right text-ink-muted sm:block">
-            {credential}
-          </p>
-        )}
+        
       </Reveal>
 
       <HeadlineReveal

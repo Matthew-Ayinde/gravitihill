@@ -8,10 +8,9 @@ import type { Img } from "@/lib/schemas";
 /**
  * /about §02 — the argument, and the object it stands next to.
  *
- * The statement breaks colour mid-line: "It is" stays in ink while "short of
- * the discipline" turns green, so the sentence changes tone exactly where it
- * turns from diagnosis to the thing being sold — at the hinge of the
- * sentence, not at a line ending.
+ * The statement breaks colour at its hinge: "Building businesses" stays in
+ * ink, and the ambition — "beyond their current limits" — turns green, so the
+ * tone changes exactly where the sentence moves from what we do to how far.
  */
 export function AboutBigPicture({ figure }: { figure?: Img }) {
   return (
@@ -21,7 +20,7 @@ export function AboutBigPicture({ figure }: { figure?: Img }) {
           <p className="type-eyebrow flex items-center gap-4 text-ink-muted">
             <span className="text-green">02</span>
             <span aria-hidden="true" className="h-px w-6 bg-rule" />
-            <span className="whitespace-nowrap">The bigger picture</span>
+            <span className="whitespace-nowrap uppercase">Our mission</span>
           </p>
         </Reveal>
 
@@ -32,16 +31,12 @@ export function AboutBigPicture({ figure }: { figure?: Img }) {
               id="about-bigger-picture"
               className="type-display text-h2 text-ink-display"
               lines={[
-                "Nigerian business",
-                "is not short of ideas.",
-                <>
-                  It is <span className="text-green">short of the discipline</span>
-                </>,
-                <span key="turns" className="text-green">
-                  that turns one into a
+                "Building businesses",
+                <span key="beyond" className="text-green">
+                  beyond their
                 </span>,
-                <span key="outcome" className="text-green">
-                  measurable outcome.
+                <span key="limits" className="text-green">
+                  current limits
                 </span>,
               ]}
             />
@@ -55,11 +50,7 @@ export function AboutBigPicture({ figure }: { figure?: Img }) {
           </div>
 
           <div className="col-span-12 lg:col-span-3">
-            <Reveal>
-              <p className="type-eyebrow text-ink-muted">
-                The gap we were built to close
-              </p>
-            </Reveal>
+         
             <Reveal delay={0.08}>
               <p className="measure-tight mt-6 text-ink-muted">
                 Graviti Hill was founded on a specific frustration. Nigerian

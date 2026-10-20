@@ -50,7 +50,7 @@ export function SectorsHero({
               aria-hidden="true"
               className="h-1.5 w-1.5 shrink-0 animate-pulse-dot rounded-full bg-current"
             />
-            Sectors
+            Perspectives
           </p>
           <p data-load className="type-eyebrow hidden text-ink-muted sm:block">
             Lagos / West Africa
@@ -66,12 +66,12 @@ export function SectorsHero({
         >
           <span data-drift="-1" className="block">
             <span data-load="mask" className="block text-ink-display">
-              Three sectors.
+              Different Categories.
             </span>
           </span>
           <span data-drift="1" className="block">
             <span data-load="mask" className="block text-ink-display">
-              Three <span className="text-green">arguments.</span>
+              One integrated view on <span className="text-green">growth.</span>
             </span>
           </span>
         </h1>

@@ -33,9 +33,10 @@ import { useReducedMotion } from "@/lib/use-reduced-motion";
  * autoToggle         pauses while <html> is overflow-locked — the splash gate
  * allowNestedScroll  scrollable panels inside the page scroll natively
  *
- * CSS `scroll-behavior: smooth` is switched off while Lenis runs (see
- * globals.css): left on, the browser re-eases every position Lenis writes,
- * which is what makes inertia scrolling feel laggy instead of smooth.
+ * <html> never carries CSS `scroll-behavior: smooth` (see globals.css): left
+ * on, the browser re-eases every position Lenis writes, and ScrollTrigger
+ * re-applies it inline after each refresh, which breaks cross-route #hash
+ * links.
  *
  * Renders nothing. Mounted once, in MotionRoot, so every route gets it.
  * prefers-reduced-motion skips it entirely — scrolling stays native and
@@ -84,8 +85,15 @@ export function SmoothScroll() {
   // By the time this runs, Next has already moved the page for the new route
   // (to the top, or back to a restored position). Snap Lenis to wherever that
   // is, so momentum left over from the previous page cannot carry the new one.
+  //
+  // Re-measure first: Lenis clamps to the scroll limit it last measured, which
+  // is still the previous page's. A cross-route #hash jump deeper than that
+  // page was tall (/services → /insights#reply) would be pulled back short.
   useEffect(() => {
-    lenisRef.current?.scrollTo(window.scrollY, { immediate: true, force: true });
+    const lenis = lenisRef.current;
+    if (!lenis) return;
+    lenis.resize();
+    lenis.scrollTo(window.scrollY, { immediate: true, force: true });
   }, [pathname]);
 
   return null;

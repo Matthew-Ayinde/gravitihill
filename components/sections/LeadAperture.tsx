@@ -33,10 +33,12 @@ import { cn } from "@/lib/utils";
 export function LeadAperture({
   children,
   className,
+  id,
   labelledBy,
 }: {
   children: ReactNode;
   className?: string;
+  id?: string;
   labelledBy?: string;
 }) {
   const ref = useRef<HTMLElement>(null);
@@ -142,7 +144,7 @@ export function LeadAperture({
   );
 
   return (
-    <section ref={ref} aria-labelledby={labelledBy} className={cn("relative", className)}>
+    <section ref={ref} id={id} aria-labelledby={labelledBy} className={cn("relative", className)}>
       {children}
     </section>
   );

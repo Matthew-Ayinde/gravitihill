@@ -9,15 +9,18 @@ import { Icon } from "@/components/icons";
 import { GrainOverlay } from "@/components/motion/GrainOverlay";
 import { EASE_BRAND } from "@/lib/motion";
 import { markHeroReady, resetHeroReady } from "@/lib/hero-gate";
+import { SPLASH_SEEN_KEY } from "@/lib/splash-session";
 import type { IconName } from "@/lib/schemas";
 
 /**
  * THE ARRIVAL — a home-route gate, not a route-agnostic loader.
  *
- * Plays on every entry into "/" — a hard load and a client-side navigation
- * back to home both count, because the brief asks for every visit, not a
- * once-per-session flag. A two-panel --ridge gate covers the viewport for a
- * fixed ~5s beat: the lockup and the positioning line settle in, the four
+ * Plays once per browser tab: the first time "/" is entered in a tab, by hard
+ * load or client-side navigation. Reloads and later visits to home in that
+ * same tab skip it; closing the tab and opening the site in a new one plays
+ * it again. The flag lives in sessionStorage (see `lib/splash-session`),
+ * which has exactly that per-tab lifetime. A two-panel --ridge gate covers the viewport for a
+ * fixed ~6s beat: the lockup and the positioning line settle in, the four
  * practices tick past as a loading manifest tracked by one accent progress
  * rule, then the panels part like doors onto the home page already painted
  * underneath.
@@ -41,7 +44,7 @@ import type { IconName } from "@/lib/schemas";
  *
  * ── Reduced motion ───────────────────────────────────────────────────────
  * Skipped outright, matching how `PageFade` treats the same signal. A forced
- * 5s block with the transforms stripped out is still a forced 5s block; the
+ * 6s block with the transforms stripped out is still a forced 6s block; the
  * honest answer for that setting is not to run it.
  *
  * ── Keyboard / assistive tech ────────────────────────────────────────────
@@ -60,18 +63,27 @@ import type { IconName } from "@/lib/schemas";
  * all (reduced motion, or not the home route).
  */
 
-const MANIFEST: { icon: IconName; label: string }[] = [
+/** Icon per practice slug. Labels are the live practice names (see layout). */
+const PRACTICE_ICONS: Record<string, IconName> = {
+  "brand-development": "brand-building",
+  "business-advisory": "strategy",
+  "executive-coaching": "executive-coaching",
+  "market-expansion": "market-expansion",
+};
+
+/** Used only if the database returns no practices. */
+const FALLBACK_MANIFEST: { icon: IconName; label: string }[] = [
   { icon: "brand-building", label: "Brand Development" },
   { icon: "strategy", label: "Business Advisory" },
-  { icon: "executive-coaching", label: "Executive Coaching" },
+  { icon: "executive-coaching", label: "Capacity Development" },
   { icon: "market-expansion", label: "Market Expansion" },
 ];
 
-const HOLD_MS = 4000; // logo, headline, manifest, progress rule fill
+const HOLD_MS = 5000; // logo, headline, manifest, progress rule fill
 const DOOR_DELAY_MS = 250; // content clears before the gate moves
 const DOOR_DURATION_MS = 650;
 const SETTLE_MS = 100;
-const TOTAL_MS = HOLD_MS + DOOR_DELAY_MS + DOOR_DURATION_MS + SETTLE_MS; // ~5s
+const TOTAL_MS = HOLD_MS + DOOR_DELAY_MS + DOOR_DURATION_MS + SETTLE_MS; // ~6s
 // Slow on purpose: this is a manifest settling into view, not a ticker.
 // It's fine if the hold ends before all four practices have had a turn.
 const TICK_MS = 1500;
@@ -80,7 +92,41 @@ const LANDMARKS = ["header", "#main", "footer"] as const;
 
 type Phase = "idle" | "hold" | "exit" | "done";
 
-export function SplashScreen() {
+/**
+ * Whether the gate should play in this page load, decided once and cached at
+ * module scope. Caching matters: Strict Mode runs the effect twice, and the
+ * first run has already written the sessionStorage flag, so re-reading it
+ * would cancel the gate it just started. Flipped to false once the gate
+ * finishes, so a client-side return to "/" doesn't replay it.
+ */
+let playThisLoad: boolean | undefined;
+
+function claimSplash(): boolean {
+  if (playThisLoad === undefined) {
+    try {
+      playThisLoad = window.sessionStorage.getItem(SPLASH_SEEN_KEY) === null;
+      window.sessionStorage.setItem(SPLASH_SEEN_KEY, "1");
+    } catch {
+      // Storage blocked (private mode, disabled cookies): play once per load.
+      playThisLoad = true;
+    }
+  }
+  return playThisLoad;
+}
+
+export function SplashScreen({
+  practices = [],
+}: {
+  /** Live practice names, in /services order — see app/layout.tsx. */
+  practices?: { slug: string; name: string }[];
+}) {
+  const manifest =
+    practices.length > 0
+      ? practices.map((p) => ({
+          icon: PRACTICE_ICONS[p.slug] ?? "strategy",
+          label: p.name,
+        }))
+      : FALLBACK_MANIFEST;
   const pathname = usePathname();
   const reduced = useReducedMotion();
   const isHome = pathname === "/";
@@ -91,7 +137,7 @@ export function SplashScreen() {
   const skipButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    if (!isHome || reduced) {
+    if (!isHome || reduced || !claimSplash()) {
       setPhase("idle");
       markHeroReady(); // no gate running — let the hero type immediately
       return;
@@ -124,6 +170,7 @@ export function SplashScreen() {
       markHeroReady(); // doors start moving — the headline can start typing
     }, HOLD_MS);
     timers.current.toDone = window.setTimeout(() => {
+      playThisLoad = false;
       setPhase("done");
       unlock();
     }, TOTAL_MS);
@@ -142,6 +189,7 @@ export function SplashScreen() {
     window.clearTimeout(timers.current.toDone);
     setPhase("exit");
     markHeroReady();
+    playThisLoad = false;
     timers.current.toDone = window.setTimeout(() => {
       setPhase("done");
       document.documentElement.style.overflow = "";
@@ -150,7 +198,7 @@ export function SplashScreen() {
     }, DOOR_DURATION_MS + 60);
   };
 
-  const active = MANIFEST[tick % MANIFEST.length];
+  const active = manifest[tick % manifest.length];
   const opening = phase === "exit";
   const showing = phase === "hold" || phase === "exit";
 
@@ -280,7 +328,7 @@ function SplashGate({
   if (!showing) return null;
 
   return (
-    <div ref={root} className="fixed inset-0 z-200" aria-label="Site introduction">
+    <div ref={root} data-splash-root className="fixed inset-0 z-200" aria-label="Site introduction">
       {/* ── Decorative: doors, mark, copy, manifest, progress ─────────── */}
       <div aria-hidden="true">
         <div
@@ -308,7 +356,7 @@ function SplashGate({
           <div className="line-mask mt-8 max-w-3xl">
             <p data-splash-line className="type-display w-xcond text-h1 text-white">
               Re-definers of <span className="accent-word-dark">Brand</span>{" "}
-              Building
+              and Business Performance
             </p>
           </div>
 

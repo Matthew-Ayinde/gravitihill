@@ -59,11 +59,18 @@ export function LeaderRow({
       id={id}
       data-side={side}
       data-revealed={revealed}
-      className="lead-row grid scroll-mt-24 border-t border-rule lg:grid-cols-2"
+      className={cn(
+        "lead-row grid scroll-mt-24 border-t border-rule",
+        side === "left" ? "lg:grid-cols-[5fr_7fr]" : "lg:grid-cols-[7fr_5fr]",
+      )}
     >
+      {/* Portrait-leaning frames so a headshot fills edge to edge and still
+          reads chest-up — a wide 3:2 crop cut everyone off at the chin. The
+          image column narrows to 5/12 at desktop to keep the square in
+          proportion with the record beside it. */}
       <div
         className={cn(
-          "relative aspect-4/5 overflow-hidden sm:aspect-3/2",
+          "relative aspect-4/5 overflow-hidden sm:aspect-4/3 lg:aspect-square",
           side === "right" && "lg:order-last",
         )}
       >

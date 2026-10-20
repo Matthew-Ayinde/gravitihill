@@ -286,34 +286,7 @@ export function DnaCarousel({
           })}
         </div>
 
-        <div className="mt-6 flex items-center justify-between lg:max-w-md">
-          <p aria-hidden="true" className="type-eyebrow tabular-nums text-ink-muted">
-            <span className="text-ink-display">{indexNumber(active)}</span>
-            <span className="mx-2">/</span>
-            {indexNumber(total - 1)}
-          </p>
-
-          {!reduced && (
-            <button
-              type="button"
-              onClick={() => setPlaying((value) => !value)}
-              className="type-eyebrow flex items-center gap-2.5 py-2 text-ink-muted transition-colors duration-300 ease-brand hover:text-ink"
-            >
-              <svg aria-hidden="true" viewBox="0 0 12 12" fill="currentColor" className="h-2.5 w-2.5">
-                {playing ? (
-                  <>
-                    <rect x="2" y="1" width="3" height="10" />
-                    <rect x="7" y="1" width="3" height="10" />
-                  </>
-                ) : (
-                  <path d="M2.5 1 11 6l-8.5 5V1Z" />
-                )}
-              </svg>
-              {playing ? "Pause" : "Play"}
-              <span className="sr-only"> rotation</span>
-            </button>
-          )}
-        </div>
+      
       </div>
 
       <div
@@ -355,11 +328,6 @@ export function DnaCarousel({
                 </span>
               </h3>
 
-              <p className="line-mask mt-6">
-                <span data-dna-line data-motion className="type-eyebrow block text-green">
-                  {item.summary}
-                </span>
-              </p>
 
               <span
                 aria-hidden="true"

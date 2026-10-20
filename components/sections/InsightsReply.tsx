@@ -30,7 +30,7 @@ export async function InsightsReply() {
   ];
 
   return (
-    <section aria-labelledby="reply-heading" className="bg-canvas py-section">
+    <section id="reply" aria-labelledby="reply-heading" className="scroll-mt-24 bg-canvas py-section">
       <div className="shell grid-12 gap-y-10">
         <p className="type-eyebrow col-span-12 text-green lg:col-span-3 lg:pt-5">Reply</p>
 

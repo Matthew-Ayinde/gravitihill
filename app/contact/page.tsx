@@ -8,6 +8,7 @@ import { ScanLine } from "@/components/motion/ScanLine";
 import { Spotlight } from "@/components/motion/Spotlight";
 import { Tilt3D } from "@/components/motion/Tilt3D";
 import { getSiteSettings, whatsappUrl } from "@/lib/settings";
+import { getEnquiryTypes } from "@/content/services";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -18,7 +19,10 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default async function ContactPage() {
-  const settings = await getSiteSettings();
+  const [settings, enquiryTypes] = await Promise.all([
+    getSiteSettings(),
+    getEnquiryTypes(),
+  ]);
   const ADDRESS = settings.address;
   const EMAIL = settings.email;
   const PHONES = settings.phones;
@@ -33,7 +37,7 @@ export default async function ContactPage() {
             Start a <span className="accent-word">conversation.</span>
           </>
         }
-        lede="Tell us the situation, not the solution you have already decided on. If we are the wrong firm for it, we will say so."
+        lede="Tell us what you want to achieve, what’s getting in the way and where you see opportunity. We’ll connect you with the right team."
       />
 
       <Section className="relative overflow-hidden pt-0">
@@ -55,7 +59,7 @@ export default async function ContactPage() {
               Send a brief
             </h2>
             <div className="mt-8">
-              <ContactForm />
+              <ContactForm enquiryTypes={enquiryTypes} />
             </div>
           </div>
 
@@ -92,14 +96,12 @@ export default async function ContactPage() {
                     aria-hidden="true"
                     className="h-1.5 w-1.5 shrink-0 animate-pulse-dot rounded-full bg-green"
                   />
-                  WhatsApp — fastest route
+                  WhatsApp
                 </span>
                 <span className="type-display mt-3 block text-h3">
                   {PHONES[0].display}
                 </span>
-                <span className="mt-2 block text-caption text-ink-muted">
-                  Opens a chat with the message prefilled.
-                </span>
+            
               </a>
             </Tilt3D>
 
@@ -116,9 +118,7 @@ export default async function ContactPage() {
                 <span className="type-display mt-3 block text-h3 wrap-break-word">
                   {EMAIL}
                 </span>
-                <span className="mt-2 block text-caption text-ink-muted">
-                  For RFPs, tender documents and attachments.
-                </span>
+              
               </a>
             </Tilt3D>
 
@@ -155,10 +155,6 @@ export default async function ContactPage() {
                 <br />
                 {ADDRESS.region}, {ADDRESS.country}
               </address>
-              <p className="mt-5 text-caption text-ink-muted">
-                Visits by appointment. Ask for the practice lead named in your
-                correspondence at reception.
-              </p>
             </Reveal>
           </div>
         </div>

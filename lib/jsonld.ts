@@ -1,5 +1,6 @@
 import { SITE } from "@/lib/site";
 import { getSiteSettings } from "@/lib/settings";
+import { getPractices } from "@/content/services";
 import type { Insight, Person, Practice } from "@/lib/schemas";
 
 /**
@@ -15,7 +16,7 @@ const ORG_ID = `${SITE.url}/#organization`;
 
 /** Organization + ProfessionalService, emitted once sitewide from the layout. */
 export async function organizationJsonLd(): Promise<Node> {
-  const settings = await getSiteSettings();
+  const [settings, practices] = await Promise.all([getSiteSettings(), getPractices()]);
   const postalAddress: Node = {
     "@type": "PostalAddress",
     streetAddress: settings.address.street,
@@ -41,12 +42,7 @@ export async function organizationJsonLd(): Promise<Node> {
       { "@type": "Country", name: "Nigeria" },
       { "@type": "Place", name: "West Africa" },
     ],
-    knowsAbout: [
-      "Brand Development",
-      "Business Advisory",
-      "Executive Coaching",
-      "Market Expansion",
-    ],
+    knowsAbout: practices.map((practice) => practice.name),
     sameAs: [settings.linkedin],
   };
 }

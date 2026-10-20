@@ -46,13 +46,11 @@ export async function SiteFooter() {
         <HeadlineReveal
           as="p"
           className="type-display max-w-4xl text-h1"
-          lines={["Re-definers of", "Brand Building."]}
+          lines={["Re-definers of", "Brand and Business", "Performance."]}
         />
 
-        <div className="mt-14 flex flex-wrap items-center justify-between gap-8 border-rule-dark pt-10">
-          <p className="measure-tight text-white/65">
-            Let&rsquo;s talk about the outcome you&rsquo;re trying to reach.
-          </p>
+        <div className="mt-14 flex flex-wrap items-center justify-end gap-8 border-rule-dark pt-10">
+        
           <Magnetic strength={0.3}>
             <Link
               href="/contact"

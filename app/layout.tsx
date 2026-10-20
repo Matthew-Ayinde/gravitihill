@@ -10,7 +10,10 @@ import { SplashScreen } from "@/components/motion/SplashScreen";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { organizationJsonLd } from "@/lib/jsonld";
 import { getHomeHeroMedia } from "@/lib/home-hero";
-import { SITE } from "@/lib/site";
+import { SITE, buildNav } from "@/lib/site";
+import { getPractices } from "@/content/services";
+import { getSectors } from "@/content/sectors";
+import { SPLASH_BOOT } from "@/lib/splash-session";
 
 /**
  * Archivo carries both a weight axis (100-900) and a width axis (62-125), so a
@@ -69,14 +72,23 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     );
   }
 
-  const [orgJsonLd, homeHero] = await Promise.all([organizationJsonLd(), getHomeHeroMedia()]);
+  const [orgJsonLd, homeHero, practices, sectors] = await Promise.all([
+    organizationJsonLd(),
+    getHomeHeroMedia(),
+    getPractices(),
+    getSectors(),
+  ]);
+  // Only slug + name cross into the client header/splash, not whole documents.
+  const practiceNames = practices.map(({ slug, name }) => ({ slug, name }));
+  const sectorNames = sectors.map(({ slug, name }) => ({ slug, name }));
 
   return (
-    // suppressHydrationWarning: MOTION_BOOT adds an attribute before React
+    // suppressHydrationWarning: MOTION_BOOT / SPLASH_BOOT add attributes before React
     // hydrates. It covers <html>'s own attributes only, not its children.
     <html lang="en" className={`${archivo.variable} h-full`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: MOTION_BOOT }} />
+        <script dangerouslySetInnerHTML={{ __html: SPLASH_BOOT }} />
       </head>
       <body className="flex min-h-full flex-col">
         {/* Organization + ProfessionalService, emitted once for every route. */}
@@ -96,13 +108,16 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                 down — the same way DARK_HERO_ROUTES flags a fully-dark page
                 like /the-naked-board, just resolved from data instead of a
                 hardcoded list. */}
-            <SiteHeader homeHeroHasMedia={homeHero.items.length > 0} />
+            <SiteHeader
+              homeHeroHasMedia={homeHero.items.length > 0}
+              nav={buildNav({ practices: practiceNames, sectors: sectorNames })}
+            />
             <PageFade>{children}</PageFade>
             <SiteFooter />
             {/* Sibling of PageFade, not a descendant: see SplashScreen's
                 header comment for why it can't live inside the tilted
                 page wrapper. */}
-            <SplashScreen />
+            <SplashScreen practices={practiceNames} />
           </MotionRoot>
         </div>
       </body>

@@ -10,7 +10,7 @@ import { Lockup } from "@/components/ui/Lockup";
 import { ButtonLink } from "@/components/ui/Button";
 import { Entrance } from "@/components/motion/Entrance";
 import { Magnetic } from "@/components/motion/Magnetic";
-import { NAV } from "@/lib/site";
+import { NAV, type NavItem } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 /** Routes whose hero sits on --ridge, so the unscrolled nav must run white. */
@@ -20,16 +20,20 @@ const SOLIDIFY_AT = 80;
 
 export function SiteHeader({
   homeHeroHasMedia = false,
+  nav = NAV,
 }: {
   /** Whether the "/" hero currently has an admin-set background — see app/layout.tsx. */
   homeHeroHasMedia?: boolean;
+  /** NAV with live practice and sector names — see `buildNav` in lib/site.ts. */
+  nav?: NavItem[];
 }) {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
-  const [servicesOpen, setServicesOpen] = useState(false);
+  /** href of the top-level item whose dropdown panel is open, if any. */
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const reduced = useReducedMotion();
-  const servicesRef = useRef<HTMLDivElement>(null);
+  const openItem = nav.find((item) => item.href === openMenu && item.children);
 
   const onDarkHero =
     DARK_HERO_ROUTES.includes(pathname) || (pathname === "/" && homeHeroHasMedia);
@@ -46,14 +50,14 @@ export function SiteHeader({
   // Close everything on navigation.
   useEffect(() => {
     setMobileOpen(false);
-    setServicesOpen(false);
+    setOpenMenu(null);
   }, [pathname]);
 
   // Escape closes whichever layer is open.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      setServicesOpen(false);
+      setOpenMenu(null);
       setMobileOpen(false);
     };
     window.addEventListener("keydown", onKey);
@@ -74,13 +78,36 @@ export function SiteHeader({
     [pathname],
   );
 
+  // A child link into a section of the page already open (/about#leadership
+  // from /about) does not change the pathname, so the effect above never
+  // fires. Close the overlay here, then scroll once its page lock is lifted —
+  // while <html> is overflow-locked the smooth scroller is paused and would
+  // drop the anchor jump.
+  const onMobileChild = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+      setMobileOpen(false);
+      const [path, hash] = href.split("#");
+      if (!hash || path !== pathname) return;
+      e.preventDefault();
+      window.history.replaceState(null, "", href);
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() =>
+          document
+            .getElementById(hash)
+            ?.scrollIntoView({ behavior: reduced ? "auto" : "smooth" }),
+        ),
+      );
+    },
+    [pathname, reduced],
+  );
+
   return (
     <header
       className={cn(
         "fixed inset-x-0 top-0 z-50 transition-colors duration-300 ease-brand",
         solid ? "bg-canvas border-b border-rule" : "bg-transparent",
       )}
-      onMouseLeave={() => setServicesOpen(false)}
+      onMouseLeave={() => setOpenMenu(null)}
     >
       {/* The header persists across routes, so its entrance plays once per
           hard load — as the splash doors part on "/", immediately elsewhere. */}
@@ -92,18 +119,19 @@ export function SiteHeader({
         {/* ── Desktop navigation ─────────────────────────────────────────── */}
         <nav aria-label="Primary" className="hidden lg:block">
           <ul className="flex items-center gap-9">
-            {NAV.map((item) =>
+            {nav.map((item) =>
               item.children ? (
                 <li
                   key={item.href}
                   data-load
-                  onMouseEnter={() => setServicesOpen(true)}
+                  onMouseEnter={() => setOpenMenu(item.href)}
                 >
                   <Link
                     href={item.href}
                     aria-current={isActive(item.href) ? "page" : undefined}
-                    aria-expanded={servicesOpen}
-                    onFocus={() => setServicesOpen(true)}
+                    aria-expanded={openMenu === item.href}
+                    aria-controls="nav-panel"
+                    onFocus={() => setOpenMenu(item.href)}
                     className={cn(
                       "type-eyebrow py-2",
                       light ? "text-white" : "text-ink",
@@ -115,10 +143,15 @@ export function SiteHeader({
                   </Link>
                 </li>
               ) : (
-                <li key={item.href} data-load>
+                <li
+                  key={item.href}
+                  data-load
+                  onMouseEnter={() => setOpenMenu(null)}
+                >
                   <Link
                     href={item.href}
                     aria-current={isActive(item.href) ? "page" : undefined}
+                    onFocus={() => setOpenMenu(null)}
                     className={cn(
                       "type-eyebrow py-2",
                       light ? "text-white" : "text-ink",
@@ -131,7 +164,7 @@ export function SiteHeader({
                 </li>
               ),
             )}
-            <li data-load>
+            <li data-load onMouseEnter={() => setOpenMenu(null)}>
               <Magnetic strength={0.3}>
                 <ButtonLink
                   href="/contact"
@@ -172,45 +205,57 @@ export function SiteHeader({
         </button>
       </Entrance>
 
-      {/* ── Services panel ───────────────────────────────────────────────── */}
+      {/* ── Dropdown panel: one shared surface, content follows the item ── */}
       <div
-        ref={servicesRef}
+        id="nav-panel"
         className={cn(
           "border-t border-rule bg-canvas",
-          servicesOpen ? "hidden lg:block" : "hidden",
+          openItem ? "hidden lg:block" : "hidden",
         )}
       >
-        <div className="shell grid-12 py-10">
-          <p className="type-eyebrow col-span-3 text-ink-muted">
-            <span className="text-green">04</span>
-            <span aria-hidden="true" className="mx-2">
-              —
-            </span>
-            Practices
-          </p>
-          <ul className="col-span-9 grid grid-cols-2 gap-x-10">
-            {NAV.find((n) => n.children)?.children?.map((child, i) => (
-              <li key={child.href} className={cn(i > 1 && "mt-px")}>
-                <Link
-                  href={child.href}
-                  className="group flex items-baseline gap-4 border-t border-rule py-5 transition-colors duration-200 hover:bg-canvas-alt"
-                >
-                  <span className="type-eyebrow text-ink-muted">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span>
-                    <span className="type-subhead block text-h3">
-                      {child.label}
+        {openItem?.children && (
+          <div className="shell grid-12 py-10">
+            <p className="type-eyebrow col-span-3 text-ink-muted">
+              <span className="text-green">
+                {String(openItem.children.length).padStart(2, "0")}
+              </span>
+              <span aria-hidden="true" className="mx-2">
+                —
+              </span>
+              {openItem.panelLabel ?? openItem.label}
+            </p>
+            <ul
+              className={cn(
+                "col-span-9 grid gap-x-10",
+                openItem.children.length % 3 === 0
+                  ? "grid-cols-3"
+                  : "grid-cols-2",
+              )}
+            >
+              {openItem.children.map((child, i) => (
+                <li key={child.href}>
+                  <Link
+                    href={child.href}
+                    onClick={() => setOpenMenu(null)}
+                    className="group flex items-baseline gap-4 border-t border-rule py-5 transition-colors duration-200 hover:bg-canvas-alt"
+                  >
+                    <span className="type-eyebrow text-ink-muted">
+                      {String(i + 1).padStart(2, "0")}
                     </span>
-                    <span className="mt-1 block text-caption text-ink-muted">
-                      {child.note}
+                    <span>
+                      <span className="type-subhead block text-h3">
+                        {child.label}
+                      </span>
+                      <span className="mt-1 block text-caption text-ink-muted">
+                        {child.note}
+                      </span>
                     </span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* ── Mobile overlay ───────────────────────────────────────────────── */}
@@ -221,7 +266,7 @@ export function SiteHeader({
         >
           <nav aria-label="Primary mobile" className="shell py-10">
             <MobileNavList reduced={reduced}>
-              {NAV.map((item, i) => (
+              {nav.map((item, i) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
@@ -239,6 +284,7 @@ export function SiteHeader({
                         <li key={child.href}>
                           <Link
                             href={child.href}
+                            onClick={(e) => onMobileChild(e, child.href)}
                             className="type-eyebrow text-ink-muted link-draw"
                           >
                             {child.label}

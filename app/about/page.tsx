@@ -43,8 +43,8 @@ export default async function AboutPage() {
       <LeadershipIndex team={team} />
 
       <CtaPanel
-        eyebrow="Next"
-        heading="Bring us the problem you have been deferring."
+        eyebrow={null}
+        heading="Let’s discuss the business challenge you need to solve."
       />
     </>
   );

@@ -102,13 +102,30 @@ export const sectorSchema = z.object({
   /** The line that carries the sector. Renders at display scale. */
   proposition: z.string().min(1),
   thesis: z.array(z.string().min(1)).min(1),
+  /** Headed points for the "Our point of view" section. Falls back to thesis[1..] when absent. */
+  position: z.array(z.object({ name: z.string(), note: z.string() })).optional(),
   approach: z
     .array(z.object({ name: z.string(), note: z.string(), icon: iconNameSchema }))
-    .length(3),
+    .min(2)
+    .max(3),
   differentiators: z
     .array(z.object({ name: z.string(), note: z.string() }))
     .min(1),
   image: imageSchema.optional(),
+  /* Optional per-sector overrides for the detail page. Absent → shared defaults. */
+  approachHeading: z.string().optional(),
+  differenceHeading: z.string().optional(),
+  /** When present, replaces the differentiator cards with a ruled list. */
+  differencePoints: z.array(z.string()).optional(),
+  practicesHeading: z.string().optional(),
+  /** Sector-specific practice lines; `name` holds the practice slug. */
+  practiceNotes: z.array(z.object({ name: z.string(), note: z.string() })).optional(),
+  hidePractices: z.boolean().optional(),
+  /** Bullets for the pinned Sectors panel. Absent → the approach names. */
+  panelPoints: z.array(z.string()).optional(),
+  ctaHeading: z.string().optional(),
+  ctaBody: z.string().optional(),
+  ctaLabel: z.string().optional(),
 });
 export type Sector = z.infer<typeof sectorSchema>;
 

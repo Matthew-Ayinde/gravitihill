@@ -109,7 +109,7 @@ export default async function Home() {
             className="type-display col-span-12 text-hero lg:col-span-9"
             segments={[
               {
-                text: "We build and sustain ",
+                text: "We build and sustain",
                 className: hasHeroMedia ? "hero-outline" : "hero-outline-light",
               },
               {
@@ -125,55 +125,16 @@ export default async function Home() {
             ]}
           />
 
-          {/* Evidence in the margin rather than a label above the headline. */}
-          <dl className="col-span-12 self-end lg:col-span-2 lg:col-start-11">
-            {about.facts.map((fact) => (
-              <div
-                key={fact.label}
-                data-load
-                className={cn(
-                  "border-t py-2.5",
-                  hasHeroMedia ? "border-rule-dark" : "border-rule",
-                )}
-              >
-                <dt
-                  className={cn(
-                    "type-eyebrow",
-                    hasHeroMedia ? "text-white/60" : "text-ink-muted",
-                  )}
-                >
-                  {fact.label}
-                </dt>
-                <dd className="type-subhead text-body-lg">{fact.value}</dd>
-              </div>
-            ))}
-          </dl>
         </Tilt3D>
 
         <div className="shell mt-16 lg:mt-0">
           <div
             data-load
             className={cn(
-              "grid-12 gap-y-8 border-t pt-9",
+              "grid-12 gap-y-8 pt-9",
               hasHeroMedia ? "border-rule-dark" : "border-rule",
             )}
           >
-            <p
-              className={cn(
-                "measure col-span-12 text-body-lg lg:col-span-6",
-                hasHeroMedia && "text-white/85",
-              )}
-            >
-              Founded in Lagos to close the distance between a good idea
-              and a measurable outcome. Brand and advisory, run by one team.
-            </p>
-            {/* <div className="col-span-12 lg:col-span-4 lg:col-start-9 lg:justify-self-end">
-              <Magnetic strength={0.35}>
-                <ButtonLink href="/contact" tone={hasHeroMedia ? "dark" : "light"}>
-                  Start a conversation
-                </ButtonLink>
-              </Magnetic>
-            </div> */}
           </div>
         </div>
 

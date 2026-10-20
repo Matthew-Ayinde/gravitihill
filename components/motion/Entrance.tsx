@@ -11,6 +11,7 @@ import {
   LOAD_Y,
 } from "@/lib/motion";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
+import { whenInView } from "@/lib/when-in-view";
 
 /**
  * The on-load entrance: composes the first screen of a page in reading order.
@@ -37,6 +38,10 @@ import { useReducedMotion } from "@/lib/use-reduced-motion";
  * it plays in view rather than behind the gate. The check is deferred a frame
  * because SplashScreen re-arms the gate in its own effect, which runs after
  * this one.
+ *
+ * ── Waits to be seen ─────────────────────────────────────────────────────
+ * A page opened at a deep link (/about#leadership) lands below its hero, so
+ * the sequence also holds until the block is on screen (lib/when-in-view).
  *
  * Reduced motion: nothing is held and nothing moves.
  */
@@ -98,22 +103,27 @@ export function Entrance({
       });
 
       let unsubscribe: (() => void) | undefined;
+      let stopWatching: (() => void) | undefined;
+      const release = () => {
+        stopWatching = whenInView(root, play);
+      };
       const frame = requestAnimationFrame(() => {
         if (getHeroReadySnapshot()) {
-          play();
+          release();
           return;
         }
         unsubscribe = subscribeHeroReady(() => {
           if (!getHeroReadySnapshot()) return;
           unsubscribe?.();
           unsubscribe = undefined;
-          play();
+          release();
         });
       });
 
       return () => {
         cancelAnimationFrame(frame);
         unsubscribe?.();
+        stopWatching?.();
       };
     },
     { dependencies: [reduced, delay], scope: ref },

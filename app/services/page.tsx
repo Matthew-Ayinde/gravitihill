@@ -6,12 +6,21 @@ import { Section, SectionLabel, SectionLabelInline } from "@/components/ui/Secti
 import { getPractices } from "@/content/services";
 import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = pageMetadata({
-  title: "Services",
-  description:
-    "Four practices — Brand Development, Business Advisory, Executive Coaching and Market Expansion — staffed from one bench in Lagos.",
-  path: "/services",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const practices = await getPractices();
+  return pageMetadata({
+    title: "Services",
+    description: `${practices.length} practices (${listNames(practices.map((p) => p.name))}) staffed from one bench in Lagos.`,
+    path: "/services",
+  });
+}
+
+/** "A, B, C and D" */
+function listNames(names: string[]): string {
+  return names.length < 2
+    ? names.join("")
+    : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
 
 export default async function ServicesPage() {
   const practices = await getPractices();

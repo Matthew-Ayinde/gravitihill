@@ -18,13 +18,13 @@ import type { Pillar } from "@/lib/schemas";
  */
 export function AboutDna({ pillars }: { pillars: Pillar[] }) {
   return (
-    <Studio surface="deep" labelledBy="dna-heading">
+    <Studio surface="deep" id="strategic-dna" labelledBy="dna-heading" className="scroll-mt-24">
       <div className="shell">
         <Reveal>
           <p className="type-eyebrow flex items-center gap-4 text-ink-muted">
             <span className="text-green">03</span>
             <span aria-hidden="true" className="h-px w-6 bg-rule" />
-            <span className="whitespace-nowrap">Brand DNA</span>
+            <span className="whitespace-nowrap">Corporate DNA</span>
           </p>
         </Reveal>
 
@@ -36,10 +36,9 @@ export function AboutDna({ pillars }: { pillars: Pillar[] }) {
                 id="dna-heading"
                 className="type-display text-h2 text-ink-display"
                 lines={[
-                  "Four commitments",
-                  "the work is measured",
+                  "Principles that shape our",
                   <span key="against" className="text-green">
-                    against.
+                    work.
                   </span>,
                 ]}
               />

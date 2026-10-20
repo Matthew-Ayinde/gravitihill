@@ -23,11 +23,17 @@ import { cn } from "@/lib/utils";
 export async function CtaPanel({
   eyebrow = "Start",
   heading = "Start a conversation.",
+  lede,
+  routesLabel,
   className,
   intense = false,
 }: {
-  eyebrow?: string;
+  /** Pass `null` to omit the eyebrow; the heading keeps its column. */
+  eyebrow?: string | null;
   heading?: string;
+  lede?: string;
+  /** Optional lead-in set above the contact routes. */
+  routesLabel?: string;
   className?: string;
   intense?: boolean;
 }) {
@@ -74,21 +80,23 @@ export async function CtaPanel({
       )}
 
       <div className="shell grid-12 relative z-10 gap-y-12">
-        <div className="col-span-12 lg:col-span-3">
-          <p
-            className={cn(
-              "type-eyebrow text-accent",
-              intense && "flex items-center gap-2.5",
-            )}
-          >
-            {intense && (
-              <span
-                aria-hidden="true"
-                className="h-1.5 w-1.5 shrink-0 animate-pulse-dot rounded-full bg-current"
-              />
-            )}
-            {eyebrow}
-          </p>
+        <div className={cn("col-span-12 lg:col-span-3", !eyebrow && "hidden lg:block")}>
+          {eyebrow && (
+            <p
+              className={cn(
+                "type-eyebrow text-accent",
+                intense && "flex items-center gap-2.5",
+              )}
+            >
+              {intense && (
+                <span
+                  aria-hidden="true"
+                  className="h-1.5 w-1.5 shrink-0 animate-pulse-dot rounded-full bg-current"
+                />
+              )}
+              {eyebrow}
+            </p>
+          )}
         </div>
 
         <div className="col-span-12 lg:col-span-9">
@@ -96,7 +104,17 @@ export async function CtaPanel({
             {heading}
           </Reveal>
 
-          <ul className="mt-14">
+          {lede && (
+            <Reveal as="p" className="measure mt-6 text-body-lg text-white/70">
+              {lede}
+            </Reveal>
+          )}
+
+          {routesLabel && (
+            <p className="type-subhead mt-12 text-h3 text-white">{routesLabel}</p>
+          )}
+
+          <ul className={routesLabel ? "mt-6" : "mt-14"}>
             {routes.map((route) => (
               <li key={route.label}>
                 {route.external ? (
@@ -161,13 +179,7 @@ function RouteRow({
       )}
       <span className="type-eyebrow w-32 shrink-0 text-white/45">{label}</span>
       <span className="type-display flex-1 text-h3 text-white">{value}</span>
-      <span className="text-caption text-white/45">{note}</span>
-      <span
-        aria-hidden="true"
-        className="type-subhead hidden text-white/45 transition-transform duration-200 ease-brand group-hover:translate-x-1 sm:block"
-      >
-        →
-      </span>
+  
     </>
   );
 }
