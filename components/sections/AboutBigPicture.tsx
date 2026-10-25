@@ -52,20 +52,8 @@ export function AboutBigPicture({ figure }: { figure?: Img }) {
           <div className="col-span-12 lg:col-span-3">
          
             <Reveal delay={0.08}>
-              <p className="measure-tight mt-6 text-ink-muted">
-                Graviti Hill was founded on a specific frustration. Nigerian
-                business is not short of ideas. It is short of the discipline
-                that turns an idea into a measurable outcome, and the gap
-                between the two had become the most expensive thing in the
-                room.
-              </p>
-            </Reveal>
-            <Reveal delay={0.14}>
-              <p className="measure-tight mt-5 text-ink-muted">
-                Creative thinking and commercial impact were being run as
-                separate conversations by separate people, usually in separate
-                buildings. The strategy deck said one thing, the operating
-                model permitted another, and the brand promised a third.
+              <p className="measure-tight mt-20 text-ink-muted">
+               To help businesses and brands outgrow their limitations by building the strategy, capability, culture and execution discipline they need to adapt, scale and lead their markets.
               </p>
             </Reveal>
           </div>
