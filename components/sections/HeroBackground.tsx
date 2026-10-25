@@ -8,6 +8,7 @@ import { useAmbientPlaybackAllowed } from "@/components/ui/AmbientVideo";
 import { EASE_BRAND } from "@/lib/motion";
 import type { Img } from "@/lib/schemas";
 import { releaseVideoElement } from "@/lib/utils";
+import { setHeroSlide } from "@/lib/hero-slide";
 
 /**
  * The home hero's optional background: one static slide, or several
@@ -67,6 +68,13 @@ export function HeroBackground({ items }: { items: Img[] }) {
     },
     { dependencies: [reduced], scope: ref },
   );
+
+  // Publish the active slide so HeroCopy can swap the foreground text in
+  // step; reset on unmount so a return visit starts on the headline.
+  useEffect(() => {
+    setHeroSlide(active);
+  }, [active]);
+  useEffect(() => () => setHeroSlide(0), []);
 
   useEffect(() => {
     if (reduced || items.length < 2) return;

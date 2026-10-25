@@ -7,12 +7,12 @@ import { SocialWall } from "@/components/sections/SocialWall";
 import { CtaPanel } from "@/components/sections/CtaPanel";
 import { PreviewRows } from "@/components/sections/PreviewRows";
 import { HeroBackground } from "@/components/sections/HeroBackground";
+import { HeroCopy, type HeroQuote } from "@/components/sections/HeroCopy";
 import { Section, SectionLabel, SectionLabelInline } from "@/components/ui/Section";
 import { EditorialImage } from "@/components/ui/EditorialImage";
 import { ButtonLink } from "@/components/ui/Button";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Entrance } from "@/components/motion/Entrance";
-import { TypedHeadline } from "@/components/motion/TypedHeadline";
 import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { Marquee } from "@/components/motion/Marquee";
@@ -38,6 +38,18 @@ export const metadata: Metadata = {
   description: SITE.description,
   alternates: { canonical: "/" },
 };
+
+/** Shown over the 2nd and 3rd hero background slides, in that order. */
+const HERO_QUOTES: HeroQuote[] = [
+  {
+    text: "There’s no shortage of remarkable ideas, what’s missing is the will to execute them.",
+    author: "Seth Godin",
+  },
+  {
+    text: "The two most fundamental strategic choices are deciding where to play and how to win.",
+    author: "Roger Martin",
+  },
+];
 
 export default async function Home() {
   const [about, dnaPillars, insights, nakedBoard, hero, practices, sectors] =
@@ -105,15 +117,16 @@ export default async function Home() {
           scale={1}
           className="shell grid-12 gap-y-12"
         >
-          <TypedHeadline
-            className="type-display col-span-12 text-hero lg:col-span-9"
+          <HeroCopy
+            headlineClassName="type-display text-hero"
+            quotes={hasHeroMedia ? HERO_QUOTES : []}
             segments={[
               {
                 text: "We build and sustain",
                 className: hasHeroMedia ? "hero-outline" : "hero-outline-light",
               },
               {
-                text: "future-forward",
+                text: " future-forward",
                 className: hasHeroMedia
                   ? "accent-word-outline-dark"
                   : "accent-word-outline",

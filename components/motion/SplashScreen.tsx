@@ -356,7 +356,7 @@ function SplashGate({
           <div className="line-mask mt-8 max-w-3xl">
             <p data-splash-line className="type-display w-xcond text-h1 text-white">
               Re-definers of <span className="accent-word-dark">Brand</span>{" "}
-              and Business Performance
+              <span className="accent-word-dark">and Business Performance </span>
             </p>
           </div>
 
