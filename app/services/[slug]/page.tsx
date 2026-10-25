@@ -68,10 +68,6 @@ export default async function PracticePage({
         eyebrow={`Services / ${practice.name}`}
         title={practice.name}
         lede={practice.proposition}
-        index={[
-          { label: "Services", value: String(practice.offerings.length) },
-          { label: "Sectors", value: String(sectors.length) },
-        ]}
       />
 
       <div className="shell relative">

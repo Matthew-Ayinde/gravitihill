@@ -66,7 +66,7 @@ const PRACTICE_NOTES: Record<string, string> = {
 };
 
 const SECTOR_NOTES: Record<string, string> = {
-  consumer: "From passive consumers to raving fans",
+  consumer: "From consumer understanding to lasting brand loyalty",
   b2b: "Lead generation built on advisory",
   technology: "Brand building powered by tech",
 };

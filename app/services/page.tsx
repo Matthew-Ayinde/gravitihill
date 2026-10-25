@@ -24,10 +24,6 @@ function listNames(names: string[]): string {
 
 export default async function ServicesPage() {
   const practices = await getPractices();
-  const totalOfferings = practices.reduce(
-    (sum, practice) => sum + practice.offerings.length,
-    0,
-  );
 
   const stageItems: PracticeStageItem[] = practices.map((practice) => ({
     slug: practice.slug,
@@ -52,11 +48,6 @@ export default async function ServicesPage() {
           </>
         }
         lede="Brand work here interrogates the process that fulfils the promise. Advisory work interrogates what the market has been told to expect. Both are staffed by the same people, which is the point."
-        index={[
-          { label: "Practices", value: String(practices.length) },
-          { label: "Services", value: String(totalOfferings) },
-          { label: "Sectors", value: "3" },
-        ]}
       />
 
       <Section>
