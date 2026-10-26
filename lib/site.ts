@@ -71,6 +71,8 @@ const SECTOR_NOTES: Record<string, string> = {
   technology: "Brand building powered by tech",
 };
 
+
+
 export const NAV: NavItem[] = [
   {
     label: "Services",
