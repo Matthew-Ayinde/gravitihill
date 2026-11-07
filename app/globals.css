@@ -728,6 +728,45 @@
 }
 
 /* ============================================================================
+   THE GAP — /about §01
+   ----------------------------------------------------------------------------
+   Pairs with <GapCrossing>. The dashed route is revealed by a solid stroke in
+   its mask drawing from 1 to 0 dashoffset; the landing point settles once the
+   route arrives. The cliffs fade out at the foot of the drawing so the rock
+   sinks into the floor rather than ending on a cut line. Reduced motion: the
+   global rule collapses both animations to their end state.
+   ========================================================================== */
+
+.gap-figure {
+  mask-image: linear-gradient(to bottom, #000 72%, transparent);
+}
+
+.gap-route {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: gap-route-draw 2.4s var(--ease-out-expo) 0.6s both;
+}
+
+.gap-landing {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: gap-landing-in 0.5s var(--ease-out-expo) 2.4s both;
+}
+
+@keyframes gap-route-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes gap-landing-in {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+/* ============================================================================
    SECTORS HERO — /sectors
    ----------------------------------------------------------------------------
    Pairs with <SectorsHero> (markup) and <SectorsHeroScene> (load, scroll and

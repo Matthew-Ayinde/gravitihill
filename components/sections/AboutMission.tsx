@@ -1,5 +1,6 @@
 import { Studio } from "@/components/sections/Studio";
 import { Entrance } from "@/components/motion/Entrance";
+import { GapCrossing } from "@/components/sections/GapCrossing";
 
 /**
  * /about §01 — the mission statement, standing in the studio.
@@ -8,22 +9,19 @@ import { Entrance } from "@/components/motion/Entrance";
  * client island for the room. No content crosses to the browser that the
  * server has not already rendered.
  *
- * ── Why the <h1> is here and not in a shared hero ────────────────────────
- * The route's h1 is the statement itself, set flat at display scale.
+ * ── The statement is drawn, not set ──────────────────────────────────────
+ * The route's h1 is the statement itself, kept sr-only; what the eye gets is
+ * <GapCrossing> — two cliffs and the dashed route across the gap between
+ * them. The cliffs replace the studio's wedge, so the room is built without
+ * `hill`: one piece of terrain per page.
  *
  * ── On load ──────────────────────────────────────────────────────────────
- * <Entrance> composes the section in reading order: the index, the statement
- * wiping up, then the right column line by line.
- *
- * ── The colour break is the emphasis ─────────────────────────────────────
- * "Founded 2022," lands in --ink, the rest in --green: the sentence changes
- * colour at its turn. That replaces the accent-word device used elsewhere on
- * the site — at this scale an underline or a highlighted word would be
- * noise, and the tonal break does the same job with more authority.
+ * <Entrance> composes the section in reading order: the index, the drawing
+ * rising in (its route then draws itself), then the right column.
  */
 export function AboutMission() {
   return (
-    <Studio hill id="mission" labelledBy="about-mission">
+    <Studio id="mission" labelledBy="about-mission">
       <Entrance className="shell grid-12 items-start gap-y-14" delay={0.15}>
         {/* Left margin: the section's index, as editorial furniture. */}
         <div className="col-span-12 lg:col-span-2">
@@ -33,16 +31,16 @@ export function AboutMission() {
            </p>
         </div>
 
-        {/* The statement. */}
+        {/* The statement, drawn: two cliffs and the route across the gap.
+            The sentence stays as the route's h1 for readers and search; the
+            figure says it to everyone else. */}
         <div className="col-span-12 lg:col-span-7">
-          <h1
-            data-load="mask"
-            id="about-mission"
-            className="type-display text-hero"
-          >
-            <span className="block text-ink-display">Building businesses,</span>
-            <span className="block text-green">beyond their current limit</span>
+          <h1 id="about-mission" className="sr-only">
+            Building businesses, beyond their current limit
           </h1>
+          <div data-load>
+            <GapCrossing className="gap-figure block h-auto w-full" />
+          </div>
         </div>
 
         {/* Right column: tight, quiet, deliberately narrow. */}
