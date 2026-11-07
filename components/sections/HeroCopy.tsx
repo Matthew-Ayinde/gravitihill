@@ -61,7 +61,7 @@ export function HeroCopy({
           )}
         >
           <blockquote className="type-display max-w-[22ch] text-h1 text-white">
-            <p>&ldquo;{quote.text}&rdquo;</p>
+            <p>{quote.text}</p>
           </blockquote>
           <figcaption className="type-eyebrow mt-8 text-accent">
             {quote.author}

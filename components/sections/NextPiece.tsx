@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { FitImage, ImageBackdrop } from "@/components/ui/FitImage";
 import { BloomCard } from "@/components/motion/BloomCard";
 import type { Insight } from "@/lib/schemas";
 import { editorialDate } from "@/lib/utils";
@@ -32,28 +32,12 @@ export function NextPiece({ next, also }: { next: Insight; also?: Insight }) {
           {/* A faint monochrome print of the photograph sits under the bloom,
               so the resting card has texture and a hint of what it holds. */}
           {image && (
-            <div aria-hidden="true" className="absolute inset-0 -z-20 opacity-15 grayscale">
-              <Image
-                src={image.src}
-                alt=""
-                fill
-                sizes="(min-width: 1440px) 1296px, 100vw"
-                className="object-cover"
-              />
-            </div>
+            <ImageBackdrop image={image} sizes="(min-width: 1440px) 1296px, 100vw" className="-z-20 opacity-15 grayscale" />
           )}
           {image && (
             <div data-bloom-media aria-hidden="true" className="absolute inset-0 -z-10">
-              <Image
-                src={image.src}
-                alt=""
-                fill
-                sizes="(min-width: 1440px) 1296px, 100vw"
-                className="object-cover"
-                {...(image.blurDataURL
-                  ? { placeholder: "blur" as const, blurDataURL: image.blurDataURL }
-                  : {})}
-              />
+              {/* Whole, over a blurred fill of itself — never cropped. */}
+              <FitImage image={image} alt="" sizes="(min-width: 1440px) 1296px, 100vw" />
               <div className="absolute inset-0 bg-ridge/20" />
               <div className="absolute inset-0 bg-linear-to-t from-abyss via-abyss/60 to-abyss/20" />
             </div>

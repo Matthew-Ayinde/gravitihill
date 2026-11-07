@@ -40,8 +40,8 @@ export async function InsightsReply() {
             id="reply-heading"
             className="type-display max-w-[20ch] text-h1 text-ink-display"
             segments={[
-              { text: "Think one of these gets your market wrong? " },
-              { text: "Tell us where.", className: "text-green" },
+              { text: "Have a different perspective? " },
+              { text: "Share it with us.", className: "text-green" },
             ]}
           />
 

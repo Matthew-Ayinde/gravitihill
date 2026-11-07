@@ -3,7 +3,9 @@ import { PageHero } from "@/components/sections/PageHero";
 import { CtaPanel } from "@/components/sections/CtaPanel";
 import { PracticeStage, type PracticeStageItem } from "@/components/sections/PracticeStage";
 import { Section, SectionLabel, SectionLabelInline } from "@/components/ui/Section";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { getPractices } from "@/content/services";
+import { serviceJsonLd } from "@/lib/jsonld";
 import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -29,7 +31,6 @@ export default async function ServicesPage() {
     slug: practice.slug,
     name: practice.name,
     proposition: practice.proposition,
-    href: `/services/${practice.slug}`,
     offerings: practice.offerings.map((offering) => ({
       name: offering.name,
       icon: offering.icon,
@@ -39,15 +40,16 @@ export default async function ServicesPage() {
 
   return (
     <>
+      <JsonLd data={practices.map(serviceJsonLd)} />
       <PageHero
         eyebrow="Services"
         title={
           <>
-            Four practices,{" "}
-            <span className="accent-word">one bench.</span>
+            Business growth demands more than{" "}
+            <span className="accent-word">one discipline.</span>
           </>
         }
-        lede="Brand work here interrogates the process that fulfils the promise. Advisory work interrogates what the market has been told to expect. Both are staffed by the same people, which is the point."
+        lede="Growth stalls when business strategy and brand promise move in different directions. Our practices work as one to turn ambition into measurable performance."
       />
 
       <Section>
@@ -65,7 +67,7 @@ export default async function ServicesPage() {
 
       <CtaPanel
         eyebrow="Engage"
-        heading="Tell us which of the four you think you need."
+        heading="Tell us about your business challenge."
         intense
       />
     </>

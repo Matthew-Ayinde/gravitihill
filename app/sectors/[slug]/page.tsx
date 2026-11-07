@@ -217,7 +217,7 @@ export default async function SectorPage({
                 {practices.map((practice) => (
                   <li key={practice.slug}>
                     <Link
-                      href={`/services/${practice.slug}`}
+                      href={`/services#${practice.slug}`}
                       className="group relative flex flex-col gap-2 border-b border-rule py-8 transition-colors duration-200 hover:bg-canvas sm:flex-row sm:items-baseline sm:gap-10"
                     >
                       <span

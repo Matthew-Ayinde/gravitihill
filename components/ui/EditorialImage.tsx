@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { AmbientVideo } from "@/components/ui/AmbientVideo";
+import { FitImage } from "@/components/ui/FitImage";
 import { ParallaxFrame } from "@/components/ui/ParallaxFrame";
 import type { Img } from "@/lib/schemas";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,8 @@ export function EditorialImage({
   sizes = "(min-width: 1024px) 50vw, 100vw",
   priority = false,
   ratio = "3:2",
+  still = false,
+  fit = false,
 }: {
   image?: Img;
   /** Shown on the plate when no image exists, and as a figcaption when one does. */
@@ -44,6 +47,17 @@ export function EditorialImage({
   sizes?: string;
   priority?: boolean;
   ratio?: Img["ratio"];
+  /**
+   * Skips ParallaxFrame, whose 1.15 overscan crops the edges, for artwork
+   * already composed to the frame that should be seen whole.
+   */
+  still?: boolean;
+  /**
+   * Shows the whole image inside the frame, over a blurred fill of itself,
+   * instead of cropping it to the ratio — for editor uploads such as insight
+   * covers, which are often composed artwork. Implies `still`.
+   */
+  fit?: boolean;
 }) {
   const effectiveRatio = image?.ratio ?? ratio;
 
@@ -79,31 +93,50 @@ export function EditorialImage({
         {/* The image drifts within this frame as it crosses the viewport —
             see ParallaxFrame. The overlay below is a sibling, not a child of
             it, so the tint stays fixed while the photograph moves under it. */}
-        <ParallaxFrame>
-          {image.video ? (
-            // Ambient motion, if this record carries any. Falls back to the
-            // still under reduced motion or a metered connection — see
-            // AmbientVideo.
-            <AmbientVideo
-              image={{ ...image, video: image.video }}
-              sizes={sizes}
-              priority={priority}
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-          ) : (
-            <Image
-              src={image.src}
-              alt={image.alt}
-              fill
-              sizes={sizes}
-              priority={priority}
-              className="object-cover"
-              {...(image.blurDataURL
-                ? { placeholder: "blur" as const, blurDataURL: image.blurDataURL }
-                : {})}
-            />
-          )}
-        </ParallaxFrame>
+        {fit ? (
+          <FitImage image={image} sizes={sizes} priority={priority} />
+        ) : still ? (
+          <Image
+            src={image.src}
+            alt={image.alt}
+            fill
+            sizes={sizes}
+            priority={priority}
+            className="object-cover"
+            {...(image.blurDataURL
+              ? { placeholder: "blur" as const, blurDataURL: image.blurDataURL }
+              : {})}
+          />
+        ) : (
+          <ParallaxFrame>
+            {image.video ? (
+              // Ambient motion, if this record carries any. Falls back to the
+              // still under reduced motion or a metered connection — see
+              // AmbientVideo.
+              <AmbientVideo
+                image={{ ...image, video: image.video }}
+                sizes={sizes}
+                priority={priority}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : (
+              <Image
+                src={image.src}
+                alt={image.alt}
+                fill
+                sizes={sizes}
+                priority={priority}
+                className="object-cover"
+                {...(image.blurDataURL
+                  ? {
+                      placeholder: "blur" as const,
+                      blurDataURL: image.blurDataURL,
+                    }
+                  : {})}
+              />
+            )}
+          </ParallaxFrame>
+        )}
         {/* Consistent grade across a mismatched library. */}
         <div
           aria-hidden="true"

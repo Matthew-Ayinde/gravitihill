@@ -84,7 +84,7 @@ export function serviceJsonLd(practice: Practice): Node {
   return {
     "@context": "https://schema.org",
     "@type": "Service",
-    "@id": `${SITE.url}/services/${practice.slug}#service`,
+    "@id": `${SITE.url}/services#${practice.slug}`,
     name: practice.name,
     description: practice.proposition,
     serviceType: practice.name,

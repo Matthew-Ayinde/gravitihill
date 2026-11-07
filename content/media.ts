@@ -33,31 +33,31 @@ import { z } from "zod";
 const media = {
   "practice-brand-development": {
     src: "/images/practice-brand-development.jpg",
-    alt: "A high-rise on Ikoyi Road, Lagos, with a large brand billboard mounted on the facade.",
+    alt: "Silhouetted executives in session around a boardroom table, set against a green disc and city towers.",
     ratio: "3:2",
     blurDataURL:
-      "data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAALABADASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAABQT/xAAfEAACAQQCAwAAAAAAAAAAAAABAhEAAyExBAUSFEH/xAAUAQEAAAAAAAAAAAAAAAAAAAAB/8QAFxEBAAMAAAAAAAAAAAAAAAAAABESIf/aAAwDAQACEQMRAD8AadllgDEA7or3LFm7JcZwc7oziEsjKxLKfjGam7BVRR4qBmNUW2A//9k=",
+      "data:image/jpeg;base64,/9j/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wAARCAALABADASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABAIF/8QAIhAAAgIBAwQDAAAAAAAAAAAAAQIDBAUAERMSIjFRBiFB/8QAFQEBAQAAAAAAAAAAAAAAAAAAAgP/xAAYEQADAQEAAAAAAAAAAAAAAAAAARICIv/aAAwDAQACEQMRAD8AHnr8lq7IpldoIz2hj9Aa0MLn3x+Ns878pR0EYY7npIPj340T5TSrw2bHHEF6I912/O7U3KsEeNmdIlDGWIE7e1OhM9E5lvR//9k=",
   },
   "practice-business-advisory": {
     src: "/images/practice-business-advisory.jpg",
-    alt: "Aerial view of Victoria Island, Lagos, showing the commercial district and the lagoon front.",
+    alt: "A hand with a pen tracing a printed green bar chart on a desk, glasses beside it.",
     ratio: "3:2",
     blurDataURL:
-      "data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAALABADASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABAMG/8QAHxAAAgIBBAMAAAAAAAAAAAAAAQIDEQAEBRIhMVGB/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABURAQEAAAAAAAAAAAAAAAAAAAAB/9oADAMBAAIRAxEAPwBK73qBFzXTgjvvuj9xcW6SvHfGIP6BNZm9bIyzMimlrwMnDI4YUxxB/9k=",
+      "data:image/jpeg;base64,/9j/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wAARCAALABADASIAAhEBAxEB/8QAFwAAAwEAAAAAAAAAAAAAAAAAAwQFBv/EACAQAAIBBAIDAQAAAAAAAAAAAAECAwAEERIFIRMxQZH/xAAVAQEBAAAAAAAAAAAAAAAAAAABAv/EABcRAAMBAAAAAAAAAAAAAAAAAAAREiH/2gAMAwEAAhEDEQA/AJ9haSJesrY8intQM5H0itavKmDj1Bj1eOPJBPf5TS2lvsH8Kb+847oskEMkerxIyj4RRGsqsR//2Q==",
   },
   "practice-executive-coaching": {
     src: "/images/practice-executive-coaching.jpg",
-    alt: "Delegates seated around a boardroom table during a working session in Africa.",
+    alt: "Several hands in dark suits holding a white cog together over a boardroom floor.",
     ratio: "3:2",
     blurDataURL:
-      "data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAALABADASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABQEC/8QAHxAAAgEEAgMAAAAAAAAAAAAAAQIDABESISIxBBRx/8QAFAEBAAAAAAAAAAAAAAAAAAAAAf/EABYRAAMAAAAAAAAAAAAAAAAAAAABEv/aAAwDAQACEQMRAD8AP9uEMgmichmAFh3W3ngiZlKmMomRyOj8t3Q8k8rycnY4njvqp5Du+OTE6ts0Shpn/9k=",
+      "data:image/jpeg;base64,/9j/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wAARCAALABADASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABQEC/8QAIxAAAgECBgIDAAAAAAAAAAAAAQMCBAUAERITIUEGIjFRcf/EABQBAQAAAAAAAAAAAAAAAAAAAAP/xAAZEQADAAMAAAAAAAAAAAAAAAAAAhEBISL/2gAMAwEAAhEDEQA/AJY5uvVAxNe2bVUyydtZ0zZ0Mz3xxnjd2slFTW9L9Qp0wUSYNOucT8cDjPAvi9U9d0gYNkCZZE9kAcD8wlfqlzwqTp6zvyX7AH1+sDltwdV5p//Z",
   },
   "practice-market-expansion": {
     src: "/images/practice-market-expansion.jpg",
-    alt: "A bulk carrier alongside gantry cranes at Apapa Port, Lagos.",
+    alt: "Two hands meeting in a handshake, overlaid with a city skyline and business people in silhouette.",
     ratio: "3:2",
     blurDataURL:
-      "data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAALABADASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAQIE/8QAHxABAAEEAQUAAAAAAAAAAAAAAQMAAhEhBQQSMUFR/8QAFAEBAAAAAAAAAAAAAAAAAAAAAf/EABURAQEAAAAAAAAAAAAAAAAAAAAR/9oADAMBAAIRAxEAPwCXmJe7B0sgfclNnKyOroJATes1j8OqbLlHL7pFf//Z",
+      "data:image/jpeg;base64,/9j/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wAARCAALABADASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAgUG/8QAIBAAAgIBBAMBAAAAAAAAAAAAAQIDBAAFERITITFRIv/EABUBAQEAAAAAAAAAAAAAAAAAAAAB/8QAGBEAAwEBAAAAAAAAAAAAAAAAABESIUH/2gAMAwEAAhEDEQA/ANDQ1OVljW1B0lx+XcFQ2C3q8jGVKlYzGMEuyeeIyr1RzpwmRXX4w3wrXhqR9deNY197KPZ+5dpjJXT/2Q==",
   },
   "sector-consumer": {
     src: "/images/sector-consumer.jpg",
@@ -122,31 +122,31 @@ export const MEDIA = z.record(z.string(), imageSchema).parse(media) as Record<
 export const MEDIA_CREDITS = [
   {
     key: "practice-brand-development",
-    title: "High rise building in Ikoyi road.jpg",
-    author: "Johnbrainyvisuals (Ogedengbe Tobi John)",
-    license: "CC BY-SA 4.0",
-    source: "https://commons.wikimedia.org/wiki/File:High_rise_building_in_Ikoyi_road.jpg",
+    title: "Client-supplied practice cover",
+    author: "Graviti Hill",
+    license: "Supplied by client; confirm stock licence before launch",
+    source: "",
   },
   {
     key: "practice-business-advisory",
-    title: "Aerial view of victoria island in Lagos, Nigeria with habours for yatches.jpg",
-    author: "Ayorinde Ogundele",
-    license: "CC BY-SA 4.0",
-    source: "https://commons.wikimedia.org/wiki/File:Aerial_view_of_victoria_island_in_Lagos,_Nigeria_with_habours_for_yatches.jpg",
+    title: "Client-supplied practice cover",
+    author: "Graviti Hill",
+    license: "Supplied by client; confirm stock licence before launch",
+    source: "",
   },
   {
     key: "practice-executive-coaching",
-    title: "The Economics of Gum Arabic in Africa (27 April 2018) (27016087757).jpg",
-    author: "UNCTAD",
-    license: "CC BY-SA 2.0",
-    source: "https://commons.wikimedia.org/wiki/File:The_Economics_of_Gum_Arabic_in_Africa_(27_April_2018)_(27016087757).jpg",
+    title: "Client-supplied practice cover",
+    author: "Graviti Hill",
+    license: "Supplied by client; confirm stock licence before launch",
+    source: "",
   },
   {
     key: "practice-market-expansion",
-    title: "Apapa port.lagos.jpg",
-    author: "Quadrex24",
-    license: "CC BY-SA 4.0",
-    source: "https://commons.wikimedia.org/wiki/File:Apapa_port.lagos.jpg",
+    title: "Client-supplied practice cover",
+    author: "Graviti Hill",
+    license: "Supplied by client; confirm stock licence before launch",
+    source: "",
   },
   {
     key: "sector-consumer",

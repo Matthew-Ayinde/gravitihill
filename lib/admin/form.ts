@@ -51,6 +51,11 @@ export function zipNoteRows(
     .filter((row) => row.name && row.note);
 }
 
+function positiveInt(value: string): number | undefined {
+  const n = Number.parseInt(value, 10);
+  return Number.isFinite(n) && n > 0 ? n : undefined;
+}
+
 /** Reads a MediaPicker's hidden inputs back into an `Img`, or undefined if nothing was selected. */
 export function getImg(formData: FormData, field: string): Img | undefined {
   const src = str(formData, `${field}.src`);
@@ -63,6 +68,8 @@ export function getImg(formData: FormData, field: string): Img | undefined {
     alt: str(formData, `${field}.alt`),
     ratio: ratio === "4:5" ? "4:5" : "3:2",
     blurDataURL: optionalStr(formData, `${field}.blurDataURL`),
+    width: positiveInt(str(formData, `${field}.width`)),
+    height: positiveInt(str(formData, `${field}.height`)),
     video: mp4 || webm ? { mp4, webm } : undefined,
   };
 }

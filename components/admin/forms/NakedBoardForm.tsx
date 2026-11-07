@@ -30,7 +30,7 @@ export function NakedBoardForm({ board }: { board?: NakedBoard }) {
       </FieldGroup>
 
       <FieldGroup legend="Who it is for">
-        <RepeatableStrings name="audience" label="Audience situations" initial={board?.audience ?? [""]} />
+        <RepeatableStrings name="audience" label="Development outcomes" initial={board?.audience ?? [""]} />
       </FieldGroup>
 
       <TextAreaField label="Commitment" name="commitment" required rows={2} defaultValue={board?.commitment} />

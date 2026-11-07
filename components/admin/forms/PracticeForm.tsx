@@ -30,7 +30,7 @@ export function PracticeForm({
           label="Slug"
           name="slug"
           required
-          hint="Used in the URL — /services/[slug]"
+          hint="Used as the anchor — /services#[slug]"
           defaultValue={practice?.slug}
           pattern="[a-z0-9-]+"
         />

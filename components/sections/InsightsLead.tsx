@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { LeadAperture } from "@/components/sections/LeadAperture";
 import { AmbientVideo } from "@/components/ui/AmbientVideo";
+import { FitImage, ImageBackdrop } from "@/components/ui/FitImage";
 import type { Insight } from "@/lib/schemas";
 import { editorialDate, indexNumber } from "@/lib/utils";
 
@@ -37,16 +37,7 @@ export function InsightsLead({ insight, issue }: { insight: Insight; issue: numb
                   className="absolute inset-0 h-full w-full object-cover"
                 />
               ) : (
-                <Image
-                  src={image.src}
-                  alt={image.alt}
-                  fill
-                  sizes="100vw"
-                  className="object-cover"
-                  {...(image.blurDataURL
-                    ? { placeholder: "blur" as const, blurDataURL: image.blurDataURL }
-                    : {})}
-                />
+                <ImageBackdrop image={image} sizes="100vw" />
               )
             ) : (
               <span
@@ -57,6 +48,13 @@ export function InsightsLead({ insight, issue }: { insight: Insight; issue: numb
               </span>
             )}
           </div>
+          {/* The cover itself sits outside the zooming, leaning media layer:
+              only its blurred fill moves, so the image is always seen whole. */}
+          {image && !image.video && (
+            <div className="absolute inset-0">
+              <FitImage image={image} sizes="100vw" backdrop={false} />
+            </div>
+          )}
           <div aria-hidden="true" className="absolute inset-0 bg-ridge/10" />
           {/* Legibility only — it exists for the copy, so on desktop it
               arrives with the copy as the aperture opens. */}

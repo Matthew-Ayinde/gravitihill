@@ -2,33 +2,56 @@
 
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
-import { insightSchema, type Insight } from "@/lib/schemas";
+import { articleBlockSchema, insightSchema, type Insight } from "@/lib/schemas";
 import { upsertInsight, deleteInsight } from "@/lib/repositories/insights";
 import { requireSession } from "@/lib/auth";
 import { getImg, str } from "@/lib/admin/form";
 import type { ActionState } from "@/components/admin/StatusBanner";
 
-function zipBody(formData: FormData): Insight["body"] {
-  const types = formData.getAll("body.type").map(String);
-  const texts = formData.getAll("body.text").map(String);
-  const items = formData.getAll("body.items").map(String);
+/**
+ * BlockEditor submits the body as one JSON field. Each block is validated
+ * against the schema, trimmed, and dropped if it says nothing — except image
+ * blocks, which are kept even when empty: an empty one is a deliberate slot.
+ * Returns null when the field is not valid JSON at all.
+ */
+function parseBody(formData: FormData): Insight["body"] | null {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(str(formData, "body") || "[]");
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(raw)) return null;
 
-  return types
-    .map((type, i) => {
-      if (type === "list") {
-        const list = (items[i] ?? "")
-          .split("\n")
-          .map((s) => s.trim())
-          .filter(Boolean);
-        return list.length > 0 ? { type: "list" as const, items: list } : null;
+  const blocks: Insight["body"] = [];
+  for (const item of raw) {
+    const parsed = articleBlockSchema.safeParse(item);
+    if (!parsed.success) continue;
+    const block = parsed.data;
+    switch (block.type) {
+      case "list": {
+        const items = block.items.map((s) => s.trim()).filter(Boolean);
+        if (items.length > 0) blocks.push({ ...block, items });
+        break;
       }
-      const text = (texts[i] ?? "").trim();
-      if (!text) return null;
-      if (type === "h2") return { type: "h2" as const, text };
-      if (type === "quote") return { type: "quote" as const, text };
-      return { type: "p" as const, text };
-    })
-    .filter((block): block is NonNullable<typeof block> => block !== null);
+      case "image":
+        blocks.push({ ...block, alt: block.alt.trim(), caption: block.caption?.trim() || undefined });
+        break;
+      case "divider":
+        blocks.push(block);
+        break;
+      case "quote": {
+        const text = block.text.trim();
+        if (text) blocks.push({ ...block, text, cite: block.cite?.trim() || undefined });
+        break;
+      }
+      default: {
+        const text = block.text.trim();
+        if (text) blocks.push({ ...block, text });
+      }
+    }
+  }
+  return blocks;
 }
 
 export async function saveInsightAction(
@@ -37,6 +60,9 @@ export async function saveInsightAction(
   formData: FormData,
 ): Promise<ActionState> {
   await requireSession();
+
+  const body = parseBody(formData);
+  if (!body) return { ok: false, message: "The article body could not be read. Reload and try again." };
 
   const parsed = insightSchema.safeParse({
     slug: str(formData, "slug"),
@@ -48,7 +74,7 @@ export async function saveInsightAction(
     readingTime: Number(str(formData, "readingTime")),
     coverImage: getImg(formData, "coverImage"),
     placeholderBody: formData.get("placeholderBody") === "on",
-    body: zipBody(formData),
+    body,
   });
 
   if (!parsed.success) {

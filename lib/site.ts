@@ -44,34 +44,14 @@ export const LINKEDIN = "https://www.linkedin.com/company/graviti-hill";
  * it depends on the live phone list, not this file.
  */
 
-export type NavChild = { label: string; href: string; note: string };
+export type NavChild = { label: string; href: string };
 export type NavItem = {
   label: string;
   href: string;
-  /** Eyebrow in the left margin of the item's dropdown panel. */
-  panelLabel?: string;
+  /** Eyebrow in the left margin of the item's dropdown panel; `false` omits it. */
+  panelLabel?: string | false;
   children?: NavChild[];
 };
-
-/**
- * Dropdown notes for each practice and sector, keyed by slug. The *names* are
- * admin-editable and come from the database (see `buildNav`), so the
- * dropdowns always match what /services and /sectors show.
- */
-const PRACTICE_NOTES: Record<string, string> = {
-  "brand-development": "Experience, engagement and reputation",
-  "business-advisory": "Strategy, structure and transformation",
-  "executive-coaching": "Delivered through The Naked Board",
-  "market-expansion": "Entry, diligence and stakeholder mapping",
-};
-
-const SECTOR_NOTES: Record<string, string> = {
-  consumer: "From consumer understanding to lasting brand loyalty",
-  b2b: "Lead generation built on advisory",
-  technology: "Brand building powered by tech",
-};
-
-
 
 export const NAV: NavItem[] = [
   {
@@ -81,23 +61,19 @@ export const NAV: NavItem[] = [
     children: [
       {
         label: "Brand Development",
-        href: "/services/brand-development",
-        note: PRACTICE_NOTES["brand-development"],
+        href: "/services#brand-development",
       },
       {
         label: "Business Advisory",
-        href: "/services/business-advisory",
-        note: PRACTICE_NOTES["business-advisory"],
+        href: "/services#business-advisory",
       },
       {
         label: "Capacity Development",
-        href: "/services/executive-coaching",
-        note: PRACTICE_NOTES["executive-coaching"],
+        href: "/services#capacity-development",
       },
       {
         label: "Market Expansion",
-        href: "/services/market-expansion",
-        note: PRACTICE_NOTES["market-expansion"],
+        href: "/services#market-expansion",
       },
     ],
   },
@@ -109,39 +85,25 @@ export const NAV: NavItem[] = [
       {
         label: "B2C",
         href: "/sectors/consumer",
-        note: SECTOR_NOTES.consumer,
       },
       {
         label: "B2B",
         href: "/sectors/b2b",
-        note: SECTOR_NOTES.b2b,
       },
       {
         label: "Technology",
         href: "/sectors/technology",
-        note: SECTOR_NOTES.technology,
       },
     ],
   },
   {
     label: "Insights",
     href: "/insights",
-    panelLabel: "The desk",
+    panelLabel: false,
     children: [
       {
-        label: "The lead",
-        href: "/insights#lead",
-        note: "The newest piece, in full",
-      },
-      {
-        label: "The archive",
-        href: "/insights#archive",
-        note: "Every earlier piece, filterable by subject",
-      },
-      {
-        label: "Reply",
-        href: "/insights#reply",
-        note: "Respond to a piece we have published",
+        label: "Latest Insights",
+        href: "/insights",
       },
     ],
   },
@@ -153,17 +115,14 @@ export const NAV: NavItem[] = [
       {
         label: "Our Mission",
         href: "/about#mission",
-        note: "Why we were founded, and the gap we close",
       },
       {
         label: "Our Strategic DNA",
         href: "/about#strategic-dna",
-        note: "Four commitments the work is measured against",
       },
       {
         label: "Leadership",
         href: "/about#leadership",
-        note: "Fifty-five years of cumulative experience",
       },
     ],
   },
@@ -184,9 +143,11 @@ export function buildNav({
   practices: NamedEntry[];
   sectors: NamedEntry[];
 }): NavItem[] {
-  const live: Record<string, { base: string; entries: NamedEntry[]; notes: Record<string, string> }> = {
-    "/services": { base: "/services", entries: practices, notes: PRACTICE_NOTES },
-    "/sectors": { base: "/sectors", entries: sectors, notes: SECTOR_NOTES },
+  // Practices have no detail pages, so their links are anchors on /services;
+  // sectors still have their own routes.
+  const live: Record<string, { base: string; entries: NamedEntry[] }> = {
+    "/services": { base: "/services#", entries: practices },
+    "/sectors": { base: "/sectors/", entries: sectors },
   };
   return NAV.map((item) => {
     const source = live[item.href];
@@ -195,8 +156,7 @@ export function buildNav({
       ...item,
       children: source.entries.map((entry) => ({
         label: entry.name,
-        href: `${source.base}/${entry.slug}`,
-        note: source.notes[entry.slug] ?? "",
+        href: `${source.base}${entry.slug}`,
       })),
     };
   });

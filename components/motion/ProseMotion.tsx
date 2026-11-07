@@ -103,18 +103,29 @@ export function ProseMotion({ children }: { children: ReactNode }) {
             );
         });
 
-        // Lists: each item's tick draws, then its line follows.
+        // Lists: each item's tick draws (or its numeral lands), then its line follows.
         all("[data-prose-list]").forEach((list) => {
           const items = all("li", list);
-          gsap
-            .timeline({ scrollTrigger: once(list, "top 85%") })
-            .fromTo(
-              items.map((item) => item.querySelector("[data-item-tick]")),
+          const ticks = all("[data-item-tick]", list);
+          const nums = all("[data-item-num]", list);
+          const tl = gsap.timeline({ scrollTrigger: once(list, "top 85%") });
+          if (ticks.length > 0) {
+            tl.fromTo(
+              ticks,
               { scaleX: 0 },
               { scaleX: 1, duration: 0.7, stagger: 0.12, ease: EASE_3D },
               0,
-            )
-            .fromTo(
+            );
+          }
+          if (nums.length > 0) {
+            tl.fromTo(
+              nums,
+              { opacity: 0, y: 8 },
+              { opacity: 1, y: 0, duration: 0.6, stagger: 0.12, ease: EASE_BRAND, clearProps: "transform" },
+              0,
+            );
+          }
+          tl.fromTo(
               items.map((item) => item.querySelector("[data-item-text]")),
               { opacity: 0, x: -10 },
               { opacity: 1, x: 0, duration: 0.7, stagger: 0.12, ease: EASE_BRAND, clearProps: "transform" },

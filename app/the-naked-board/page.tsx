@@ -62,10 +62,10 @@ export default async function NakedBoardPage() {
         <div className="shell grid-12 gap-y-8">
           <div className="col-span-12 lg:col-span-3">
             <SectionLabel index="01" tone="dark">
-              The premise
+              Executive coaching
             </SectionLabel>
             <SectionLabelInline index="01" tone="dark">
-              The premise
+              Executive coaching
             </SectionLabelInline>
           </div>
 
@@ -89,9 +89,9 @@ export default async function NakedBoardPage() {
               as="h2"
               className="type-display text-h2 text-white"
               lines={[
-                "The name is the",
+                "Development grounded in",
                 <>
-                  method<span className="accent-word-dark">.</span>
+                  real business challenges<span className="accent-word-dark">.</span>
                 </>,
               ]}
             />
@@ -106,22 +106,21 @@ export default async function NakedBoardPage() {
         </div>
       </NakedBoardField>
 
-      {/* ── The sequence ────────────────────────────────────────────────── */}
+      {/* ── Our approach ────────────────────────────────────────────────── */}
       <NakedBoardField labelledBy="sequence-heading">
         <div className="shell grid-12 gap-y-8">
           <div className="col-span-12 lg:col-span-3">
             <SectionLabel index="02" tone="dark">
-              The sequence
+              Our approach
             </SectionLabel>
             <SectionLabelInline index="02" tone="dark">
-              The sequence
+              Our approach
             </SectionLabelInline>
           </div>
 
           <div className="col-span-12 lg:col-span-9">
             <h2 id="sequence-heading" className="type-display max-w-[18ch] text-h2 text-white">
-              <CountUp value={nakedBoard.stages.length} pad={2} className="text-accent" /> stages,
-              run in order.
+              How the training is <span className="text-accent">delivered</span>.
             </h2>
 
             <NakedBoardStages stages={nakedBoard.stages} />
@@ -129,18 +128,17 @@ export default async function NakedBoardPage() {
         </div>
       </NakedBoardField>
 
-      {/* ── Who it is for — the one light band on this page ─────────────── */}
+      {/* ── Development outcomes — the one light band on this page ─────────────── */}
       <Section tone="alt" labelledBy="audience-heading">
         <div className="shell grid-12 gap-y-8">
           <div className="col-span-12 lg:col-span-3">
-            <SectionLabel index="03">Who it is for</SectionLabel>
-            <SectionLabelInline index="03">Who it is for</SectionLabelInline>
+            <SectionLabel index="03">Development outcomes</SectionLabel>
+            <SectionLabelInline index="03">Development outcomes</SectionLabelInline>
           </div>
 
           <div className="col-span-12 lg:col-span-9">
             <h2 id="audience-heading" className="type-display max-w-[20ch] text-h2">
-              <CountUp value={nakedBoard.audience.length} pad={2} className="text-green" />{" "}
-              situations this was built for.
+              What leaders take back into the <span className="text-green">organisation</span>.
             </h2>
 
             <NakedBoardAudience items={nakedBoard.audience} />
@@ -154,24 +152,14 @@ export default async function NakedBoardPage() {
       <NakedBoardField>
         <div className="shell">
           <div className="grid-12 gap-y-10">
-            <div className="col-span-12 lg:col-span-3">
-              <SectionLabel index="04" tone="dark">
-                Enrol
-              </SectionLabel>
-              <SectionLabelInline index="04" tone="dark">
-                Enrol
-              </SectionLabelInline>
-            </div>
-
-            <div className="relative col-span-12 border border-rule-dark p-8 lg:col-span-9 lg:p-14">
+            <div className="relative col-span-12 border border-rule-dark p-8 lg:col-span-9 lg:col-start-4 lg:p-14">
               <HudCorners tone="dark" />
 
               <Reveal as="h2" className="type-display max-w-[16ch] text-h2 text-white">
-                Cohorts are formed by conversation, not by application.
+                Strengthen the leadership behind business performance.
               </Reveal>
               <p className="measure mt-8 text-body-lg text-white/75">
-                Tell us the situation. If The Naked Board is the wrong instrument
-                for it, we will say so and point you at the right one.
+                Talk to us about your executive coaching needs.
               </p>
               <div className="mt-10 flex flex-wrap gap-4">
                 <Magnetic strength={0.3}>

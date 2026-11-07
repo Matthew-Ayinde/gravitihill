@@ -54,16 +54,15 @@ export function InsightsMasthead({ count }: { count: number }) {
           {count > 0 && (
             <p data-load className="type-eyebrow col-span-12 text-ink-muted lg:col-span-4">
               <span className="tabular-nums text-ink">{indexNumber(count - 1)}</span>{" "}
-              {count === 1 ? "piece" : "pieces"} on file
+              {count === 1 ? "insight" : "insights"} published
             </p>
           )}
           <p
             data-load
             className="measure-tight col-span-12 text-body-lg text-ink-muted lg:col-span-5 lg:col-start-8"
           >
-            Short, specific pieces on market entry, brand equity, transformation
-            and the boardroom, written from Lagos for businesses operating
-            across West Africa.
+            Perspectives that challenge assumptions and bring clarity to complex
+            business decisions.
           </p>
         </div>
       </Entrance>

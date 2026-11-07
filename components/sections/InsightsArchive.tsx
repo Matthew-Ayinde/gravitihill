@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { FitImage, ImageBackdrop } from "@/components/ui/FitImage";
 import { ArchiveStack, type ArchiveEntry } from "@/components/sections/ArchiveStack";
 import type { Insight } from "@/lib/schemas";
 import { editorialDate, indexNumber } from "@/lib/utils";
@@ -61,16 +61,7 @@ function ArchiveFile({ insight, issue }: { insight: Insight; issue: number }) {
       <div className="relative aspect-3/2 overflow-hidden bg-ridge lg:order-last lg:col-span-5 lg:aspect-auto">
         <div data-pan data-motion className="file-media absolute inset-0 scale-108">
           {image ? (
-            <Image
-              src={image.src}
-              alt={image.alt}
-              fill
-              sizes="(min-width: 1024px) 38vw, 100vw"
-              className="object-cover"
-              {...(image.blurDataURL
-                ? { placeholder: "blur" as const, blurDataURL: image.blurDataURL }
-                : {})}
-            />
+            <ImageBackdrop image={image} sizes="(min-width: 1024px) 38vw, 100vw" />
           ) : (
             <span
               aria-hidden="true"
@@ -80,6 +71,14 @@ function ArchiveFile({ insight, issue }: { insight: Insight; issue: number }) {
             </span>
           )}
         </div>
+        {/* Outside the panning layer, so only the fill leans — the cover stays whole. */}
+        {image && (
+          <div className="absolute inset-0 p-3 sm:p-4">
+            <div className="relative h-full w-full">
+              <FitImage image={image} sizes="(min-width: 1024px) 38vw, 100vw" backdrop={false} />
+            </div>
+          </div>
+        )}
         <div aria-hidden="true" className="absolute inset-0 bg-ridge/10" />
       </div>
 

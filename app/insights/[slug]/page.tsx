@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
+import { NaturalImage } from "@/components/ui/FitImage";
 import { ArticleHead } from "@/components/sections/ArticleHead";
 import { ArticleBody } from "@/components/sections/ArticleBody";
 import { NextPiece } from "@/components/sections/NextPiece";
@@ -83,22 +83,17 @@ export default async function InsightPage({ params }: PageProps<"/insights/[slug
 
         {cover && (
           <Develop className="shell">
-            <div className="relative aspect-3/2 overflow-hidden rounded-sm bg-canvas-alt">
-              <div data-develop-media data-motion className="absolute inset-0">
-                <Image
-                  src={cover.src}
-                  alt={cover.alt}
-                  fill
-                  loading="eager"
-                  fetchPriority="high"
-                  sizes="(min-width: 1440px) 1296px, 100vw"
-                  className="object-cover"
-                  {...(cover.blurDataURL
-                    ? { placeholder: "blur" as const, blurDataURL: cover.blurDataURL }
-                    : {})}
+            {/* Shown whole at its own proportions — covers are often composed
+                artwork with a title in them, which a crop would cut. Develop
+                settles the zoom back to 1, so the final frame is the full image. */}
+            <div className="relative mx-auto max-w-6xl overflow-hidden rounded-sm bg-canvas-alt">
+              <div data-develop-media data-motion>
+                <NaturalImage
+                  image={cover}
+                  priority
+                  sizes="(min-width: 1440px) 1152px, 100vw"
                 />
               </div>
-              <div aria-hidden="true" className="absolute inset-0 bg-ridge/8" />
             </div>
           </Develop>
         )}

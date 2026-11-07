@@ -23,7 +23,7 @@ export default async function AdminMediaPage() {
         {media.map((asset) => (
           <li key={asset.publicId} className="border border-rule p-3">
             <div className="relative aspect-3/2 w-full overflow-hidden bg-canvas-alt">
-              <Image src={asset.secureUrl} alt={asset.alt} fill sizes="240px" className="object-cover" />
+              <Image src={asset.secureUrl} alt={asset.alt} fill sizes="240px" className="object-contain" />
             </div>
 
             <form action={updateAltAction.bind(null, asset.publicId)} className="mt-3 flex gap-2">

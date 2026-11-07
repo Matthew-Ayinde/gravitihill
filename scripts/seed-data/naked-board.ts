@@ -4,46 +4,46 @@ export const SEED_NAKED_BOARD = {
   name: "The Naked Board",
   premise: "The hardest problems a board faces are the ones nobody will name in the room.",
   positioning: [
-    "The Naked Board is Graviti Hill's proprietary executive coaching platform. It exists for boardroom challenges and cultural transformation — succession, founder dependence, a culture that punishes bad news, a board that reviews rather than governs.",
-    "It runs as a structured programme with a defined sequence, not a series of one-to-one sessions booked around diaries. The name is the method: the conversation is held without the usual cover.",
+    "We recognize the critical role of leadership in driving organizational success and believe that investing in the development of executives is fundamental to achieving sustainable growth and fostering a thriving corporate culture.",
+    "Our aim is to empower your leaders with the necessary tools, knowledge, and skills to navigate the complexities of today's business landscape confidently. With this programme, your organization's leadership will be equipped to steer your business towards unprecedented success and create a culture of continuous growth and innovation.",
   ],
   stages: [
     {
       name: "Blended Learning Coaching Methods",
       icon: "executive-coaching",
       summary:
-        "Facilitated sessions, self-directed work and applied practice, sequenced across the programme rather than delivered as a workshop.",
+        "We implement a versatile approach to coaching that combines the best of traditional and contemporary methodologies, ensuring a comprehensive and holistic learning experience.",
     },
     {
       name: "Design Thinking Tools",
       icon: "innovation",
       summary:
-        "Structured tooling that moves a divided leadership team from positions to a decision, with the reasoning on record.",
+        "We equip leaders with innovative design thinking tools that encourage creative problem-solving and foster a culture of innovation and adaptability within the organization.",
     },
     {
       name: "Executive Mentoring",
       icon: "leadership",
       summary:
-        "Sustained one-to-one work with the executives carrying the mandate, running alongside the group sessions.",
+        "Offering personalized guidance and mentorship to executives, enabling them to develop essential leadership skills and cultivate a strategic mindset for achieving long-term success.",
     },
     {
       name: "Case Studies & Scenario-Based Learning",
       icon: "diagnosis",
       summary:
-        "Real cases, rehearsed under pressure, so the first time a board runs the decision is not on its own balance sheet.",
+        "We present real-world case studies and immersive scenario-based learning experiences to enhance critical thinking and decision-making abilities, preparing leaders for diverse business challenges.",
     },
     {
       name: "Industry & Subject-Matter Sharing Sessions",
       icon: "stakeholder-engagement",
       summary:
-        "Closed sessions with operators who have already handled the specific problem in front of the room.",
+        "We facilitate collaborative sharing sessions where industry experts and thought leaders provide insights and perspectives, fostering a rich learning environment and promoting knowledge exchange among executives.",
     },
   ],
   audience: [
-    "Boards and executive committees carrying a succession question they have deferred more than once.",
-    "Founder-led businesses at the point where the founder's involvement has become the constraint on growth.",
-    "Leadership teams inside a transformation where the strategy is agreed and the behaviour has not moved.",
-    "Newly constituted boards establishing how they will govern before the first difficult decision arrives.",
+    "Greater confidence in navigating complex business challenges.",
+    "Stronger critical thinking and decision-making.",
+    "Practical tools for problem-solving and innovation.",
+    "A broader leadership perspective shaped by mentoring and expert exchange.",
   ],
   commitment:
     "Programmes run over a defined term with a fixed cohort. Sessions are closed and unrecorded.",

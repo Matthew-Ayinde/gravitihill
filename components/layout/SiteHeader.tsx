@@ -78,24 +78,29 @@ export function SiteHeader({
     [pathname],
   );
 
-  // A child link into a section of the page already open (/about#leadership
-  // from /about) does not change the pathname, so the effect above never
-  // fires. Close the overlay here, then scroll once its page lock is lifted —
-  // while <html> is overflow-locked the smooth scroller is paused and would
-  // drop the anchor jump.
-  const onMobileChild = useCallback(
+  // A child link into a section of the page already open (/services#market-
+  // expansion from /services) does not change the pathname, so the effect
+  // above never fires. Close the menus here, then scroll once the mobile page
+  // lock is lifted — while <html> is overflow-locked the smooth scroller is
+  // paused and would drop the anchor jump. replaceState fires no hashchange,
+  // so one is dispatched for listeners such as PracticeStage's active row.
+  const onChildClick = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
       setMobileOpen(false);
+      setOpenMenu(null);
       const [path, hash] = href.split("#");
       if (!hash || path !== pathname) return;
       e.preventDefault();
       window.history.replaceState(null, "", href);
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
       requestAnimationFrame(() =>
-        requestAnimationFrame(() =>
-          document
-            .getElementById(hash)
-            ?.scrollIntoView({ behavior: reduced ? "auto" : "smooth" }),
-        ),
+        requestAnimationFrame(() => {
+          const target = document.getElementById(hash);
+          // Hidden below its breakpoint (PracticeStage's desktop rows) —
+          // the page's own hashchange listener scrolls the visible copy.
+          if (!target?.offsetParent) return;
+          target.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
+        }),
       );
     },
     [pathname, reduced],
@@ -215,15 +220,19 @@ export function SiteHeader({
       >
         {openItem?.children && (
           <div className="shell grid-12 py-10">
-            <p className="type-eyebrow col-span-3 text-ink-muted">
-              <span className="text-green">
-                {String(openItem.children.length).padStart(2, "0")}
-              </span>
-              <span aria-hidden="true" className="mx-2">
-                —
-              </span>
-              {openItem.panelLabel ?? openItem.label}
-            </p>
+            {openItem.panelLabel === false ? (
+              <div className="col-span-3" />
+            ) : (
+              <p className="type-eyebrow col-span-3 text-ink-muted">
+                <span className="text-green">
+                  {String(openItem.children.length).padStart(2, "0")}
+                </span>
+                <span aria-hidden="true" className="mx-2">
+                  —
+                </span>
+                {openItem.panelLabel ?? openItem.label}
+              </p>
+            )}
             <ul
               className={cn(
                 "col-span-9 grid gap-x-10",
@@ -236,19 +245,14 @@ export function SiteHeader({
                 <li key={child.href}>
                   <Link
                     href={child.href}
-                    onClick={() => setOpenMenu(null)}
+                    onClick={(e) => onChildClick(e, child.href)}
                     className="group flex items-baseline gap-4 border-t border-rule py-5 transition-colors duration-200 hover:bg-canvas-alt"
                   >
                     <span className="type-eyebrow text-ink-muted">
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <span>
-                      <span className="type-subhead block text-h3">
-                        {child.label}
-                      </span>
-                      <span className="mt-1 block text-caption text-ink-muted">
-                        {child.note}
-                      </span>
+                    <span className="type-subhead block text-h3">
+                      {child.label}
                     </span>
                   </Link>
                 </li>
@@ -284,7 +288,7 @@ export function SiteHeader({
                         <li key={child.href}>
                           <Link
                             href={child.href}
-                            onClick={(e) => onMobileChild(e, child.href)}
+                            onClick={(e) => onChildClick(e, child.href)}
                             className="type-eyebrow text-ink-muted link-draw"
                           >
                             {child.label}

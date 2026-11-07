@@ -17,7 +17,14 @@ const MAX_VIDEO_BYTES = 3 * 1024 * 1024; // mirrors app/api/admin/hero-video/rou
 type Pending = { kind: "image" | "video"; previewUrl: string; progress: number; index?: number };
 
 function assetToImg(asset: MediaAsset): Img {
-  return { src: asset.secureUrl, alt: asset.alt, ratio: asset.ratio, blurDataURL: asset.blurDataURL };
+  return {
+    src: asset.secureUrl,
+    alt: asset.alt,
+    ratio: asset.ratio,
+    blurDataURL: asset.blurDataURL,
+    width: asset.width,
+    height: asset.height,
+  };
 }
 
 async function uploadImageFile(file: File, onProgress: (percent: number) => void): Promise<MediaAsset> {
@@ -242,6 +249,8 @@ export function RepeatableHeroItems({
           <input type="hidden" name={`${field}.${i}.alt`} value={item.alt} />
           <input type="hidden" name={`${field}.${i}.ratio`} value={item.ratio} />
           <input type="hidden" name={`${field}.${i}.blurDataURL`} value={item.blurDataURL ?? ""} />
+          <input type="hidden" name={`${field}.${i}.width`} value={item.width ?? ""} />
+          <input type="hidden" name={`${field}.${i}.height`} value={item.height ?? ""} />
           {allowVideo && (
             <>
               <input type="hidden" name={`${field}.${i}.video.mp4`} value={item.video?.mp4 ?? ""} />
@@ -288,7 +297,7 @@ export function RepeatableHeroItems({
                 onClick={() => pickFromLibrary(asset)}
                 className="relative aspect-square overflow-hidden border border-rule hover:border-green disabled:opacity-40"
               >
-                <Image src={asset.secureUrl} alt={asset.alt} fill sizes="120px" className="object-cover" />
+                <Image src={asset.secureUrl} alt={asset.alt} fill sizes="120px" className="object-contain" />
               </button>
             ))}
           </div>
@@ -348,7 +357,7 @@ function SlideCard({
             className="h-full w-full object-cover"
           />
         ) : (
-          <Image src={item.src} alt={item.alt} fill sizes="240px" className="object-cover" />
+          <Image src={item.src} alt={item.alt} fill sizes="240px" className="object-contain" />
         )}
       </div>
 

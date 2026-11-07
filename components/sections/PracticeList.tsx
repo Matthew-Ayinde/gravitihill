@@ -27,7 +27,7 @@ export async function PracticeList() {
       {practices.map((practice, i) => (
         <RevealItem as="li" key={practice.slug}>
           <Link
-            href={`/services/${practice.slug}`}
+            href={`/services#${practice.slug}`}
             className="group flex flex-col gap-4 border-b border-rule py-9 transition-colors duration-200 ease-brand hover:bg-canvas-alt focus-visible:bg-canvas-alt lg:flex-row lg:items-center lg:gap-10"
           >
             {/* Half the row, fixed. The practice names must never wrap —

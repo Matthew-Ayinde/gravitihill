@@ -220,6 +220,29 @@ The public route (`generateStaticParams` still runs at build time; new slugs
 render on-demand via Next's default `dynamicParams` behaviour) and the sitemap
 pick it up with no further action.
 
+### Writing an article body
+
+`/admin/insights/[slug]` builds the body from typed blocks
+(`articleBlockSchema` in `lib/schemas.ts`): paragraph, lead, section heading
+(h2, numbered, listed in the reading guide), sub-heading (h3), pull quote,
+bullet or numbered list, image, and divider. Use the **+ Add block** rows to
+insert anywhere. Each block can be moved, duplicated, converted or removed.
+
+- **Inline formatting** in paragraphs, the lead, list items and captions:
+  `**bold**`, `*italic*`, `[label](https://…)`, via the B / I / Link buttons.
+  The parser is `lib/inline.tsx`, which needs no markdown dependency.
+- **Images** can go anywhere in the body. They are always shown whole at their
+  own proportions, never cropped (`components/ui/FitImage.tsx`). Choose
+  *Wide* for charts and infographics, *Column* to sit at the text width. An
+  image block with no image chosen is a slot and renders nothing.
+- **Import text** pastes a whole draft at once. Blank lines separate blocks;
+  `## `, `### `, `! ` (lead), `> `, `- ` / `1. ` and `---` set the type.
+
+The body submits as a single JSON field and is validated server-side against
+the same schema. Images record their pixel width/height on upload; images
+chosen before that was recorded fall back to a 3:2 / 4:5 frame, still shown
+whole, until they are re-picked.
+
 ---
 
 ## Architecture notes
@@ -343,9 +366,11 @@ the component so callers cannot crowd it.
   required) in full. Replace with commissioned or properly licensed stock
   before launch by uploading the replacements at `/admin/media` and swapping
   each `cover` / `image` / `photo` / `coverImage` field to the new asset.
-- **Article bodies are seeded.** All four carry `placeholderBody: true` and
-  render a visible notice. Titles, categories and framing are real. Toggle the
-  flag off at `/admin/insights/[slug]` once the copy is editorial.
+- **Article bodies.** *Converting China's Zero-Tariff Access into Market
+  Share* carries its published text (`scripts/seed-data/zero-tariff-article.ts`;
+  `npm run insight:zero-tariff` rewrites only that record, after backing it up
+  to `backups/`). Any other seeded pieces carry `placeholderBody: true` and
+  render a visible notice until their copy is editorial.
 - **Social wall links point at the company page**, not at individual posts.
   Replace each `href` at `/admin/social` when the wall is curated.
 - **No client logos.** `LogoWall` renders nothing until real, cleared logos

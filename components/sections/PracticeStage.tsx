@@ -1,8 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { HudCorners } from "@/components/motion/HudCorners";
 import { ScanLine } from "@/components/motion/ScanLine";
@@ -23,7 +22,6 @@ export type PracticeStageItem = {
   slug: string;
   name: string;
   proposition: string;
-  href: string;
   offerings: PracticeStageOffering[];
   cover?: Img;
 };
@@ -59,6 +57,11 @@ export type PracticeStageItem = {
  * practice already open, image inline, in normal document flow — the same
  * "a different layout, not a smaller version" rule the Sectors panel itself
  * follows.
+ *
+ * Practices have no detail pages: links elsewhere on the site point at
+ * `/services#<slug>`. Both layouts honour that hash: the desktop stage
+ * activates the matching row, and the stack scrolls its item into view, since
+ * the desktop row the browser would target is display:none below 1024px.
  */
 export function PracticeStage({ items }: { items: PracticeStageItem[] }) {
   return (
@@ -73,10 +76,37 @@ export function PracticeStage({ items }: { items: PracticeStageItem[] }) {
 
 function DesktopStage({ items }: { items: PracticeStageItem[] }) {
   const [active, setActive] = useState(0);
+  /** Set for the one render where a #hash picks the row: see the effect below. */
+  const [instant, setInstant] = useState(false);
   const total = items.length;
   const activeItem = items[active];
   const stage = useRef<HTMLDivElement>(null);
   const progress = useRef<HTMLDivElement>(null);
+
+  // A #hash activates its row with transitions off, so the rows above it
+  // collapse to their final height at once instead of over 500ms — otherwise
+  // the page reflows under the anchor and the jump lands partway into the
+  // practice. On arrival the browser has already jumped before that reflow,
+  // so the anchor is re-applied once layout settles. Same-page hash links
+  // (the nav's onChildClick) scroll themselves after this has run.
+  useEffect(() => {
+    const sync = (scroll: boolean) => {
+      const i = items.findIndex((item) => item.slug === hashSlug());
+      if (i < 0) return;
+      setInstant(true);
+      setActive(i);
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          if (scroll) document.getElementById(items[i].slug)?.scrollIntoView();
+          setInstant(false);
+        }),
+      );
+    };
+    sync(true);
+    const onHash = () => sync(false);
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, [items]);
 
   // Cover crossfade + progress rule, driven off the hovered row.
   //
@@ -116,16 +146,20 @@ function DesktopStage({ items }: { items: PracticeStageItem[] }) {
     >
       <div className="relative lg:col-span-7">
         <Spotlight tone="light" size={560} />
-        <ul className="border-t border-rule">
+        <ul
+          className={cn(
+            "border-t border-rule",
+            instant && "[&_*]:transition-none!",
+          )}
+        >
           {items.map((item, i) => {
             const isActive = i === active;
             return (
-              <li key={item.slug}>
-                <Link
-                  href={item.href}
+              <li key={item.slug} id={item.slug} className="scroll-mt-28">
+                <div
+                  tabIndex={0}
                   onMouseEnter={() => setActive(i)}
                   onFocus={() => setActive(i)}
-                  aria-current={isActive ? "true" : undefined}
                   className="group relative flex flex-col gap-5 border-b border-rule py-9 pl-7 transition-colors duration-200 ease-brand hover:bg-canvas-alt focus-visible:bg-canvas-alt"
                 >
                   <span
@@ -190,16 +224,10 @@ function DesktopStage({ items }: { items: PracticeStageItem[] }) {
                     </div>
                   </div>
 
-                  <p className="type-eyebrow flex items-center justify-between text-ink-muted">
+                  <p className="type-eyebrow text-ink-muted">
                     {item.offerings.length} services
-                    <span
-                      aria-hidden="true"
-                      className="inline-block transition-transform duration-200 ease-brand group-hover:translate-x-1"
-                    >
-                      →
-                    </span>
                   </p>
-                </Link>
+                </div>
               </li>
             );
           })}
@@ -211,7 +239,7 @@ function DesktopStage({ items }: { items: PracticeStageItem[] }) {
           <Tilt3D
             max={4}
             scale={1.015}
-            className="relative aspect-4/5 w-full overflow-hidden bg-canvas-alt"
+            className="relative aspect-3/2 w-full overflow-hidden bg-canvas-alt"
           >
             {items.map((item, i) => (
               <div
@@ -281,12 +309,25 @@ function DesktopStage({ items }: { items: PracticeStageItem[] }) {
 /* ══ Mobile & reduced motion: stacked, everything already open ═══════════ */
 
 function MobileStack({ items }: { items: PracticeStageItem[] }) {
+  useEffect(() => {
+    const sync = () => {
+      const slug = hashSlug();
+      if (!slug || document.getElementById(slug)?.offsetParent) return;
+      document
+        .querySelector(`[data-practice="${CSS.escape(slug)}"]`)
+        ?.scrollIntoView();
+    };
+    sync();
+    window.addEventListener("hashchange", sync);
+    return () => window.removeEventListener("hashchange", sync);
+  }, []);
+
   return (
     <div className="motion-safe:lg:hidden">
       <RevealGroup as="ul" className="border-t border-rule">
         {items.map((item, i) => (
           <RevealItem as="li" key={item.slug}>
-            <Link href={item.href} className="group block border-b border-rule py-10">
+            <div data-practice={item.slug} className="scroll-mt-28 border-b border-rule py-10">
               <div className="flex items-baseline gap-5">
                 <span className="type-eyebrow text-ink-muted">
                   {indexNumber(i)}
@@ -295,7 +336,7 @@ function MobileStack({ items }: { items: PracticeStageItem[] }) {
               </div>
 
               {item.cover ? (
-                <div className="relative mt-6 aspect-4/5 w-full overflow-hidden bg-canvas-alt">
+                <div className="relative mt-6 aspect-3/2 w-full overflow-hidden bg-canvas-alt">
                   <Image
                     src={item.cover.src}
                     alt={item.cover.alt}
@@ -329,14 +370,17 @@ function MobileStack({ items }: { items: PracticeStageItem[] }) {
                 ))}
               </ul>
 
-              <p className="type-eyebrow mt-6 flex items-center gap-3 text-ink-muted">
+              <p className="type-eyebrow mt-6 text-ink-muted">
                 {item.offerings.length} services
-                <span aria-hidden="true">→</span>
               </p>
-            </Link>
+            </div>
           </RevealItem>
         ))}
       </RevealGroup>
     </div>
   );
+}
+
+function hashSlug(): string {
+  return decodeURIComponent(window.location.hash.slice(1));
 }

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import skyline from "@/public/images/practice-business-advisory.jpg";
+import skyline from "@/public/images/leadership-skyline.jpg";
 import { HeadlineReveal } from "@/components/motion/HeadlineReveal";
 import { Reveal } from "@/components/motion/Reveal";
 import { LeaderRow } from "@/components/sections/LeaderRow";

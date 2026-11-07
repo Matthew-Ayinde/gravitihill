@@ -1,10 +1,11 @@
 /** Frozen snapshot of content/insights.ts — see practices.ts header for why. */
 
-type Block =
-  | { type: "p"; text: string }
-  | { type: "h2"; text: string }
-  | { type: "quote"; text: string }
-  | { type: "list"; items: string[] };
+import type { z } from "zod";
+import type { articleBlockSchema } from "@/lib/schemas";
+import { ZERO_TARIFF_BODY, ZERO_TARIFF_EXCERPT } from "./zero-tariff-article";
+
+/** Input shape: defaults such as `ordered` may be omitted. */
+type Block = z.input<typeof articleBlockSchema>;
 
 export type SeedInsight = {
   slug: string;
@@ -23,29 +24,14 @@ export const SEED_INSIGHTS: SeedInsight[] = [
   {
     slug: "converting-chinas-zero-tariff-access-into-market-share",
     title: "Converting China's Zero-Tariff Access into Market Share",
-    excerpt:
-      "Zero-tariff entry removes one barrier and exposes four others. Nigerian exporters who treat access as the strategy will find the shelf already taken.",
+    excerpt: ZERO_TARIFF_EXCERPT,
     category: "Market Expansion",
     author: "Graviti Hill",
     publishedAt: "2026-07-06",
     readingTime: 7,
     coverImageKey: "insight-zero-tariff",
-    placeholderBody: true,
-    body: [
-      { type: "p", text: "Market access is a permission, not a position. The removal of tariff lines changes the landed cost of a Nigerian product in China; it does not change whether a Chinese buyer has heard of it, trusts it, or can source it reliably at volume." },
-      { type: "h2", text: "Access is the cheapest part of the problem" },
-      { type: "p", text: "Exporters entering on a tariff advantage alone compete on price against incumbents who already hold distribution, certification and buyer relationships. The advantage is real and it is temporary — it lasts exactly as long as it takes a competitor to secure the same terms." },
-      { type: "list", items: [
-        "Certification and standards compliance, which is slower and more expensive than most forecasts assume",
-        "Cold chain and logistics reliability at the volumes a distributor will commit to",
-        "Distributor selection, where the wrong partner costs a category two years",
-        "Category education, because an unfamiliar origin carries a discount until it does not",
-      ]},
-      { type: "h2", text: "What the preparation actually involves" },
-      { type: "p", text: "The work is sequencing: diligence on partners before commitment, stakeholder mapping across the regulatory and commercial chain, and a clear reading of which policy positions are stable and which are in motion. None of it is glamorous and all of it decides the outcome." },
-      { type: "quote", text: "The exporters who convert access into share are the ones who did the diligence while the tariff conversation was still a headline." },
-      { type: "p", text: "Treat the tariff change as a window that has opened on a room you have not yet surveyed. The survey is the strategy." },
-    ],
+    placeholderBody: false,
+    body: ZERO_TARIFF_BODY,
   },
   {
     slug: "the-brand-health-check-most-boards-are-not-running",

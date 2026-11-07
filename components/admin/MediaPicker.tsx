@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { destroyRemoteVideo, uploadWithProgress } from "@/lib/admin/media-client";
@@ -36,29 +36,55 @@ export function UploadProgress({ percent }: { percent: number }) {
  * FormData carries an embeddable snapshot — the same shape content/media.ts
  * produced for the old static site. No separate join at read time.
  *
+ * Pass `onChange` (and no `field`) to use it as a controlled input instead —
+ * the BlockEditor does, since an article's image blocks are saved as part of
+ * one JSON body rather than as separate hidden fields.
+ *
+ * Previews are `object-contain`: what the admin sees is the whole image,
+ * exactly as the site will show it, never a crop.
+ *
  * `allowVideo` adds a second, optional control beneath the chosen still: an
  * ambient video upload (`${field}.video.mp4`), matching `imageSchema.video`
  * — the same enhancement AmbientVideo already renders elsewhere. It only
  * appears once a still is selected, since the still is always the poster and
  * the schema requires `src` regardless of whether a video is attached.
  */
+function assetToImg(asset: MediaAsset): Img {
+  return {
+    src: asset.secureUrl,
+    alt: asset.alt,
+    ratio: asset.ratio,
+    blurDataURL: asset.blurDataURL,
+    width: asset.width,
+    height: asset.height,
+  };
+}
+
 export function MediaPicker({
   field,
   label,
   initial,
   optional = true,
   allowVideo = false,
+  onChange,
 }: {
-  field: string;
+  /** Prefix for the hidden inputs. Omit when using `onChange` instead. */
+  field?: string;
   label: string;
   initial?: Img;
   optional?: boolean;
   allowVideo?: boolean;
+  onChange?: (image: Img | undefined) => void;
 }) {
   const [library, setLibrary] = useState<MediaAsset[]>([]);
   const [loading, setLoading] = useState(false);
   const [browsing, setBrowsing] = useState(false);
-  const [selected, setSelected] = useState<Img | undefined>(initial);
+  const altId = `${useId()}-alt`;
+  const [selected, setSelectedState] = useState<Img | undefined>(initial);
+  function setSelected(image: Img | undefined) {
+    setSelectedState(image);
+    onChange?.(image);
+  }
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
@@ -106,7 +132,7 @@ export function MediaPicker({
       }
       const asset = data as MediaAsset;
       setLibrary((lib) => [asset, ...lib]);
-      setSelected({ src: asset.secureUrl, alt: asset.alt, ratio: asset.ratio, blurDataURL: asset.blurDataURL });
+      setSelected(assetToImg(asset));
       setBrowsing(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed.");
@@ -163,15 +189,15 @@ export function MediaPicker({
       <span className="type-eyebrow mb-3 block text-ink-muted">{label}</span>
 
       {localPreview || selected ? (
-        <div className="relative aspect-3/2 w-full max-w-sm overflow-hidden border border-rule">
+        <div className="relative aspect-3/2 w-full max-w-sm overflow-hidden border border-rule bg-canvas-alt">
           {localPreview ? (
             // The file just picked, rendered from a local object URL while it
             // uploads — next/image can't optimize a blob: URI, and there's
             // nothing to fetch from Cloudinary yet.
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={localPreview} alt="" className="h-full w-full object-cover" />
+            <img src={localPreview} alt="" className="h-full w-full object-contain" />
           ) : (
-            <Image src={selected!.src} alt={selected!.alt} fill sizes="384px" className="object-cover" />
+            <Image src={selected!.src} alt={selected!.alt} fill sizes="384px" className="object-contain" />
           )}
         </div>
       ) : (
@@ -180,11 +206,17 @@ export function MediaPicker({
         </div>
       )}
 
-      <input type="hidden" name={`${field}.src`} value={selected?.src ?? ""} />
-      <input type="hidden" name={`${field}.alt`} value={selected?.alt ?? ""} />
-      <input type="hidden" name={`${field}.ratio`} value={selected?.ratio ?? "3:2"} />
-      <input type="hidden" name={`${field}.blurDataURL`} value={selected?.blurDataURL ?? ""} />
-      {allowVideo && (
+      {field && (
+        <>
+          <input type="hidden" name={`${field}.src`} value={selected?.src ?? ""} />
+          <input type="hidden" name={`${field}.alt`} value={selected?.alt ?? ""} />
+          <input type="hidden" name={`${field}.ratio`} value={selected?.ratio ?? "3:2"} />
+          <input type="hidden" name={`${field}.blurDataURL`} value={selected?.blurDataURL ?? ""} />
+          <input type="hidden" name={`${field}.width`} value={selected?.width ?? ""} />
+          <input type="hidden" name={`${field}.height`} value={selected?.height ?? ""} />
+        </>
+      )}
+      {field && allowVideo && (
         <>
           <input type="hidden" name={`${field}.video.mp4`} value={video?.mp4 ?? ""} />
           <input type="hidden" name={`${field}.video.webm`} value={video?.webm ?? ""} />
@@ -278,11 +310,11 @@ export function MediaPicker({
         <div className="mt-4 border border-rule p-4">
           <div className="mb-4 flex flex-wrap items-end gap-3 border-b border-rule pb-4">
             <div className="flex-1">
-              <label className="type-eyebrow mb-2 block text-ink-muted" htmlFor={`${field}-alt`}>
+              <label className="type-eyebrow mb-2 block text-ink-muted" htmlFor={altId}>
                 Alt text for a new upload
               </label>
               <input
-                id={`${field}-alt`}
+                id={altId}
                 value={alt}
                 onChange={(e) => setAlt(e.target.value)}
                 onKeyDown={(e) => {
@@ -324,17 +356,12 @@ export function MediaPicker({
                 key={asset.publicId}
                 type="button"
                 onClick={() => {
-                  setSelected({
-                    src: asset.secureUrl,
-                    alt: asset.alt,
-                    ratio: asset.ratio,
-                    blurDataURL: asset.blurDataURL,
-                  });
+                  setSelected(assetToImg(asset));
                   setBrowsing(false);
                 }}
-                className="relative aspect-square overflow-hidden border border-rule hover:border-green"
+                className="relative aspect-square overflow-hidden border border-rule bg-canvas-alt hover:border-green"
               >
-                <Image src={asset.secureUrl} alt={asset.alt} fill sizes="120px" className="object-cover" />
+                <Image src={asset.secureUrl} alt={asset.alt} fill sizes="120px" className="object-contain" />
               </button>
             ))}
           </div>

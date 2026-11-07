@@ -44,5 +44,13 @@ export function toImg(asset: MediaAsset): Img {
     alt: asset.alt,
     ratio: asset.ratio,
     blurDataURL: asset.blurDataURL,
+    width: asset.width,
+    height: asset.height,
   };
+}
+
+/** The library record behind an image URL, if it came from the library. */
+export async function findMediaBySrc(secureUrl: string): Promise<MediaAsset | undefined> {
+  const doc = await (await collection()).findOne({ secureUrl });
+  return doc ? strip(doc) : undefined;
 }

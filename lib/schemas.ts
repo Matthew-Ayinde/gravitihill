@@ -48,6 +48,13 @@ export const imageSchema = z.object({
   /** Base64 data URL for next/image blur placeholder. */
   blurDataURL: z.string().optional(),
   /**
+   * Intrinsic pixel size, when known. Lets a surface render the image at its
+   * own proportions — whole, never cropped — instead of forcing it into a
+   * 3:2 / 4:5 frame. Set by the media library on upload.
+   */
+  width: z.number().int().positive().optional(),
+  height: z.number().int().positive().optional(),
+  /**
    * Optional ambient motion for this slot.
    *
    * When present, EditorialImage renders a muted, looping, inline <video> and
@@ -161,6 +168,44 @@ export const insightCategorySchema = z.enum([
 ]);
 export type InsightCategory = z.infer<typeof insightCategorySchema>;
 
+/**
+ * One block of an article body, in reading order.
+ *
+ * Text in `p`, `lead` and list items accepts a deliberately small inline
+ * syntax — `**bold**`, `*italic*`, `[label](https://…)` — rendered by
+ * lib/inline.tsx. Headings and quotes stay plain: their type already carries
+ * the emphasis.
+ *
+ *   lead     the highlighted standfirst that opens a piece
+ *   h2       a part of the piece — numbered, listed in the reading guide
+ *   h3       a sub-head within a part ("1. Fragmented Value Chain")
+ *   image    any image, shown whole at its own proportions; empty until chosen
+ *   divider  a hairline between movements of the argument
+ */
+export const articleBlockSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("p"), text: z.string() }),
+  z.object({ type: z.literal("lead"), text: z.string() }),
+  z.object({ type: z.literal("h2"), text: z.string() }),
+  z.object({ type: z.literal("h3"), text: z.string() }),
+  z.object({ type: z.literal("quote"), text: z.string(), cite: z.string().optional() }),
+  z.object({
+    type: z.literal("list"),
+    items: z.array(z.string()),
+    ordered: z.boolean().default(false),
+  }),
+  z.object({
+    type: z.literal("image"),
+    image: imageSchema.optional(),
+    /** Describes the image for screen readers; falls back to the library's alt. */
+    alt: z.string().default(""),
+    caption: z.string().optional(),
+    /** `column` sits at the text measure; `wide` takes the full body column. */
+    size: z.enum(["column", "wide"]).default("wide"),
+  }),
+  z.object({ type: z.literal("divider") }),
+]);
+export type ArticleBlock = z.infer<typeof articleBlockSchema>;
+
 export const insightSchema = z.object({
   slug: z.string().min(1),
   title: z.string().min(1),
@@ -171,15 +216,8 @@ export const insightSchema = z.object({
   publishedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   readingTime: z.number().int().positive(),
   coverImage: imageSchema.optional(),
-  /** MDX-ready. Paragraph strings today; an MDX source string later. */
-  body: z.array(
-    z.union([
-      z.object({ type: z.literal("p"), text: z.string() }),
-      z.object({ type: z.literal("h2"), text: z.string() }),
-      z.object({ type: z.literal("quote"), text: z.string() }),
-      z.object({ type: z.literal("list"), items: z.array(z.string()) }),
-    ]),
-  ),
+  /** MDX-ready. Typed blocks today; an MDX source string later. */
+  body: z.array(articleBlockSchema),
   /** True while the body is seeded rather than editorial. Renders a notice. */
   placeholderBody: z.boolean().default(false),
 });

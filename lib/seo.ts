@@ -19,7 +19,7 @@ export function pageMetadata({
 }: {
   title: string;
   description: string;
-  /** Route path with a leading slash, e.g. "/services/brand-development". */
+  /** Route path with a leading slash, e.g. "/services". */
   path: string;
   type?: "website" | "article";
   publishedTime?: string;

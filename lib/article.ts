@@ -1,7 +1,5 @@
-import type { Insight } from "@/lib/schemas";
+import type { ArticleBlock, Insight } from "@/lib/schemas";
 import { indexNumber } from "@/lib/utils";
-
-type Block = Insight["body"][number];
 
 /** One part of an article: everything under one h2 (or before the first). */
 export type ArticlePart = {
@@ -10,7 +8,7 @@ export type ArticlePart = {
   /** What the reading guide lists. The heading, or "Opening" for the lead-in. */
   label: string;
   heading?: string;
-  blocks: Block[];
+  blocks: ArticleBlock[];
 };
 
 /**

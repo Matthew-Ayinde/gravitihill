@@ -82,7 +82,7 @@ export async function PracticeBench({ index = "02" }: { index?: string }) {
                 <div data-bench-head data-motion>
                 
                   <h3 className="mt-4">
-                    <Link href={`/services/${practice.slug}`} className="bench-link">
+                    <Link href={`/services#${practice.slug}`} className="bench-link">
                       <span className="bench-name type-display">{practice.name}</span>
                     </Link>
                   </h3>
@@ -93,10 +93,6 @@ export async function PracticeBench({ index = "02" }: { index?: string }) {
                 </p>
 
                 <ServiceList practice={practice} position={p} owners={owners} names={names} variant="field" />
-
-                <p aria-hidden="true" className="bench-cue type-eyebrow mt-auto pt-6 text-green">
-                  Open the practice <span className="bench-cue-arrow">→</span>
-                </p>
               </div>
             </article>
           ))}
@@ -123,12 +119,6 @@ export async function PracticeBench({ index = "02" }: { index?: string }) {
                 <div className="pb-10">
                   <p className="measure text-body-lg text-ink-muted">{practice.proposition}</p>
                   <ServiceList practice={practice} position={p} owners={owners} names={names} variant="stack" />
-                  <Link
-                    href={`/services/${practice.slug}`}
-                    className="link-draw type-eyebrow mt-8 text-green"
-                  >
-                    Open {practice.name} →
-                  </Link>
                 </div>
               </details>
             </RevealItem>

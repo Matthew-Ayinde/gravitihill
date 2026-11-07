@@ -317,6 +317,7 @@ export default async function Home() {
                       image={insight.coverImage}
                       caption={insight.category}
                       sizes="352px"
+                      fit
                     />
                   ),
                 }))}
