@@ -43,11 +43,6 @@ export default async function NakedBoardPage() {
           </>
         }
         lede={nakedBoard.premise}
-        index={[
-          { label: "Format", value: "Closed cohort" },
-          { label: "Sessions", value: "Unrecorded" },
-          { label: "Delivery", value: "Lagos" },
-        ]}
         ticker={[
           "CLOSED COHORT",
           "UNRECORDED SESSIONS",

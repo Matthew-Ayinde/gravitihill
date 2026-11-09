@@ -17,6 +17,18 @@ export function whenInView(node: Element, callback: () => void): () => void {
     observer.disconnect();
     callback();
   });
-  observer.observe(node);
+  for (const target of observable(node)) observer.observe(target);
   return () => observer.disconnect();
+}
+
+/**
+ * An element with `display: contents` generates no box, so an observer never
+ * reports it as intersecting — the callback would never run and an entrance
+ * would hold its content at opacity 0 for good. Observe its boxed descendants
+ * instead: any one of them on screen means the block is on screen.
+ */
+function observable(node: Element): Element[] {
+  if (getComputedStyle(node).display !== "contents") return [node];
+  const targets = Array.from(node.children).flatMap(observable);
+  return targets.length > 0 ? targets : [node];
 }
