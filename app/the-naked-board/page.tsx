@@ -4,8 +4,6 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Reveal } from "@/components/motion/Reveal";
 import { HeadlineReveal } from "@/components/motion/HeadlineReveal";
 import { Magnetic } from "@/components/motion/Magnetic";
-import { Parallax } from "@/components/motion/Parallax";
-import { CountUp } from "@/components/motion/CountUp";
 import { HudCorners } from "@/components/motion/HudCorners";
 import { NakedBoardField } from "@/components/sections/NakedBoardField";
 import { NakedBoardHero } from "@/components/sections/NakedBoardHero";
@@ -27,7 +25,7 @@ export const metadata: Metadata = pageMetadata({
  * framing, instrumentation rather than a plain service list. It should read
  * as a platform the firm owns, not as a fifth practice page — see
  * NakedBoardField/Hero/Stages/Audience for the treatment that's unique to
- * this route (cursor-reactive glow, a scroll-linked stage rail, count-up
+ * this route (cursor-reactive glow, a scroll-linked stage rail,
  * data points, HUD corner framing on the closing CTA).
  */
 export default async function NakedBoardPage() {
@@ -39,17 +37,10 @@ export default async function NakedBoardPage() {
         eyebrow="A Graviti Hill platform"
         title={
           <>
-            The Naked <span className="accent-word-dark">Board.</span>
+            The Executive <span className="accent-word-dark">Coaching.</span>
           </>
         }
         lede={nakedBoard.premise}
-        ticker={[
-          "CLOSED COHORT",
-          "UNRECORDED SESSIONS",
-          "BOARDROOM READY",
-          "LAGOS",
-          nakedBoard.name.toUpperCase(),
-        ]}
       />
 
       {/* ── Positioning ─────────────────────────────────────────────────── */}
@@ -65,21 +56,6 @@ export default async function NakedBoardPage() {
           </div>
 
           <div className="relative col-span-12 lg:col-span-8 lg:col-start-5">
-            {/* A watermark numeral, not a stat card: the stage count counts
-                itself in the first time it scrolls into view, then drifts a
-                few pixels against the copy as the page keeps moving. */}
-            <Parallax
-              direction="down"
-              range={0.06}
-              className="pointer-events-none absolute -top-14 right-0 hidden select-none lg:block"
-            >
-              <CountUp
-                value={nakedBoard.stages.length}
-                pad={2}
-                className="type-display text-hero leading-none text-white/8"
-              />
-            </Parallax>
-
             <HeadlineReveal
               as="h2"
               className="type-display text-h2 text-white"

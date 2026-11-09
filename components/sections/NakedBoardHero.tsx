@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { Entrance } from "@/components/motion/Entrance";
-import { Marquee } from "@/components/motion/Marquee";
 import { NakedBoardField } from "@/components/sections/NakedBoardField";
 
 /**
@@ -11,7 +10,7 @@ import { NakedBoardField } from "@/components/sections/NakedBoardField";
  * shared hero has no concept of.
  *
  * Composes itself on load through <Entrance>, in the same order as the
- * shared PageHero: eyebrow, the h1 wiping up, lede, then the ticker.
+ * shared PageHero: eyebrow, the h1 wiping up, then the lede.
  * The Entrance wrapper is `display: contents`, so NakedBoardField lays its
  * children out exactly as before.
  */
@@ -19,12 +18,10 @@ export function NakedBoardHero({
   eyebrow,
   title,
   lede,
-  ticker,
 }: {
   eyebrow: string;
   title: ReactNode;
   lede: ReactNode;
-  ticker: string[];
 }) {
   return (
     <NakedBoardField grain className="pt-36 pb-0 lg:pt-44 2xl:pt-56">
@@ -45,14 +42,6 @@ export function NakedBoardHero({
               {lede}
             </p>
           </div>
-        </div>
-
-        <div data-load className="shell relative border-t border-rule-dark py-6">
-          <Marquee
-            items={ticker}
-            itemClassName="type-eyebrow text-white/35"
-            speed={30}
-          />
         </div>
       </Entrance>
     </NakedBoardField>
