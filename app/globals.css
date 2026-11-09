@@ -731,9 +731,9 @@
    THE GAP — /about §01
    ----------------------------------------------------------------------------
    Pairs with <GapCrossing>. Read as a sentence: the near label, then the gap
-   and its measure, then the dashed route drawing itself across (a solid
-   stroke in its mask running 1 → 0 dashoffset), the landing point settling,
-   and the far label arriving with it. The cliffs fade out at the foot of the
+   and its measure, then a dot travelling the arc left to right with the
+   dashed route drawing in behind it (a solid stroke in its mask running
+   1 → 0 dashoffset), and the far label arriving as the dot lands. The cliffs fade out at the foot of the
    drawing so the rock sinks into the floor rather than ending on a cut line.
    Reduced motion: the global rule collapses every animation to its end state.
    ========================================================================== */
@@ -753,8 +753,9 @@
 .gap-label-gap {
   animation-delay: 0.7s;
 }
+/* Arrives with the traveller: the crossing ends at 2.6s. */
 .gap-label-far {
-  animation-delay: 2.5s;
+  animation-delay: 2.4s;
 }
 
 .gap-measure {
@@ -778,33 +779,68 @@
 }
 
 /* The global rule shortens durations but not delays — without this the far
-   label would still sit invisible for 2.5s. */
+   label would still sit invisible for ~2s. Scoped under `html` for
+   specificity: the CSS build hoists this media block above the rules it
+   overrides, so source order alone would lose. */
 @media (prefers-reduced-motion: reduce) {
-  .gap-route,
-  .gap-landing,
-  .gap-measure,
-  .gap-label-near,
-  .gap-label-gap,
-  .gap-label-far {
+  html .gap-route,
+  html .gap-depart,
+  html .gap-traveller,
+  html .gap-measure,
+  html .gap-label-near,
+  html .gap-label-gap,
+  html .gap-label-far {
     animation-delay: 0s;
   }
+}
+
+/* The crossing. The dash reveal and the traveller share one timing — same
+   duration, same curve, same start — and both map progress linearly to arc
+   length (pathLength=1 dashoffset; offset-distance %), so the dot is always
+   exactly at the tip of the line. Symmetric ease-in-out rather than the
+   site's ease-out: an ease-out finishes the crossing in its first few hundred
+   ms, while the figure is still fading in, and the journey is never seen.
+   It starts at 1s, once <Entrance> has the figure fully in. */
+.gap-route,
+.gap-traveller {
+  animation-duration: 1.6s;
+  animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  animation-delay: 1s;
+  animation-fill-mode: both;
 }
 
 .gap-route {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  animation: gap-route-draw 2.4s var(--ease-out-expo) 0.6s both;
+  animation-name: gap-route-draw;
 }
 
-.gap-landing {
+.gap-traveller {
+  offset-rotate: 0deg;
+  offset-distance: 100%;
+  animation-name: gap-travel;
+}
+
+.gap-depart {
   transform-box: fill-box;
   transform-origin: center;
-  animation: gap-landing-in 0.5s var(--ease-out-expo) 2.4s both;
+  animation: gap-landing-in 0.5s var(--ease-out-expo) 0.35s both;
 }
 
 @keyframes gap-route-draw {
   to {
     stroke-dashoffset: 0;
+  }
+}
+
+/* Hidden until it sets off, so it doesn't sit on the departure dot. */
+@keyframes gap-travel {
+  from {
+    offset-distance: 0%;
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
   }
 }
 

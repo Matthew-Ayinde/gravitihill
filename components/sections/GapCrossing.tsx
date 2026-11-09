@@ -5,8 +5,7 @@
  * GROWTH AMBITION stands on the near side, BUSINESS CAPABILITY on the far
  * side, and the void between them is measured and named — THE GAP — with a
  * hairline dimension line, the way a surveyor's drawing would mark it. One
- * dashed route comes in from above, works its switchbacks over the void and
- * lands on the far lip: the section's eyebrow, "the gap we are built to
+ * dashed arc leaves the near lip, spans the void and lands on the far lip: the section's eyebrow, "the gap we are built to
  * close", made literal.
  *
  * A server component: plain SVG plus three positioned labels, no JS. The
@@ -36,33 +35,20 @@ const FACETS = [
   "M292 592 L314 580 L308 672 L266 765 Z",
 ];
 
+/* The two lips, where the route departs and lands. */
+const LIP_L = { x: 468, y: 550 };
+const LIP_R = { x: 980, y: 551 };
+
 /*
- * The route, traced from the brand's own dashed-curve artwork at its native
- * size (start 45,155 → end 1190,1165) and kept whole — the switchbacks are
- * the point. ROUTE_PLACE scales it uniformly and moves it so the tail lands
- * on the right cliff's lip (985,551); stroke and dash are pre-divided by the
- * scale so they render at the weight the cliffs were drawn for.
+ * The route: one clean parabolic arc, lip to lip — a single quadratic whose
+ * control point sits centred over the void. Its crown peaks ~100 units above
+ * the lips: enough lift to read as a span, low enough that it stays a bridge
+ * rather than a leap.
  */
-const ROUTE =
-  "M45 155 C90 290 200 470 480 474 " +
-  "C620 476 800 360 900 330 " +
-  "C980 305 1040 330 1020 385 " +
-  "C1005 425 950 450 940 495 " +
-  "C930 545 980 575 1040 600 " +
-  "C1100 625 1125 690 1115 740 " +
-  "C1100 795 1030 805 980 785 " +
-  "C920 760 880 700 820 675 " +
-  "C760 655 640 680 500 685 " +
-  "C360 690 260 700 240 770 " +
-  "C225 830 300 885 450 905 " +
-  "C640 920 760 960 1190 1165";
-const ROUTE_SCALE = 0.58;
-const ROUTE_PLACE = `translate(${985 - 1190 * ROUTE_SCALE} ${551 - 1165 * ROUTE_SCALE}) scale(${ROUTE_SCALE})`;
+const ROUTE = `M${LIP_L.x} ${LIP_L.y} Q724 350 ${LIP_R.x} ${LIP_R.y}`;
 
 /* The dimension line across the void, lip to lip, set just below them. */
 const MEASURE_Y = 626;
-const LIP_L = 468;
-const LIP_R = 980;
 
 function Cliff() {
   return (
@@ -77,21 +63,20 @@ function Cliff() {
 
 /* A label standing on the rock: two lines of condensed display type. */
 const LABEL =
-  "type-display absolute bottom-[39%] text-body-lg leading-[1.05] text-ink-display lg:text-h3 lg:leading-[1.05]";
+  "type-display absolute bottom-[57.5%] text-body-lg leading-[1.05] text-ink-display lg:text-h3 lg:leading-[1.05]";
 
 export function GapCrossing({ className }: { className?: string }) {
   return (
     <div aria-hidden="true" className={`relative ${className ?? ""}`}>
-      <svg focusable="false" viewBox="0 -60 1448 960" className="gap-figure block h-auto w-full">
+      <svg focusable="false" viewBox="0 250 1448 650" className="gap-figure block h-auto w-full">
         <defs>
           <mask id="gap-route-mask" maskUnits="userSpaceOnUse">
             <path
               d={ROUTE}
-              transform={ROUTE_PLACE}
               pathLength={1}
               fill="none"
               stroke="white"
-              strokeWidth={28}
+              strokeWidth={16}
               className="gap-route"
             />
           </mask>
@@ -104,25 +89,33 @@ export function GapCrossing({ className }: { className?: string }) {
 
         {/* The measure: a hairline with end ticks, lip to lip. */}
         <g className="gap-measure stroke-ink-muted" strokeWidth={2.5} fill="none">
-          <path d={`M${LIP_L} ${MEASURE_Y} H${LIP_R}`} />
-          <path d={`M${LIP_L} ${MEASURE_Y - 16} V${MEASURE_Y + 16}`} />
-          <path d={`M${LIP_R} ${MEASURE_Y - 16} V${MEASURE_Y + 16}`} />
+          <path d={`M${LIP_L.x} ${MEASURE_Y} H${LIP_R.x}`} />
+          <path d={`M${LIP_L.x} ${MEASURE_Y - 16} V${MEASURE_Y + 16}`} />
+          <path d={`M${LIP_R.x} ${MEASURE_Y - 16} V${MEASURE_Y + 16}`} />
         </g>
 
         <g mask="url(#gap-route-mask)">
           <path
             d={ROUTE}
-            transform={ROUTE_PLACE}
             fill="none"
-            strokeWidth={12}
+            strokeWidth={7}
             strokeLinecap="round"
-            strokeDasharray="34 28"
+            strokeDasharray="20 16"
             className="stroke-green"
           />
         </g>
 
-        {/* Where the route lands: the one accent moment on the far side. */}
-        <circle cx={985} cy={551} r={9} className="gap-landing fill-accent" />
+        {/* Departure in --green; the --accent traveller rides the arc from
+            lip to lip with the dashes trailing behind it, and comes to rest
+            on the far side as the landing point. It sits at the origin and
+            is carried by `offset-path` along the very same ROUTE string, so
+            the dot can never drift off the line it is drawing. */}
+        <circle cx={LIP_L.x} cy={LIP_L.y} r={9} className="gap-depart fill-green" />
+        <circle
+          r={9}
+          className="gap-traveller fill-accent"
+          style={{ offsetPath: `path("${ROUTE}")` }}
+        />
       </svg>
 
       <p className={`${LABEL} gap-label-near left-[1%]`}>
@@ -131,7 +124,7 @@ export function GapCrossing({ className }: { className?: string }) {
         ambition
       </p>
 
-      <p className="gap-label-gap type-display absolute left-1/2 top-[73%] -translate-x-1/2 whitespace-nowrap text-h3 text-green lg:text-h2">
+      <p className="gap-label-gap type-display absolute left-1/2 top-[60%] -translate-x-1/2 whitespace-nowrap text-h3 text-green lg:text-h2">
         The gap
       </p>
 
