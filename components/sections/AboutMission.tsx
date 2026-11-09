@@ -39,7 +39,7 @@ export function AboutMission() {
             Building businesses, beyond their current limit
           </h1>
           <div data-load>
-            <GapCrossing className="gap-figure block h-auto w-full" />
+            <GapCrossing />
           </div>
         </div>
 

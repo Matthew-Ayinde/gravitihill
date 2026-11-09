@@ -730,15 +730,64 @@
 /* ============================================================================
    THE GAP — /about §01
    ----------------------------------------------------------------------------
-   Pairs with <GapCrossing>. The dashed route is revealed by a solid stroke in
-   its mask drawing from 1 to 0 dashoffset; the landing point settles once the
-   route arrives. The cliffs fade out at the foot of the drawing so the rock
-   sinks into the floor rather than ending on a cut line. Reduced motion: the
-   global rule collapses both animations to their end state.
+   Pairs with <GapCrossing>. Read as a sentence: the near label, then the gap
+   and its measure, then the dashed route drawing itself across (a solid
+   stroke in its mask running 1 → 0 dashoffset), the landing point settling,
+   and the far label arriving with it. The cliffs fade out at the foot of the
+   drawing so the rock sinks into the floor rather than ending on a cut line.
+   Reduced motion: the global rule collapses every animation to its end state.
    ========================================================================== */
 
 .gap-figure {
-  mask-image: linear-gradient(to bottom, #000 72%, transparent);
+  mask-image: linear-gradient(to bottom, #000 80%, transparent);
+}
+
+.gap-label-near,
+.gap-label-gap,
+.gap-label-far {
+  animation: gap-label-in 0.7s var(--ease-out-expo) both;
+}
+.gap-label-near {
+  animation-delay: 0.35s;
+}
+.gap-label-gap {
+  animation-delay: 0.7s;
+}
+.gap-label-far {
+  animation-delay: 2.5s;
+}
+
+.gap-measure {
+  animation: gap-measure-in 0.7s var(--ease-out-expo) both;
+  animation-delay: 0.7s;
+}
+
+/* transform, not `translate`: the gap label is centred with Tailwind's
+   translate utility, which a `translate` keyframe would overwrite. */
+@keyframes gap-label-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+@keyframes gap-measure-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* The global rule shortens durations but not delays — without this the far
+   label would still sit invisible for 2.5s. */
+@media (prefers-reduced-motion: reduce) {
+  .gap-route,
+  .gap-landing,
+  .gap-measure,
+  .gap-label-near,
+  .gap-label-gap,
+  .gap-label-far {
+    animation-delay: 0s;
+  }
 }
 
 .gap-route {
