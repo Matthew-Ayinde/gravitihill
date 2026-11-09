@@ -1090,6 +1090,23 @@
   }
 }
 
+/* A lead cover with known dimensions: on desktop the stage takes the image's
+   own proportions, so the photograph spans the full width and is seen whole,
+   unzoomed and uncropped. The stage may then be taller than the screen; its
+   sticky offset pulls it up by the overflow so the copy at its foot stays in
+   view while it is held. cqw reads the section's width (scrollbar excluded). */
+@media (min-width: 1024px) {
+  .lead-fit {
+    container-type: inline-size;
+  }
+  .lead-fit [data-aperture-stage] {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: var(--lead-aspect);
+    top: min(0px, calc(100svh - 100cqw / (var(--lead-aspect))));
+  }
+}
+
 .lead-cue {
   transform-origin: left;
   transition: transform 600ms var(--ease-3d);

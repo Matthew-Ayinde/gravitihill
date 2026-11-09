@@ -1,9 +1,10 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { LeadAperture } from "@/components/sections/LeadAperture";
 import { AmbientVideo } from "@/components/ui/AmbientVideo";
 import { FitImage, ImageBackdrop } from "@/components/ui/FitImage";
 import type { Insight } from "@/lib/schemas";
-import { editorialDate, indexNumber } from "@/lib/utils";
+import { cn, editorialDate, indexNumber } from "@/lib/utils";
 
 /**
  * /insights — the lead.
@@ -20,12 +21,24 @@ import { editorialDate, indexNumber } from "@/lib/utils";
  */
 export function InsightsLead({ insight, issue }: { insight: Insight; issue: number }) {
   const image = insight.coverImage;
+  // A still with known dimensions gets a stage at its own proportions on
+  // desktop (.lead-fit in globals.css): full width, whole image, no crop and
+  // no zoom. Videos and older uploads without dimensions keep the screen-high
+  // stage with the blurred fill around a contained image.
+  const fit = image && !image.video && image.width && image.height ? image : null;
 
   return (
-    <LeadAperture id="lead" labelledBy="lead-heading" className="lead-track bg-canvas">
+    <LeadAperture
+      id="lead"
+      labelledBy="lead-heading"
+      className={cn("lead-track bg-canvas", fit && "lead-fit")}
+    >
       <div
         data-aperture-stage
         className="relative h-[88svh] min-h-136 overflow-hidden text-white lg:sticky lg:top-0 lg:h-svh"
+        style={
+          fit ? ({ "--lead-aspect": `${fit.width} / ${fit.height}` } as CSSProperties) : undefined
+        }
       >
         <div data-aperture-frame data-motion className="absolute inset-0 overflow-hidden bg-abyss">
           <div data-aperture-media data-motion className="absolute -inset-[4%]">
