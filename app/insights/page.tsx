@@ -13,6 +13,8 @@ export const metadata: Metadata = pageMetadata({
   path: "/insights",
 });
 
+
+
 /**
  * /insights is composed as a publication, and each piece appears once:
  *
