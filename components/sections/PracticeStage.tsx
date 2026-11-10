@@ -207,7 +207,7 @@ function DesktopStage({ items }: { items: PracticeStageItem[] }) {
                     style={{ gridTemplateRows: isActive ? "1fr" : "0fr" }}
                   >
                     <div className="overflow-hidden">
-                      <ul className="flex flex-wrap gap-x-8 gap-y-3 pt-1">
+                      <ul className="flex flex-col gap-y-3 pt-1">
                         {item.offerings.map((offering) => (
                           <li
                             key={offering.name}
@@ -358,7 +358,7 @@ function MobileStack({ items }: { items: PracticeStageItem[] }) {
                 {item.proposition}
               </p>
 
-              <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2">
+              <ul className="mt-6 flex flex-col gap-y-2">
                 {item.offerings.map((offering) => (
                   <li
                     key={offering.name}

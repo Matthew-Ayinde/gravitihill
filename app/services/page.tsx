@@ -31,7 +31,10 @@ export default async function ServicesPage() {
     slug: practice.slug,
     name: practice.name,
     proposition: practice.proposition,
-    offerings: practice.offerings.map((offering) => ({
+    // Shortest names first so each list steps outward line by line.
+    offerings: [...practice.offerings]
+      .sort((a, b) => a.name.length - b.name.length)
+      .map((offering) => ({
       name: offering.name,
       icon: offering.icon,
     })),

@@ -14,9 +14,9 @@ import { pageMetadata } from "@/lib/seo";
 import { getSiteSettings, whatsappUrl } from "@/lib/settings";
 
 export const metadata: Metadata = pageMetadata({
-  title: "The Naked Board",
+  title: "Executive Coaching",
   description:
-    "Graviti Hill's proprietary capacity development platform for boardroom challenges and cultural transformation. A structured programme, closed cohorts, unrecorded sessions.",
+    "Graviti Hill's executive training programmes equip leaders with the knowledge, tools and practical capability required to address complex business challenges and improve organisational performance.",
   path: "/the-naked-board",
 });
 

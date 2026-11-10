@@ -167,5 +167,5 @@ export const FOOTER_NAV: NavItem[] = [
   { label: "Perspectives", href: "/sectors" },
   { label: "Insights", href: "/insights" },
   { label: "About", href: "/about" },
-  { label: "The Naked Board", href: "/the-naked-board" },
+  { label: "Executive Coaching", href: "/the-naked-board" },
 ];

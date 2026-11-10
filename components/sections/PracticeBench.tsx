@@ -153,7 +153,10 @@ function ServiceList({
 }) {
   return (
     <ul className={variant === "field" ? "bench-services mt-6" : "mt-7 grid gap-x-8 gap-y-3 sm:grid-cols-2"}>
-      {practice.offerings.map((offering, i) => {
+      {/* Shortest names first so the list steps outward line by line. */}
+      {[...practice.offerings]
+        .sort((a, b) => a.name.length - b.name.length)
+        .map((offering, i) => {
         const shared = (owners.get(offering.name.trim().toLowerCase()) ?? []).filter(
           (owner) => owner !== position,
         );

@@ -16,7 +16,6 @@ import { Entrance } from "@/components/motion/Entrance";
 import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { Marquee } from "@/components/motion/Marquee";
-import { Parallax } from "@/components/motion/Parallax";
 import { Tilt3D } from "@/components/motion/Tilt3D";
 import { Icon } from "@/components/icons";
 import { getAbout } from "@/content/about";
@@ -187,7 +186,7 @@ export default async function Home() {
 
           <div className="col-span-12 lg:col-span-9">
             <h2 id="dna-heading" className="type-display max-w-[16ch] text-h2">
-              Four commitments the work is measured against.
+              Principles that shape our work.
             </h2>
 
             <RevealGroup
@@ -224,23 +223,8 @@ export default async function Home() {
         </div>
       </Section>
 
-      {/* ══ 6. The Naked Board teaser ═════════════════════════════════════ */}
+      {/* ══ 6. Executive Coaching teaser ══════════════════════════════════ */}
       <Section tone="ridge" labelledBy="tnb-heading" className="relative overflow-hidden">
-        {/* A ghost numeral, not a wave: pure type, drifting a beat slower than
-            the section scrolls past. Depth without touching the mark. */}
-        <Parallax
-          direction="down"
-          range={0.2}
-          className="pointer-events-none absolute -top-10 right-0 z-0 select-none"
-        >
-          <span
-            aria-hidden="true"
-            className="type-display block text-[28rem] leading-none text-white/4"
-          >
-            05
-          </span>
-        </Parallax>
-
         <div className="shell grid-12 relative z-10 gap-y-10">
           <div className="col-span-12 lg:col-span-3">
             <SectionLabel index="05" tone="dark">
@@ -257,16 +241,17 @@ export default async function Home() {
               id="tnb-heading"
               className="type-display mt-6 max-w-[14ch] text-h1 text-white"
             >
-              The Naked Board.
+              The Executive Coaching.
             </h2>
             <p className="measure mt-8 text-body-lg text-white/75">
-              {nakedBoard.premise} Our proprietary executive coaching platform
-              exists for exactly those conversations: succession, founder
-              dependence, a culture that punishes bad news.
+              Our executive training programmes equip leaders with the
+              knowledge, tools and practical capability required to address
+              complex business challenges and improve organisational
+              performance.
             </p>
 
             <ul className="mt-10 flex flex-wrap gap-x-8 gap-y-2">
-              {nakedBoard.stages.slice(0, 3).map((stage) => (
+              {nakedBoard.stages.map((stage) => (
                 <li
                   key={stage.name}
                   className="type-eyebrow flex items-center gap-2 text-white/55"
@@ -278,7 +263,7 @@ export default async function Home() {
             </ul>
 
             <ButtonLink href="/the-naked-board" tone="dark" className="mt-10">
-              Go to The Naked Board
+              Explore more
             </ButtonLink>
           </div>
         </div>

@@ -1,8 +1,9 @@
 /** Frozen snapshot of content/naked-board.ts — see practices.ts header for why. */
 
 export const SEED_NAKED_BOARD = {
-  name: "The Naked Board",
-  premise: "The hardest problems a board faces are the ones nobody will name in the room.",
+  name: "The Executive Coaching",
+  premise:
+    "Our executive training programmes equip leaders with the knowledge, tools and practical capability required to address complex business challenges and improve organisational performance.",
   positioning: [
     "We recognize the critical role of leadership in driving organizational success and believe that investing in the development of executives is fundamental to achieving sustainable growth and fostering a thriving corporate culture.",
     "Our aim is to empower your leaders with the necessary tools, knowledge, and skills to navigate the complexities of today's business landscape confidently. With this programme, your organization's leadership will be equipped to steer your business towards unprecedented success and create a culture of continuous growth and innovation.",
@@ -27,13 +28,13 @@ export const SEED_NAKED_BOARD = {
         "Offering personalized guidance and mentorship to executives, enabling them to develop essential leadership skills and cultivate a strategic mindset for achieving long-term success.",
     },
     {
-      name: "Case Studies & Scenario-Based Learning",
+      name: "Case Studies and Scenario-Based Learning/Experience",
       icon: "diagnosis",
       summary:
         "We present real-world case studies and immersive scenario-based learning experiences to enhance critical thinking and decision-making abilities, preparing leaders for diverse business challenges.",
     },
     {
-      name: "Industry & Subject-Matter Sharing Sessions",
+      name: "Industry and Subject Matter Sharing Sessions",
       icon: "stakeholder-engagement",
       summary:
         "We facilitate collaborative sharing sessions where industry experts and thought leaders provide insights and perspectives, fostering a rich learning environment and promoting knowledge exchange among executives.",
