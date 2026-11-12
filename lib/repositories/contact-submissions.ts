@@ -23,6 +23,8 @@ const submissionSchema = z.object({
   enquiryType: z.string(),
   budget: z.string().optional(),
   message: z.string(),
+  /** Human reference quoted in both emails, e.g. GH-7K2Q9M. Absent on rows older than the email templates. */
+  reference: z.string().optional(),
   status: submissionStatusSchema,
   createdAt: z.string(),
 });
@@ -40,7 +42,7 @@ function strip(doc: Doc): ContactSubmission {
   return { ...submissionSchema.parse(rest), id: _id.toHexString() };
 }
 
-export async function recordSubmission(input: ContactInput): Promise<void> {
+export async function recordSubmission(input: ContactInput, reference?: string): Promise<void> {
   const data = submissionSchema.parse({
     name: input.name,
     company: input.company,
@@ -50,6 +52,7 @@ export async function recordSubmission(input: ContactInput): Promise<void> {
     enquiryType: input.enquiryType,
     budget: input.budget || undefined,
     message: input.message,
+    reference,
     status: "new",
     createdAt: new Date().toISOString(),
   });

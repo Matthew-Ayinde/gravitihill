@@ -35,7 +35,10 @@ export default async function AdminEnquiriesPage() {
                   </span>
                   <span className="ml-3 text-caption text-ink-muted">{s.enquiryType}</span>
                 </span>
-                <span className="type-eyebrow shrink-0 text-ink-muted">{editorialDate(s.createdAt)}</span>
+                <span className="type-eyebrow shrink-0 text-ink-muted">
+                  {s.reference && <span className="mr-3">{s.reference}</span>}
+                  {editorialDate(s.createdAt)}
+                </span>
               </summary>
 
               <div className="measure space-y-4 pb-8">

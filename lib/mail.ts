@@ -1,89 +1,125 @@
+import { randomInt } from "node:crypto";
 import nodemailer from "nodemailer";
-import type { ContactInput } from "@/lib/contact-schema";
-import { ADDRESS, EMAIL, PHONES, SITE } from "@/lib/site";
+import type { MailConfig } from "@/lib/email/config";
+import { LOGO_CID, LOGO_PNG_BASE64 } from "@/lib/email/logo";
+import {
+  headerSafe,
+  renderAdminNotification,
+  renderVisitorConfirmation,
+  type EnquiryEmailData,
+} from "@/lib/email/templates";
 
 /**
- * SMTP transport and the two messages the contact route sends: an internal
- * notification and a plain-text acknowledgement to the sender.
+ * Sends the two contact-form emails over SMTP (Gmail by default — see
+ * lib/email/config.ts for the env keys).
  *
- * Credentials come from the environment (see README §Environment). Nothing
- * here is imported by a client component — the transport is server-only.
+ * Order and failure policy:
+ * 1. Internal notification — critical. If it fails, this throws and the
+ *    route reports a failed send (the enquiry is still in Mongo).
+ * 2. Visitor confirmation — best-effort. The firm already has the enquiry, so
+ *    a failed acknowledgement is logged, not surfaced; telling the visitor
+ *    "that did not send" would invite a duplicate submission.
+ *
+ * Server-only: nothing here is imported by a client component.
  */
 
-const required = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "CONTACT_TO"] as const;
-
-export function mailConfigured(): boolean {
-  return required.every((key) => Boolean(process.env[key]));
-}
-
-function transport() {
-  const port = Number(process.env.SMTP_PORT);
+function createTransport(config: MailConfig) {
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port,
-    // 465 is implicit TLS; everything else negotiates STARTTLS.
-    secure: port === 465,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
+    // On 587, refuse to send credentials over an un-upgraded connection.
+    requireTLS: !config.secure,
+    auth: { user: config.user, pass: config.pass },
+    // A slow relay must not hold the visitor's request open indefinitely.
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 20_000,
   });
 }
 
-function line(label: string, value: string) {
-  return `${label.padEnd(14)}${value}`;
+/** `GH-` + 6 chars from an alphabet with no 0/O or 1/I/L to misread. */
+export function createReference(): string {
+  const alphabet = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+  let ref = "";
+  for (let i = 0; i < 6; i += 1) ref += alphabet[randomInt(alphabet.length)];
+  return `GH-${ref}`;
 }
 
-export async function sendContactEmails(input: ContactInput): Promise<void> {
-  const from = `"${SITE.name} Website" <${process.env.SMTP_USER}>`;
-  const mailer = transport();
+/** The lockup travels inline, so it renders whatever domain the site is on. */
+const logoAttachment = () => ({
+  filename: "graviti-hill.png",
+  content: Buffer.from(LOGO_PNG_BASE64, "base64"),
+  contentType: "image/png",
+  cid: LOGO_CID,
+  contentDisposition: "inline" as const,
+});
 
-  const internalBody = [
-    "New enquiry from gravitihill.com",
-    "",
-    line("Name", input.name),
-    line("Company", input.company),
-    line("Role", input.role),
-    line("Email", input.email),
-    line("Phone", input.phone || "—"),
-    line("Enquiry", input.enquiryType),
-    line("Budget", input.budget || "—"),
-    "",
-    "Message",
-    "-------",
-    input.message,
-    "",
-    `Received ${new Date().toISOString()}`,
-  ].join("\n");
+export type SendResult = { visitorConfirmationSent: boolean };
 
-  const acknowledgement = [
-    `${input.name},`,
-    "",
-    "Thank you — your enquiry has reached Graviti Hill.",
-    "",
-    `You told us this concerns ${input.enquiryType.toLowerCase()}. A practice lead will read it and reply directly, usually within one working day.`,
-    "",
-    "If it is urgent, WhatsApp is faster:",
-    `  ${PHONES[0].display}`,
-    "",
-    "Graviti Hill Limited",
-    `${ADDRESS.street}`,
-    `${ADDRESS.locality}, ${ADDRESS.region}, ${ADDRESS.country}`,
-    EMAIL,
-  ].join("\n");
+export async function sendEnquiryEmails(
+  data: EnquiryEmailData,
+  config: MailConfig,
+): Promise<SendResult> {
+  const transport = createTransport(config);
+  try {
+    return await send(transport, data, config);
+  } finally {
+    transport.close();
+  }
+}
 
-  await mailer.sendMail({
-    from,
-    to: process.env.CONTACT_TO,
-    replyTo: `"${input.name}" <${input.email}>`,
-    subject: `Enquiry — ${input.enquiryType} — ${input.company}`,
-    text: internalBody,
+async function send(
+  transport: ReturnType<typeof createTransport>,
+  data: EnquiryEmailData,
+  config: MailConfig,
+): Promise<SendResult> {
+  const { input, reference, settings } = data;
+
+  const admin = renderAdminNotification(data);
+  await transport.sendMail({
+    from: config.from,
+    to: config.adminRecipients,
+    // Reply goes to the visitor, not back to the sending mailbox.
+    replyTo: { name: headerSafe(input.name), address: input.email },
+    subject: admin.subject,
+    html: admin.html,
+    text: admin.text,
+    attachments: [logoAttachment()],
+    headers: { "X-Enquiry-Reference": reference },
   });
 
-  await mailer.sendMail({
-    from,
-    to: input.email,
-    subject: "We have your enquiry — Graviti Hill",
-    text: acknowledgement,
-  });
+  const visitor = renderVisitorConfirmation(data);
+  try {
+    await transport.sendMail({
+      from: config.from,
+      to: { name: headerSafe(input.name), address: input.email },
+      // Replies land in the firm's public inbox (admin-editable), falling
+      // back to the notification inbox.
+      replyTo: settings.email || config.adminRecipients[0],
+      subject: visitor.subject,
+      html: visitor.html,
+      text: visitor.text,
+      attachments: [logoAttachment()],
+      headers: {
+        "X-Enquiry-Reference": reference,
+        // Transactional acknowledgement: discourage vacation auto-replies.
+        "Auto-Submitted": "auto-replied",
+      },
+    });
+    return { visitorConfirmationSent: true };
+  } catch (error) {
+    console.error(`[contact] ${reference}: confirmation to sender failed`, error);
+    return { visitorConfirmationSent: false };
+  }
+}
+
+/** Opens and authenticates an SMTP session without sending. For diagnostics. */
+export async function verifyMailConfig(config: MailConfig): Promise<void> {
+  const transport = createTransport(config);
+  try {
+    await transport.verify();
+  } finally {
+    transport.close();
+  }
 }

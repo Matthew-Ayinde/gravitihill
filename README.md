@@ -24,19 +24,41 @@ Copy to `.env.local`.
 | `CLOUDINARY_API_KEY` | **yes** | From the Cloudinary dashboard |
 | `CLOUDINARY_API_SECRET` | **yes** | From the Cloudinary dashboard — keep this secret |
 | `AUTH_SECRET` | **yes** | Signs admin session cookies. Auto-generated into `.env.local` during setup — a random 256-bit value, not something to invent by hand. Rotating it logs out every admin session |
-| `SMTP_HOST` | for the contact form | SMTP relay hostname |
-| `SMTP_PORT` | for the contact form | `465` uses implicit TLS; anything else negotiates STARTTLS |
-| `SMTP_USER` | for the contact form | Also used as the `From` address |
-| `SMTP_PASS` | for the contact form | App password / relay credential |
-| `CONTACT_TO` | for the contact form | Internal inbox that receives enquiries |
+| `SMTP_HOST` | no | Defaults to `smtp.gmail.com` |
+| `SMTP_PORT` | no | Defaults to `465` (implicit TLS). `587` negotiates STARTTLS |
+| `SMTP_USER` | for the contact form | The Gmail address that sends both emails |
+| `SMTP_PASS` | for the contact form | A Gmail **App Password** (Google Account → Security → 2-Step Verification → App passwords), not the account password. Spaces are ignored |
+| `EMAIL_FROM` | no | From line, e.g. `Graviti Hill <you@gmail.com>`. Gmail only honours `SMTP_USER` or a verified "Send mail as" alias. Defaults to `"Graviti Hill" <SMTP_USER>` |
+| `ADMIN_EMAIL` | for the contact form | Inbox(es) that receive new-enquiry notifications; comma-separate several. (`CONTACT_TO` is accepted as a legacy alias) |
 | `NEXT_PUBLIC_SITE_URL` | no | Canonical origin. Defaults to `https://gravitihill.com`. Set per preview environment so canonicals and OG URLs are right |
 
-Without the SMTP variables, `/api/contact` still validates and **persists every
-submission to MongoDB** (visible at `/admin/enquiries`); it just answers 503
-instead of sending the two emails, and the interface tells the visitor to use
-WhatsApp or email instead of failing silently. SMTP errors are logged
-server-side and never returned to the client — a visitor must not learn the
-host, port or auth mode from a failed send.
+`.env.example` lists every key with comments. Changing any mail credential is
+an env edit only — restart `npm run dev` (or redeploy on Vercel) to pick it up.
+
+**What a submission does.** `/api/contact` validates, rate-limits, checks the
+honeypot, then persists the enquiry to MongoDB (visible at `/admin/enquiries`)
+with a reference like `GH-7K2Q9M`. It then sends:
+
+1. **Admin notification** to `ADMIN_EMAIL` — Reply-To is the visitor, so
+   replying answers them directly. If this send fails, the visitor is told it
+   did not send (the enquiry is still saved).
+2. **Visitor confirmation** to the address they entered — Reply-To is the
+   firm's public email from site settings. Best-effort: a failure is logged,
+   not shown, since the firm already has the enquiry.
+
+Both templates live in `lib/email/templates.ts` (hand-built, table-based HTML
+with plain-text alternatives). The logo travels inline as a CID attachment
+(`lib/email/logo.ts`), so it renders regardless of the deploy domain.
+
+```bash
+npm run email:preview                          # render both to .email-preview/*.html
+npm run email:preview -- --send you@example.com  # verify SMTP + send the real pair
+```
+
+Without the SMTP variables, submissions are still persisted; the route answers
+503 and the interface points the visitor to WhatsApp or email. The server log
+names the missing keys. SMTP errors are never returned to the client — a
+visitor must not learn the host, port or auth mode from a failed send.
 
 ### First-time setup
 

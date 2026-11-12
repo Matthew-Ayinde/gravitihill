@@ -8,6 +8,7 @@
     "start": "next start",
     "seed": "tsx --env-file=.env.local scripts/seed.ts",
     "admin:create": "tsx --env-file=.env.local scripts/create-admin.ts",
+    "email:preview": "tsx --env-file=.env.local scripts/email-preview.ts",
     "insight:zero-tariff": "tsx --env-file=.env.local scripts/update-zero-tariff-insight.ts"
   },
   "dependencies": {

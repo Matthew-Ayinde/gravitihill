@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { contactSchema, normaliseContactInput } from "@/lib/contact-schema";
 import { getEnquiryTypes } from "@/content/services";
-import { mailConfigured, sendContactEmails } from "@/lib/mail";
+import { readMailConfig } from "@/lib/email/config";
+import { createReference, sendEnquiryEmails } from "@/lib/mail";
+import { getSiteSettings } from "@/lib/settings";
+import { SITE } from "@/lib/site";
 import { rateLimit } from "@/lib/rate-limit";
 import { recordSubmission } from "@/lib/repositories/contact-submissions";
 
@@ -58,18 +61,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true }, { status: 200 });
   }
 
+  const reference = createReference();
+  const receivedAt = new Date();
+
   // Persisted before the email attempt, so a submission survives an SMTP
   // failure. A persistence failure is logged, not fatal — the visitor should
   // still get a real send attempt rather than a 500 over a logging problem.
   try {
-    await recordSubmission(data);
+    await recordSubmission(data, reference);
   } catch (error) {
-    console.error("[contact] failed to record submission", error);
+    console.error(`[contact] ${reference}: failed to record submission`, error);
   }
 
-  if (!mailConfigured()) {
+  const mail = readMailConfig();
+  if (!mail.ok) {
     console.error(
-      "[contact] SMTP is not configured — set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS and CONTACT_TO.",
+      `[contact] ${reference}: email is not configured — missing ${mail.missing.join(", ")} in .env.local`,
     );
     return NextResponse.json(
       {
@@ -81,9 +88,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    await sendContactEmails(data);
+    const settings = await getSiteSettings();
+    const { visitorConfirmationSent } = await sendEnquiryEmails(
+      { input: data, reference, receivedAt, settings, siteUrl: SITE.url },
+      mail.config,
+    );
+    return NextResponse.json({ ok: true, reference, confirmationSent: visitorConfirmationSent }, { status: 200 });
   } catch (error) {
-    console.error("[contact] send failed", error);
+    console.error(`[contact] ${reference}: notification send failed`, error);
     return NextResponse.json(
       {
         message:
@@ -92,6 +104,4 @@ export async function POST(request: Request) {
       { status: 502 },
     );
   }
-
-  return NextResponse.json({ ok: true }, { status: 200 });
 }

@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
 type Status =
   | { state: "idle" }
   | { state: "pending" }
-  | { state: "success" }
+  | { state: "success"; reference?: string; confirmationSent: boolean }
   | { state: "error"; message: string };
 
 const EMPTY: ContactInput = {
@@ -107,9 +107,17 @@ export function ContactForm({
         return;
       }
 
+      const body = (await response.json().catch(() => null)) as {
+        reference?: string;
+        confirmationSent?: boolean;
+      } | null;
       setValues(EMPTY);
       setErrors({});
-      setStatus({ state: "success" });
+      setStatus({
+        state: "success",
+        reference: body?.reference,
+        confirmationSent: body?.confirmationSent !== false,
+      });
     } catch {
       setStatus({
         state: "error",
@@ -119,7 +127,14 @@ export function ContactForm({
   }
 
   if (status.state === "success") {
-    return <SuccessPanel reduced={reduced} onReset={() => setStatus({ state: "idle" })} />;
+    return (
+      <SuccessPanel
+        reduced={reduced}
+        reference={status.reference}
+        confirmationSent={status.confirmationSent}
+        onReset={() => setStatus({ state: "idle" })}
+      />
+    );
   }
 
   const pending = status.state === "pending";
@@ -255,9 +270,13 @@ export function ContactForm({
  */
 function SuccessPanel({
   reduced,
+  reference,
+  confirmationSent,
   onReset,
 }: {
   reduced: boolean;
+  reference?: string;
+  confirmationSent: boolean;
   onReset: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -282,14 +301,24 @@ function SuccessPanel({
           className="h-1.5 w-1.5 shrink-0 animate-pulse-dot rounded-full bg-current"
         />
         Received
+        {reference && (
+          <>
+            <span aria-hidden="true" className="mx-1">
+              ·
+            </span>
+            <span className="text-ink-muted">Ref {reference}</span>
+          </>
+        )}
       </p>
       <p className="type-display mt-5 max-w-[18ch] text-h2">
         Your brief is with us.
       </p>
       <p className="measure mt-6 text-body-lg text-ink-muted">
-        An acknowledgement is on its way to your inbox. A practice lead will
-        reply directly — usually within one working day. If it is urgent,
-        WhatsApp is faster.
+        {confirmationSent
+          ? "A confirmation is on its way to your inbox. "
+          : ""}
+        A practice lead will reply directly — usually within one working day.
+        If it is urgent, WhatsApp is faster.
       </p>
       <Button type="button" variant="secondary" className="mt-8" onClick={onReset}>
         Send another
