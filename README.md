@@ -31,6 +31,14 @@ Copy to `.env.local`.
 | `EMAIL_FROM` | no | From line, e.g. `Graviti Hill <you@gmail.com>`. Gmail only honours `SMTP_USER` or a verified "Send mail as" alias. Defaults to `"Graviti Hill" <SMTP_USER>` |
 | `ADMIN_EMAIL` | for the contact form | Inbox(es) that receive new-enquiry notifications; comma-separate several. (`CONTACT_TO` is accepted as a legacy alias) |
 | `NEXT_PUBLIC_SITE_URL` | no | Canonical origin. Defaults to `https://gravitihill.com`. Set per preview environment so canonicals and OG URLs are right |
+| `SITE_MODE` | no | `coming-soon` (default when unset), `review` (full site, noindexed) or `live` (full site, indexed). See below |
+
+**Two deployments, one codebase.** Both Vercel projects build from `main`;
+they differ only in `SITE_MODE`. The production project leaves it unset (or
+`coming-soon`) and shows the construction screen; a second project sets
+`review` and shows the full site to the client, kept out of search indexes.
+Launch is an env change on the production project — set `SITE_MODE=live` and
+redeploy — with no code change.
 
 `.env.example` lists every key with comments. Changing any mail credential is
 an env edit only — restart `npm run dev` (or redeploy on Vercel) to pick it up.

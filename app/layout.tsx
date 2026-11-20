@@ -15,6 +15,7 @@ import { getPractices } from "@/content/services";
 import { getSectors } from "@/content/sectors";
 import { SPLASH_BOOT } from "@/lib/splash-session";
 import { ComingSoon } from "@/components/coming-soon/ComingSoon";
+import { isComingSoon, isNoIndex } from "@/lib/site-mode";
 
 /**
  * Archivo carries both a weight axis (100-900) and a width axis (62-125), so a
@@ -47,7 +48,8 @@ export const metadata: Metadata = {
     url: SITE.url,
   },
   twitter: { card: "summary_large_image" },
-  robots: { index: true, follow: true },
+  // The review deployment stays out of search indexes; see lib/site-mode.ts.
+  robots: isNoIndex() ? { index: false, follow: false } : { index: true, follow: true },
 };
 
 /**
@@ -56,9 +58,6 @@ export const metadata: Metadata = {
  * hydration. Without it, server HTML paints, vanishes, then animates back in.
  * Skipped under reduced motion, where there is no entrance to hold for.
  */
-/** Temporary: shows the Coming Soon screen on every public route. */
-const COMING_SOON = true;
-
 const MOTION_BOOT = `(function(){try{if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.setAttribute("data-motion-boot","")}catch(e){}})()`;
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
@@ -77,10 +76,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   }
 
   // ── COMING SOON (temporary) ─────────────────────────────────────────────
-  // Every public route renders the construction screen until launch, in
-  // development and production alike. Set COMING_SOON to false to review the
-  // real site; delete this block to go live.
-  if (COMING_SOON) {
+  // Every public route renders the construction screen unless the deployment
+  // sets SITE_MODE to "review" or "live" — see lib/site-mode.ts. Unset means
+  // Coming Soon, so a misconfigured deployment can never leak the site.
+  if (isComingSoon()) {
     return (
       <html lang="en" className={`${archivo.variable} h-full`}>
         <body className="min-h-full">
