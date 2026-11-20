@@ -114,6 +114,18 @@ export function SiteHeader({
       )}
       onMouseLeave={() => setOpenMenu(null)}
     >
+      {/* Legibility scrim for the transparent header over a photographic
+          hero: the white lockup and labels otherwise sit on whatever the
+          frame puts behind them (a pale facade, a sky). Fades out as the
+          header solidifies. */}
+      <div
+        aria-hidden="true"
+        className={cn(
+          "pointer-events-none absolute inset-x-0 top-0 -z-10 h-40 bg-linear-to-b from-abyss/75 via-abyss/35 to-transparent transition-opacity duration-300 ease-brand",
+          light ? "opacity-100" : "opacity-0",
+        )}
+      />
+
       {/* The header persists across routes, so its entrance plays once per
           hard load — as the splash doors part on "/", immediately elsewhere. */}
       <Entrance className="shell flex h-24 items-center justify-between">
@@ -210,20 +222,18 @@ export function SiteHeader({
         </button>
       </Entrance>
 
-      {/* ── Dropdown panel: one shared surface, content follows the item ── */}
+      {/* ── Dropdown panel: one compact card under the nav, shared by every
+          item with children; its content follows the open item. Sized to
+          its links rather than spanning the page, so it covers as little of
+          the hero as possible. ── */}
       <div
         id="nav-panel"
-        className={cn(
-          "border-t border-rule bg-canvas",
-          openItem ? "hidden lg:block" : "hidden",
-        )}
+        className={cn("shell -mt-3 justify-end", openItem ? "hidden lg:flex" : "hidden")}
       >
         {openItem?.children && (
-          <div className="shell grid-12 py-10">
-            {openItem.panelLabel === false ? (
-              <div className="col-span-3" />
-            ) : (
-              <p className="type-eyebrow col-span-3 text-ink-muted">
+          <div className="border border-rule bg-canvas px-5 pt-3 pb-2">
+            {openItem.panelLabel !== false && (
+              <p className="type-eyebrow mb-1 text-ink-muted">
                 <span className="text-green">
                   {String(openItem.children.length).padStart(2, "0")}
                 </span>
@@ -235,10 +245,8 @@ export function SiteHeader({
             )}
             <ul
               className={cn(
-                "col-span-9 grid gap-x-10",
-                openItem.children.length % 3 === 0
-                  ? "grid-cols-3"
-                  : "grid-cols-2",
+                "grid gap-x-8",
+                openItem.children.length % 3 === 0 ? "grid-cols-3" : "grid-cols-2",
               )}
             >
               {openItem.children.map((child, i) => (
@@ -246,12 +254,12 @@ export function SiteHeader({
                   <Link
                     href={child.href}
                     onClick={(e) => onChildClick(e, child.href)}
-                    className="group flex items-baseline gap-4 border-t border-rule py-5 transition-colors duration-200 hover:bg-canvas-alt"
+                    className="group flex items-baseline gap-3 border-t border-rule px-1 py-2.5 transition-colors duration-200 hover:bg-canvas-alt"
                   >
                     <span className="type-eyebrow text-ink-muted">
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <span className="type-subhead block text-h3">
+                    <span className="type-subhead block whitespace-nowrap text-caption text-ink">
                       {child.label}
                     </span>
                   </Link>
