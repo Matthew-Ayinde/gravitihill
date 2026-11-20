@@ -18,6 +18,8 @@ export const metadata: Metadata = pageMetadata({
   path: "/about",
 });
 
+
+
 export default async function AboutPage() {
   const [about, dnaPillars, team] = await Promise.all([
     getAbout(),
