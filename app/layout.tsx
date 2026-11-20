@@ -57,7 +57,7 @@ export const metadata: Metadata = {
  * Skipped under reduced motion, where there is no entrance to hold for.
  */
 /** Temporary: shows the Coming Soon screen on every public route. */
-const COMING_SOON = false;
+const COMING_SOON = true;
 
 const MOTION_BOOT = `(function(){try{if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.setAttribute("data-motion-boot","")}catch(e){}})()`;
 
