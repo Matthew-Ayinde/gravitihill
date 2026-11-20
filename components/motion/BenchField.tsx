@@ -115,6 +115,35 @@ export function BenchField({
 
         gsap.ticker.add(render);
 
+        // ── Fit ──────────────────────────────────────────────────────────
+        // The field takes the height its content needs: an open quadrant
+        // (ROW[1] of the field) must hold the tallest practice in full, and
+        // a closed one (ROW[0]) must hold any practice's index and name. The
+        // inner layout is sized in cqw only, so the measurement does not
+        // depend on the height it sets, and cannot loop.
+        const fit = () => {
+          let open = 0;
+          let closed = 0;
+          cells.forEach((cell) => {
+            const inner = cell.querySelector<HTMLElement>(".bench-inner");
+            const head = cell.querySelector<HTMLElement>("[data-bench-head]");
+            if (!inner || !head) return;
+            const pad = parseFloat(getComputedStyle(inner).paddingBottom) || 0;
+            open = Math.max(open, inner.offsetHeight);
+            closed = Math.max(closed, head.offsetTop + head.offsetHeight + pad);
+          });
+          if (open === 0) return;
+          const h = Math.ceil(Math.max(open / ROW[1], closed / ROW[0]));
+          el.style.setProperty("--bench-h", `${h}px`);
+          ScrollTrigger.refresh();
+        };
+        const observer = new ResizeObserver(fit);
+        cells.forEach((cell) => {
+          const inner = cell.querySelector(".bench-inner");
+          if (inner) observer.observe(inner);
+        });
+        void document.fonts?.ready.then(fit);
+
         // ── Entrance ─────────────────────────────────────────────────────
         // The rules draw outward from the junction and the names rise, then
         // the field opens onto the first practice. This is skipped if the
@@ -231,6 +260,8 @@ export function BenchField({
           el.removeEventListener("focusin", onFocus);
           el.removeEventListener("click", onClick);
           gsap.ticker.remove(render);
+          observer.disconnect();
+          el.style.removeProperty("--bench-h");
           intro?.kill();
           el.style.removeProperty("--sx");
           el.style.removeProperty("--sy");

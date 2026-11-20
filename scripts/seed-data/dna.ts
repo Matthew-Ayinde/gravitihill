@@ -5,7 +5,7 @@ export type SeedPillar = { name: string; icon: string; summary: string; detail: 
 export const SEED_PILLARS: SeedPillar[] = [
   {
     name: "Strategically Creative",
-    icon: "strategy",
+    icon: "creative",
     summary: "Creative work that carries a commercial argument.",
     detail:
       "Ideas are cheap in this market and good ones are common. What is rare is a creative decision that can be defended in a board paper. Every piece of work we produce has to survive that test before it goes out.",

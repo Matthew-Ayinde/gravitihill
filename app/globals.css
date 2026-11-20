@@ -1440,9 +1440,10 @@
   --sy: 0.7;
   position: relative;
   container-type: size;
-  /* The whole field fits under the sticky header, so the reader never has
-     to scroll to see the quadrant they are opening. */
-  height: clamp(38rem, calc(100svh - 8rem), 52rem);
+  /* <BenchField> sets --bench-h from the content: the tallest practice
+     exactly fills an open quadrant, so no box carries dead space below its
+     services. The clamp is only the pre-hydration fallback. */
+  height: var(--bench-h, clamp(38rem, calc(100svh - 8rem), 52rem));
 }
 
 .bench-cell {
@@ -1481,14 +1482,14 @@
   bottom: 0;
 }
 
-/* Sized to the largest quadrant the split allows (66% × 70%). */
+/* As wide as the largest quadrant the split allows (66%); as tall as its
+   own content, which is what <BenchField> measures to size the field. */
 .bench-inner {
   position: absolute;
   inset: 0 auto auto 0;
   display: flex;
   flex-direction: column;
   width: 66cqw;
-  height: 70cqh;
   padding: clamp(1.5rem, 2.6cqw, 2.5rem);
 }
 
@@ -1554,13 +1555,6 @@
   gap: 0.625rem;
   opacity: var(--p);
   transform: translateY(calc((1 - var(--p)) * 0.7rem));
-}
-
-/* Short fields have no room for the proposition; the services matter more. */
-@container (max-height: 46rem) {
-  .bench-prop {
-    display: none;
-  }
 }
 
 /* The two rules and their junction. Each rule grows outward from the

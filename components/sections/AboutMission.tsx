@@ -36,7 +36,7 @@ export function AboutMission() {
             figure says it to everyone else. */}
         <div className="col-span-12 lg:col-span-7">
           <h1 id="about-mission" className="sr-only">
-            Building businesses, beyond their current limit
+            Build businesses beyond limits.
           </h1>
           <div data-load>
             <GapCrossing />
@@ -49,11 +49,11 @@ export function AboutMission() {
               share a subject; repeating the sentence would spend the payoff
               early and read as a page that forgot what it had said. */}
           <p data-load className="measure-tight mt-6 text-ink-muted">
-            We challenge inherited assumptions and redesign what no longer serves a business’s future. Translating growth ambitions into the strategy, operating models and commercial capabilities needed to compete and scale.
+            We challenge inherited assumptions and redesign what no longer serves the business’s future. Translating growth ambitions into the strategy, operating models and commercial capabilities needed to compete and scale.
           </p>
 
           <p data-load className="measure-tight mt-5 text-ink-muted">
-           Through clear accountability, management routines and a culture of learning, we make these changes part of our everyday work. This embeds the discipline to adapt faster, perform consistently and sustain growth.
+           Through clear accountability, management routines and a culture of learning and execution, we make these changes part of our everyday work. This embeds the discipline to adapt faster, perform consistently and sustain growth.
 
           </p>
 

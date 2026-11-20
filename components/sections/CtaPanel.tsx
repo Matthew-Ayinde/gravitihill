@@ -67,7 +67,9 @@ export async function CtaPanel({
   return (
     <section
       className={cn(
-        "relative bg-ridge py-section text-white",
+        // Tighter than the site's section rhythm: the footer below shares this
+        // --ridge surface, so its own top padding already extends the panel.
+        "relative bg-ridge pt-20 pb-12 text-white lg:pt-24 lg:pb-14",
         intense && "overflow-hidden",
         className,
       )}

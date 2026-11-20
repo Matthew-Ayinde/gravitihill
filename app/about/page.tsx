@@ -44,7 +44,7 @@ export default async function AboutPage() {
 
       <CtaPanel
         eyebrow={null}
-        heading="Let’s discuss the business challenge you need to solve."
+        heading="Let’s discuss."
       />
     </>
   );

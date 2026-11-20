@@ -80,8 +80,8 @@ export async function PracticeBench({ index = "02" }: { index?: string }) {
             >
               <div className="bench-inner">
                 <div data-bench-head data-motion>
-                
-                  <h3 className="mt-4">
+                  <span className="type-eyebrow text-green">{indexNumber(p)}</span>
+                  <h3 className="mt-3">
                     <Link href={`/services#${practice.slug}`} className="bench-link">
                       <span className="bench-name type-display">{practice.name}</span>
                     </Link>

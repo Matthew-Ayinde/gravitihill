@@ -301,6 +301,19 @@ export const StakeholderEngagementIcon = ({ className, accentClassName, title }:
   </Svg>
 );
 
+/* An idea with a base under it: the bulb in --green, the fitting that grounds
+   it in --accent. For "Strategically Creative". */
+export const CreativeIcon = ({ className, accentClassName, title }: IconProps) => (
+  <Svg className={className} title={title}>
+    <g fill="currentColor">
+      <path d="M12 2a7 7 0 0 0-4 12.75V17h8v-2.25A7 7 0 0 0 12 2Z" />
+    </g>
+    <Accent className={accentClassName}>
+      <path d="M8.5 18.5h7V20a2 2 0 0 1-2 2h-3a2 2 0 0 1-2-2v-1.5Z" />
+    </Accent>
+  </Svg>
+);
+
 /* ── Registry ────────────────────────────────────────────────────────────── */
 
 export const ICONS: Record<IconName, (p: IconProps) => React.JSX.Element> = {
@@ -323,6 +336,7 @@ export const ICONS: Record<IconName, (p: IconProps) => React.JSX.Element> = {
   performance: PerformanceIcon,
   research: ResearchIcon,
   "stakeholder-engagement": StakeholderEngagementIcon,
+  creative: CreativeIcon,
 };
 
 /** Renders an icon by its schema name. Used wherever content carries a key. */

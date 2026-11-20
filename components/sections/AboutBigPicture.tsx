@@ -3,13 +3,14 @@ import { Studio } from "@/components/sections/Studio";
 import { HeadlineReveal } from "@/components/motion/HeadlineReveal";
 import { Parallax } from "@/components/motion/Parallax";
 import { Reveal } from "@/components/motion/Reveal";
+import { PillarSequence } from "@/components/motion/PillarSequence";
 import type { Img } from "@/lib/schemas";
 
 /**
  * /about §02 — the argument, and the object it stands next to.
  *
- * The statement breaks colour at its hinge: "Building businesses" stays in
- * ink, and the ambition — "beyond their current limits" — turns green, so the
+ * The statement breaks colour at its hinge: "Build businesses" stays in
+ * ink, and the ambition — "beyond limits." — turns green, so the
  * tone changes exactly where the sentence moves from what we do to how far.
  */
 export function AboutBigPicture({ figure }: { figure?: Img }) {
@@ -31,35 +32,69 @@ export function AboutBigPicture({ figure }: { figure?: Img }) {
               id="about-bigger-picture"
               className="type-display text-h2 text-ink-display"
               lines={[
-                "Building businesses",
+                "Build businesses",
                 <span key="beyond" className="text-green">
-                  beyond their
-                </span>,
-                <span key="limits" className="text-green">
-                  current limits
+                  beyond limits.
                 </span>,
               ]}
             />
           </div>
 
-          {/* The object. Drifts against the type as the section scrolls —
-              two things at different depths moving at different rates is
-              the whole of what makes a flat page read as a room. */}
-          <div className="col-span-12 lg:col-span-3">
-            <StudioObject figure={figure} />
-          </div>
+          {/* The object and its three paragraphs, raised as pairs by one
+              timeline: tallest pillar with the first paragraph, then the
+              middle, then the shortest. */}
+          <PillarSequence className="col-span-12 grid-12 gap-y-12 lg:col-span-6">
+            {/* Drifts against the type as the section scrolls — two things at
+                different depths moving at different rates is the whole of
+                what makes a flat page read as a room. */}
+            <div className="col-span-12 lg:col-span-6">
+              <StudioObject figure={figure} />
+            </div>
 
-          <div className="col-span-12 lg:col-span-3">
-         
-            <Reveal delay={0.08}>
-              <p className="measure-tight mt-20 text-ink-muted">
-               To help businesses and brands outgrow their limitations by building the strategy, capability, culture and execution discipline they need to adapt, scale and lead their markets.
-              </p>
-            </Reveal>
-          </div>
+            {/* Three blocks stepping down and in, mirroring the pillars'
+                descending heights; each is keyed to its pillar by colour. */}
+            <div className="col-span-12 flex flex-col gap-10 lg:col-span-6 lg:pt-[7.5%]">
+              {MISSION_COPY.map((text, i) => (
+                <PillarCopy key={i} index={i} text={text} />
+              ))}
+            </div>
+          </PillarSequence>
         </div>
       </div>
     </Studio>
+  );
+}
+
+/**
+ * One paragraph per pillar, in pillar order: tallest, middle, shortest.
+ *
+ * PENDING: paragraphs two and three are still to be supplied by the client.
+ * Paste them in place of the `null`s. Until then the slot renders a visible
+ * marker in development and nothing in production.
+ */
+const MISSION_COPY: (string | null)[] = [
+  "To help businesses and brands outgrow their limitations by building the strategy, capability, culture and execution discipline they need to adapt, scale and lead their markets.",
+  null,
+  null,
+];
+
+/* Each block's key colour and indent, matched to its pillar. */
+const PILLAR_KEY = ["bg-ridge", "bg-green", "bg-accent"] as const;
+const PILLAR_STEP = ["", "lg:ml-[12%]", "lg:ml-[24%]"] as const;
+
+function PillarCopy({ index, text }: { index: number; text: string | null }) {
+  if (!text && process.env.NODE_ENV === "production") return null;
+  return (
+    <div data-pillar-copy={index} className={PILLAR_STEP[index]}>
+      <span aria-hidden="true" className={`block h-1 w-8 ${PILLAR_KEY[index]}`} />
+      {text ? (
+        <p className="measure-tight mt-4 text-ink-muted">{text}</p>
+      ) : (
+        <p className="measure-tight mt-4 text-caption text-ink-muted italic">
+          Paragraph {index + 1}: copy pending.
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -126,20 +161,29 @@ function MonolithFallback() {
       className="preserve-3d absolute inset-0 transform-[rotateY(-16deg)]"
     >
       {/* Rear mass — furthest back, most in shadow. */}
+      {/* Each mass holds an untransformed inner layer (`data-pillar`) that
+          <PillarSequence> raises from the floor, leaving the mass's own
+          depth transform untouched. */}
       <div className="preserve-3d absolute bottom-0 left-[6%] top-[6%] w-[38%] transform-[translateZ(-70px)]">
-        <div className="absolute inset-0 bg-ridge" />
+        <div data-pillar="0" className="preserve-3d absolute inset-0">
+          <div className="absolute inset-0 bg-ridge" />
+        </div>
       </div>
 
       {/* Centre mass, turned against the others. */}
       <div className="preserve-3d absolute bottom-0 left-[26%] top-[24%] w-[42%] transform-[translateZ(-18px)_rotateY(14deg)]">
-        <div className="absolute inset-0 bg-green" />
-        <div className="absolute inset-y-0 -left-8 w-8 origin-right bg-ridge transform-[rotateY(-64deg)]" />
+        <div data-pillar="1" className="preserve-3d absolute inset-0">
+          <div className="absolute inset-0 bg-green" />
+          <div className="absolute inset-y-0 -left-8 w-8 origin-right bg-ridge transform-[rotateY(-64deg)]" />
+        </div>
       </div>
 
       {/* Front mass — catches the key light. */}
       <div className="preserve-3d absolute bottom-0 left-[58%] top-[44%] w-[30%] transform-[translateZ(46px)]">
-        <div className="absolute inset-0 bg-accent/85" />
-        <div className="absolute inset-y-0 -left-6 w-6 origin-right bg-green transform-[rotateY(-62deg)]" />
+        <div data-pillar="2" className="preserve-3d absolute inset-0">
+          <div className="absolute inset-0 bg-accent/85" />
+          <div className="absolute inset-y-0 -left-6 w-6 origin-right bg-green transform-[rotateY(-62deg)]" />
+        </div>
       </div>
     </div>
   );

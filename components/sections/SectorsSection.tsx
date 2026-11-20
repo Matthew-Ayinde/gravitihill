@@ -23,6 +23,13 @@ export async function SectorsSection({ index = "04" }: { index?: string }) {
     href: `/sectors/${sector.slug}`,
     proposition: sector.proposition,
     visual: <SectorVisual sector={sector} position={i} />,
+    // The DNA layout's top-right icon: the sector's lead approach step.
+    icon: (
+      <Icon
+        name={sector.approach[0]?.icon ?? "strategy"}
+        className="h-12 w-12 text-white lg:h-14 lg:w-14"
+      />
+    ),
     // Panel bullets override the approach names when a sector sets them;
     // icons stay paired with the approach step at the same position.
     points: (sector.panelPoints ?? sector.approach.map((step) => step.name)).map(

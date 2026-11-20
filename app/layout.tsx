@@ -74,67 +74,69 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   }
 
   // ── COMING SOON (temporary) ─────────────────────────────────────────────
-  // Every public route renders the construction screen until launch. The
-  // real site below is commented out, not deleted: to go live, remove this
-  // return and uncomment the block that follows it.
+  // Production renders the construction screen on every public route until
+  // launch; `next dev` renders the real site so it can be reviewed locally.
+  // To go live, delete this block.
+  if (process.env.NODE_ENV === "production") {
+    return (
+      <html lang="en" className={`${archivo.variable} h-full`}>
+        <body className="min-h-full">
+          <ComingSoon />
+        </body>
+      </html>
+    );
+  }
+
+  // ── THE SITE ──────────────────────────────────────────────────────────
+  const [orgJsonLd, homeHero, practices, sectors] = await Promise.all([
+    organizationJsonLd(),
+    getHomeHeroMedia(),
+    getPractices(),
+    getSectors(),
+  ]);
+  // Only slug + name cross into the client header/splash, not whole documents.
+  const practiceNames = practices.map(({ slug, name }) => ({ slug, name }));
+  const sectorNames = sectors.map(({ slug, name }) => ({ slug, name }));
+  
   return (
-    <html lang="en" className={`${archivo.variable} h-full`}>
-      <body className="min-h-full">
-        <ComingSoon />
+    // suppressHydrationWarning: MOTION_BOOT / SPLASH_BOOT add attributes before React
+    // hydrates. It covers <html>'s own attributes only, not its children.
+    <html lang="en" className={`${archivo.variable} h-full`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: MOTION_BOOT }} />
+        <script dangerouslySetInnerHTML={{ __html: SPLASH_BOOT }} />
+      </head>
+      <body className="flex min-h-full flex-col">
+        {/* Organization + ProfessionalService, emitted once for every route. */}
+        <JsonLd data={orgJsonLd} />
+        <div className="flex min-h-full flex-col">
+          <a
+            href="#main"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-100 focus:rounded-sm focus:bg-green focus:px-5 focus:py-3 focus:text-white"
+          >
+            Skip to content
+          </a>
+          <MotionRoot>
+            {/* SiteHeader is global and route-agnostic; it can't fetch the
+                home page's content itself. Whether "/" has a dark background
+                is admin-configurable content, not a fact about the route,
+                so it's read here (once, cached, for every route) and handed
+                down — the same way DARK_HERO_ROUTES flags a fully-dark page
+                like /the-naked-board, just resolved from data instead of a
+                hardcoded list. */}
+            <SiteHeader
+              homeHeroHasMedia={homeHero.items.length > 0}
+              nav={buildNav({ practices: practiceNames, sectors: sectorNames })}
+            />
+            <PageFade>{children}</PageFade>
+            <SiteFooter />
+            {/* Sibling of PageFade, not a descendant: see SplashScreen's
+                header comment for why it can't live inside the tilted
+                page wrapper. */}
+            <SplashScreen practices={practiceNames} />
+          </MotionRoot>
+        </div>
       </body>
     </html>
   );
-
-  // ── ORIGINAL SITE (commented out until launch) ──────────────────────────
-  // const [orgJsonLd, homeHero, practices, sectors] = await Promise.all([
-  //   organizationJsonLd(),
-  //   getHomeHeroMedia(),
-  //   getPractices(),
-  //   getSectors(),
-  // ]);
-  // // Only slug + name cross into the client header/splash, not whole documents.
-  // const practiceNames = practices.map(({ slug, name }) => ({ slug, name }));
-  // const sectorNames = sectors.map(({ slug, name }) => ({ slug, name }));
-  // 
-  // return (
-  //   // suppressHydrationWarning: MOTION_BOOT / SPLASH_BOOT add attributes before React
-  //   // hydrates. It covers <html>'s own attributes only, not its children.
-  //   <html lang="en" className={`${archivo.variable} h-full`} suppressHydrationWarning>
-  //     <head>
-  //       <script dangerouslySetInnerHTML={{ __html: MOTION_BOOT }} />
-  //       <script dangerouslySetInnerHTML={{ __html: SPLASH_BOOT }} />
-  //     </head>
-  //     <body className="flex min-h-full flex-col">
-  //       {/* Organization + ProfessionalService, emitted once for every route. */}
-  //       <JsonLd data={orgJsonLd} />
-  //       <div className="flex min-h-full flex-col">
-  //         <a
-  //           href="#main"
-  //           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-100 focus:rounded-sm focus:bg-green focus:px-5 focus:py-3 focus:text-white"
-  //         >
-  //           Skip to content
-  //         </a>
-  //         <MotionRoot>
-  //           {/* SiteHeader is global and route-agnostic; it can't fetch the
-  //               home page's content itself. Whether "/" has a dark background
-  //               is admin-configurable content, not a fact about the route,
-  //               so it's read here (once, cached, for every route) and handed
-  //               down — the same way DARK_HERO_ROUTES flags a fully-dark page
-  //               like /the-naked-board, just resolved from data instead of a
-  //               hardcoded list. */}
-  //           <SiteHeader
-  //             homeHeroHasMedia={homeHero.items.length > 0}
-  //             nav={buildNav({ practices: practiceNames, sectors: sectorNames })}
-  //           />
-  //           <PageFade>{children}</PageFade>
-  //           <SiteFooter />
-  //           {/* Sibling of PageFade, not a descendant: see SplashScreen's
-  //               header comment for why it can't live inside the tilted
-  //               page wrapper. */}
-  //           <SplashScreen practices={practiceNames} />
-  //         </MotionRoot>
-  //       </div>
-  //     </body>
-  //   </html>
-  // );
 }

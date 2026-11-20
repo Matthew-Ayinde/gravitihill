@@ -34,6 +34,7 @@ export const iconNameSchema = z.enum([
   "performance",
   "research",
   "stakeholder-engagement",
+  "creative",
 ]);
 export type IconName = z.infer<typeof iconNameSchema>;
 

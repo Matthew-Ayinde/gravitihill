@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { EASE_BRAND } from "@/lib/motion";
 import { indexNumber } from "@/lib/utils";
@@ -87,6 +87,8 @@ export type SectorPanelItem = {
   visual: ReactNode;
   /** Pre-rendered on the server: one node per strategic-approach point. */
   points: ReactNode[];
+  /** Pre-rendered on the server: the sector's duotone icon. */
+  icon: ReactNode;
 };
 
 const PANEL_HEIGHT = "h-[340vh]";
@@ -109,7 +111,7 @@ export function SectorsPanel({
       className="bg-abyss text-white"
     >
       <h2 id="sectors-panel-heading" className="sr-only">
-        Sectors
+        Sectors we serve
       </h2>
       <PinnedPanel items={items} index={index} />
       <StackedPanels items={items} index={index} />
@@ -127,8 +129,6 @@ function PinnedPanel({
   index: string;
 }) {
   const container = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
-  const markerRef = useRef<HTMLSpanElement>(null);
   const copyRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
 
@@ -144,6 +144,10 @@ function PinnedPanel({
         container.current,
       );
       if (layers.length === 0) return;
+      const fills = gsap.utils.toArray<HTMLElement>(
+        "[data-sector-fill]",
+        container.current,
+      );
 
       // Rest state: the first layer is the one on screen when the panel is
       // entered; the rest wait at zero.
@@ -163,6 +167,13 @@ function PinnedPanel({
               Math.max(0, Math.floor(self.progress * total)),
             );
             setActive((current) => (current === next ? current : next));
+            // Each index row's top rule fills across its own third, the way
+            // the DNA tabs fill across their dwell: only the active row
+            // carries a fill.
+            fills.forEach((fill, i) => {
+              const local = i === next ? Math.min(1, Math.max(0, self.progress * total - i)) : 0;
+              gsap.set(fill, { scaleX: local });
+            });
           },
         },
       });
@@ -207,28 +218,6 @@ function PinnedPanel({
       };
     },
     { dependencies: [total], scope: container },
-  );
-
-  // ── The accent marker slides to the active row ───────────────────────
-  // Offsets are measured rather than assumed: the index type is fluid, so a
-  // hardcoded row height would drift at every width between 1024 and 1920px.
-  useGSAP(
-    () => {
-      const move = () => {
-        const row = listRef.current?.children[active] as HTMLElement | undefined;
-        if (!row || !markerRef.current) return;
-        gsap.to(markerRef.current, {
-          y: row.offsetTop + row.offsetHeight / 2,
-          duration: 0.5,
-          ease: EASE_BRAND,
-        });
-      };
-
-      move();
-      window.addEventListener("resize", move);
-      return () => window.removeEventListener("resize", move);
-    },
-    { dependencies: [active], scope: container },
   );
 
   // ── The copy swap ────────────────────────────────────────────────────
@@ -285,79 +274,88 @@ function PinnedPanel({
           className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-abyss/95 via-abyss/45 to-transparent"
         />
 
-        {/* ── Foreground: index + copy, static, never morphs ───────────── */}
+        {/* A second pass behind the stage column, so the copy holds its
+            contrast whatever the photograph is doing on that side. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 right-0 w-3/5 bg-linear-to-l from-abyss/85 via-abyss/50 to-transparent"
+        />
+
+        {/* ── Foreground: the DNA structure, static, never morphs ───────
+            Same anatomy as /about's Corporate DNA: a heading over a ruled,
+            numbered index on the left; on the right, one sector at a time —
+            numeral and icon, name, a hairline, then the copy. */}
         <div className="relative z-10 flex h-full flex-col">
-          <p className="type-eyebrow shell pt-10 text-white/45">
+          <p className="type-eyebrow shell flex items-center gap-4 pt-10 text-white/45">
             <span className="accent-word-dark">{index}</span>
-            <span aria-hidden="true" className="mx-2">
-              —
-            </span>
-            Sectors
+            <span aria-hidden="true" className="h-px w-6 bg-rule-dark" />
+            <span>Sectors</span>
           </p>
 
-          <div className="flex flex-1">
-            {/* Index: the one thing on screen the reader can always read
-                against while the background behind it keeps changing. Set at
-                hero scale — "large display-set numerals" per the brief — so
-                the index reads as the room's dominant shape, not a caption
-                beside the photograph. */}
-            <div className="flex w-full shrink-0 flex-col justify-center pl-gutter pr-6 lg:w-[42%] xl:w-[38%]">
-              <div className="relative">
-                <span
-                  ref={markerRef}
-                  aria-hidden="true"
-                  className="absolute -left-6 block h-px w-8 bg-accent"
-                />
+          <div className="shell grid-12 flex-1 items-center">
+            {/* Left: heading and index. */}
+            <div className="col-span-5">
+              <p aria-hidden="true" className="type-display text-h2 text-white">
+                Sectors we <span className="accent-word-dark">serve.</span>
+              </p>
 
-                <ul ref={listRef}>
-                  {items.map((item, i) => (
-                    <li key={item.slug}>
+              <ul className="mt-16 max-w-md border-b border-rule-dark">
+                {items.map((item, i) => {
+                  const current = i === active;
+                  return (
+                    <li key={item.slug} className="relative">
+                      <span aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-rule-dark" />
+                      <span
+                        aria-hidden="true"
+                        data-sector-fill
+                        className="absolute inset-x-0 top-0 h-0.5 origin-left bg-white"
+                        style={{ transform: "scaleX(0)" }}
+                      />
                       <Link
                         href={item.href}
                         onFocus={() => setActive(i)}
-                        aria-current={i === active ? "true" : undefined}
-                        className="flex items-end gap-4 py-2"
+                        aria-current={current ? "true" : undefined}
+                        className={`flex items-baseline gap-5 py-5 transition-colors duration-300 ease-brand ${
+                          current ? "text-white" : "text-white/45 hover:text-white/75"
+                        }`}
                       >
-                        {/* Opacity is a CSS transition, not a tween: it is a
-                            two-state change driven by React state, and a
-                            transition costs nothing to set up where a tween
-                            per row per scroll-third would. */}
-                        <span
-                          className="type-display text-h3 leading-none tabular-nums transition-opacity duration-400 ease-brand"
-                          style={{ opacity: i === active ? 0.6 : 0.2 }}
-                        >
-                          {indexNumber(i)}
-                        </span>
-                        <span
-                          className="type-display text-hero leading-none transition-opacity duration-400 ease-brand"
-                          style={{ opacity: i === active ? 1 : 0.28 }}
-                        >
-                          {item.name}
-                        </span>
+                        <span className="type-eyebrow tabular-nums">{indexNumber(i)}</span>
+                        <span className="type-subhead text-h3">{item.name}</span>
                       </Link>
                     </li>
-                  ))}
-                </ul>
-              </div>
+                  );
+                })}
+              </ul>
             </div>
 
-            {/* Copy: proposition + approach points, bottom-anchored over
-                the background's own foot. Capped to its own measure rather
-                than stretched across the remaining width — asymmetry, not a
-                dead-centred caption — so it reads as a second, deliberate
-                statement rather than a footnote to the index. */}
-            <div className="flex max-w-2xl flex-1 flex-col justify-end px-10 pb-16 lg:pb-24 xl:px-14">
+            {/* Right: the active sector. */}
+            <div className="col-span-6 col-start-7">
               <div ref={copyRef} key={sector.slug}>
+                <div className="flex items-start justify-between gap-8">
+                  <MaskedLine>
+                    <span className="type-display block text-hero leading-none tabular-nums text-white">
+                      {indexNumber(active)}
+                    </span>
+                  </MaskedLine>
+                  <span className="mt-2 shrink-0">{sector.icon}</span>
+                </div>
+
+                <h3 className="type-display mt-6 text-h1 text-white">
+                  <MaskedLine>{sector.name}</MaskedLine>
+                </h3>
+
+                <span aria-hidden="true" className="mt-8 block h-px bg-rule-dark" />
+
                 <MaskedLine>
-                  <p className="type-display text-h2 text-white">
+                  <p className="measure-tight mt-8 text-body-lg text-white">
                     {sector.proposition}
                   </p>
                 </MaskedLine>
 
-                <ul className="mt-9 space-y-4">
+                <ul className="mt-8 space-y-4">
                   {sector.points.map((point, i) => (
                     <MaskedLine key={i} as="li">
-                      <span className="text-body-lg">{point}</span>
+                      <span className="text-body">{point}</span>
                     </MaskedLine>
                   ))}
                 </ul>
@@ -415,40 +413,41 @@ function StackedPanels({
   return (
     <div className="py-section motion-safe:lg:hidden">
       <div className="shell">
-        <p className="type-eyebrow mb-12 text-white/45">
+        <p className="type-eyebrow flex items-center gap-4 text-white/45">
           <span className="accent-word-dark">{index}</span>
-          <span aria-hidden="true" className="mx-2">
-            —
-          </span>
-          Sectors
+          <span aria-hidden="true" className="h-px w-6 bg-rule-dark" />
+          <span>Sectors</span>
+        </p>
+        <p aria-hidden="true" className="type-display mb-16 mt-10 text-h2 text-white">
+          Sectors we <span className="accent-word-dark">serve.</span>
         </p>
 
         <ul className="space-y-20">
           {items.map((sector, i) => (
             <li key={sector.slug}>
               <Link href={sector.href} className="block">
-                <div className="flex items-baseline gap-5">
-                  <span className="type-eyebrow text-accent">
+                <div className="flex items-start justify-between gap-6">
+                  <span className="type-display block text-hero leading-none tabular-nums text-white">
                     {indexNumber(i)}
                   </span>
-                  <h3 className="type-display text-hero leading-none text-white">
-                    {sector.name}
-                  </h3>
+                  <span className="mt-2 shrink-0">{sector.icon}</span>
                 </div>
+
+                <h3 className="type-display mt-6 text-h1 text-white">{sector.name}</h3>
 
                 <div className="relative mt-8 aspect-4/5 w-full overflow-hidden">
                   {sector.visual}
                 </div>
 
-                <p className="type-display mt-8 text-h2 text-white">
+                <span aria-hidden="true" className="mt-8 block h-px bg-rule-dark" />
+
+                <p className="measure-tight mt-8 text-body-lg text-white">
                   {sector.proposition}
                 </p>
 
                 <ul className="mt-7 space-y-4">
                   {sector.points.map((point, pointIndex) => (
-                    <li key={pointIndex} className="text-body-lg">
-                      {point}
-                    </li>
+                    <li key={pointIndex}>{point}</li>
                   ))}
                 </ul>
               </Link>

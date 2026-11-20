@@ -2,9 +2,9 @@
  * /about §01 — the gap, drawn.
  *
  * Two cliff faces with open space between them, read as an argument:
- * GROWTH AMBITION stands on the near side, BUSINESS CAPABILITY on the far
+ * BUSINESS CAPABILITY stands on the near side, GROWTH AMBITION on the far
  * side, and the void between them is measured and named — THE GAP — with a
- * hairline dimension line, the way a surveyor's drawing would mark it. One
+ * broken hairline dimension line, the way a surveyor's drawing would mark it. One
  * dashed arc leaves the near lip, spans the void and lands on the far lip: the section's eyebrow, "the gap we are built to
  * close", made literal.
  *
@@ -49,6 +49,9 @@ const ROUTE = `M${LIP_L.x} ${LIP_L.y} Q724 350 ${LIP_R.x} ${LIP_R.y}`;
 
 /* The dimension line across the void, lip to lip, set just below them. */
 const MEASURE_Y = 626;
+/* Where the measure breaks: an open span centred on the void. */
+const BREAK_L = 676;
+const BREAK_R = 772;
 
 function Cliff() {
   return (
@@ -87,9 +90,14 @@ export function GapCrossing({ className }: { className?: string }) {
           <Cliff />
         </g>
 
-        {/* The measure: a hairline with end ticks, lip to lip. */}
+        {/* The measure: a hairline with end ticks, lip to lip — broken at
+            its centre, with a slanted cut on each side of the break, so the
+            line itself says what the label names. */}
         <g className="gap-measure stroke-ink-muted" strokeWidth={2.5} fill="none">
-          <path d={`M${LIP_L.x} ${MEASURE_Y} H${LIP_R.x}`} />
+          <path d={`M${LIP_L.x} ${MEASURE_Y} H${BREAK_L}`} />
+          <path d={`M${BREAK_R} ${MEASURE_Y} H${LIP_R.x}`} />
+          <path d={`M${BREAK_L - 6} ${MEASURE_Y + 12} L${BREAK_L + 6} ${MEASURE_Y - 12}`} />
+          <path d={`M${BREAK_R - 6} ${MEASURE_Y + 12} L${BREAK_R + 6} ${MEASURE_Y - 12}`} />
           <path d={`M${LIP_L.x} ${MEASURE_Y - 16} V${MEASURE_Y + 16}`} />
           <path d={`M${LIP_R.x} ${MEASURE_Y - 16} V${MEASURE_Y + 16}`} />
         </g>
@@ -119,9 +127,9 @@ export function GapCrossing({ className }: { className?: string }) {
       </svg>
 
       <p className={`${LABEL} gap-label-near left-[1%]`}>
-        Growth
+        Business
         <br />
-        ambition
+        capability
       </p>
 
       <p className="gap-label-gap type-display absolute left-1/2 top-[60%] -translate-x-1/2 whitespace-nowrap text-h3 text-green lg:text-h2">
@@ -129,9 +137,9 @@ export function GapCrossing({ className }: { className?: string }) {
       </p>
 
       <p className={`${LABEL} gap-label-far right-[1%] text-right`}>
-        Business
+        Growth
         <br />
-        capability
+        ambition
       </p>
     </div>
   );
