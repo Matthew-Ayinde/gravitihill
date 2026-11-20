@@ -56,6 +56,9 @@ export const metadata: Metadata = {
  * hydration. Without it, server HTML paints, vanishes, then animates back in.
  * Skipped under reduced motion, where there is no entrance to hold for.
  */
+/** Temporary: shows the Coming Soon screen on every public route. */
+const COMING_SOON = true;
+
 const MOTION_BOOT = `(function(){try{if(!window.matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.setAttribute("data-motion-boot","")}catch(e){}})()`;
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
@@ -74,10 +77,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   }
 
   // ── COMING SOON (temporary) ─────────────────────────────────────────────
-  // Production renders the construction screen on every public route until
-  // launch; `next dev` renders the real site so it can be reviewed locally.
-  // To go live, delete this block.
-  if (process.env.NODE_ENV === "production") {
+  // Every public route renders the construction screen until launch, in
+  // development and production alike. Set COMING_SOON to false to review the
+  // real site; delete this block to go live.
+  if (COMING_SOON) {
     return (
       <html lang="en" className={`${archivo.variable} h-full`}>
         <body className="min-h-full">
